@@ -1,5 +1,5 @@
 # Difficulty Options For Deltarune
-Mod that adds configurable difficulty options to DELTARUNE.
+Mod that adds difficulty options to DELTARUNE.
  - I'm still playing through the game w/ the mod atm, so its very untested, but what I've played so far seems to work fine (some way through chapter 1).
 
 ## Download
