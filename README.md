@@ -13,7 +13,7 @@ Just click the green `<> Code` button up there and download zip.
 4. Done! You can remove the installer & install files now if you want.
 
 ## How set options??
-1. Load up any save file in game. This prompts a `difficulty_[fileslot].ini` to spawn in Deltarune's save place.
+1. Load up any save file in-game. This prompts a `difficulty_[fileslot].ini` to spawn in Deltarune's save place.
 2. Win + R. Enter `%localappdata%/deltarune`.
 3. Make changes to the `difficulty_[fileslot].ini` that matches your save file.
 4. Reload the save file.
