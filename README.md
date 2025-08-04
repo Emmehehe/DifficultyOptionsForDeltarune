@@ -46,7 +46,7 @@ When a battle is won, the game automatically resurrects any downed characters wi
   > - Warning: This entire option hasn't been tested yet!
   > - Only shows up in the config file after loading a save file in chapter 3.
   > - Default: -1
-  > - -1 = Just use the same multiplier as DAMAGE_MULTIPLIER.
+  > - Negative (<0) value = Just use the same multiplier as DAMAGE_MULTIPLIER.
   > - Attacks that are scripted to leave a character at 1 HP, or other threshold, still do so.
 </details>
 
