@@ -9,10 +9,10 @@ Just click the green `<> Code` button up there and download zip.
 ## Installation
 1. (optional) Backup your `DELTARUNE\` folder.
 2. Copy `diffops_installfiles\` (for Windows & MacOS) & `diffops_installer_windows.bat` (for Windows only) into your `DELTARUNE\` folder.
-4. Run `diffops_installer_windows.bat` (if on Windows).
+3. Run `diffops_installer_windows.bat` (if on Windows).
    - If you're on MacOS, you could try the script from [this pull request](https://github.com/Emmehehe/DifficultyOptionsForDeltarune/pull/2) ([branch for DL](https://github.com/Emmehehe/DifficultyOptionsForDeltarune/tree/add-installer-for-macos)). Let me know if it works.
    - Or you can manually apply the scripts to each chapter file using [UndertaleModTool](https://github.com/UnderminersTeam/UndertaleModTool/releases). Scripts > Run other script...
-5. Done! You can remove the installer & install files now if you want.
+4. Done! You can remove the installer & install files now if you want.
 
 ## How set options??
 1. Load up any save file in-game. This prompts a `difficulty_[fileslot].ini` to spawn in Deltarune's save place.
