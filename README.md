@@ -63,7 +63,7 @@ Is this compatible with X mod?
 
 ## Feachure considerations
  - [MacOS install script](https://github.com/Emmehehe/DifficultyOptionsForDeltarune/pull/2). This needs testing.
- - In-game config menu (the config menu is a pile of if-else so not keen).
+ - In-game config menu ([issue](https://github.com/Emmehehe/DifficultyOptionsForDeltarune/issues/3)) (the config menu is a pile of if-else so not keen).
  - Seperate damage modifier for bosses vs. normal guys? Would have to track down every boss script in order to apply the boss modifier :/
  - Battle speed/frame-pace (I've not even had a think about how this would be acheived yet).
    - NuclearThroneTogether changes the whole game to run off deltaTime w/ configurable framerate + gamespeed option. Might be worth looking into how that was done, one day...
