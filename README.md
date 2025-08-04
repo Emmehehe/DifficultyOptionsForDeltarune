@@ -8,9 +8,11 @@ Just click the green `<> Code` button up there and download zip.
 
 ## Installation
 1. (optional) Backup your `DELTARUNE\` folder.
-2. Copy `diffops_installfiles\` & `diffops_installer_windows.bat` into your `DELTARUNE\` folder.
-3. Run `diffops_installer_windows.bat`.
-4. Done! You can remove the installer & install files now if you want.
+2. Copy `diffops_installfiles\` (for Windows & MacOS) & `diffops_installer_windows.bat` (for Windows only) into your `DELTARUNE\` folder.
+4. Run `diffops_installer_windows.bat` (if on Windows).
+   - If you're on MacOS, you could try the script from [this pull request](https://github.com/Emmehehe/DifficultyOptionsForDeltarune/pull/2) ([branch for DL](https://github.com/Emmehehe/DifficultyOptionsForDeltarune/tree/add-installer-for-macos)). Let me know if it works.
+   - Or you can manually apply the scripts to each chapter file using [UndertaleModTool](https://github.com/UnderminersTeam/UndertaleModTool/releases). Scripts > Run other script...
+5. Done! You can remove the installer & install files now if you want.
 
 ## How set options??
 1. Load up any save file in-game. This prompts a `difficulty_[fileslot].ini` to spawn in Deltarune's save place.
@@ -60,7 +62,7 @@ Is this compatible with X mod?
 > The mod install script makes changes to specific lines of vanilla damage code, so anything that doesn't mess with those should be compatible.
 
 ## Feachure considerations
- - MacOS install script (this doesn't seem complicated, no mac to test w/ tho).
+ - [MacOS install script](https://github.com/Emmehehe/DifficultyOptionsForDeltarune/pull/2). This needs testing.
  - In-game config menu (the config menu is a pile of if-else so not keen).
  - Seperate damage modifier for bosses vs. normal guys? Would have to track down every boss script in order to apply the boss modifier :/
  - Battle speed/frame-pace (I've not even had a think about how this would be acheived yet).
