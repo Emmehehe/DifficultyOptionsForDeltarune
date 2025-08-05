@@ -114,7 +114,7 @@ importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage_all_overwo
     ");
 importGroup.QueueFindReplace("gml_Object_o_boxingcontroller_Collision_o_boxing_hitbox", "if (global.hp[1] <= 10)", "if (global.hp[1] <= round(10 * global.diffdmgmulti))");
 importGroup.QueueFindReplace("gml_Object_o_boxingcontroller_Collision_o_boxing_hitbox", "global.hp[1] -= 10;", "global.hp[1] -= round(10 * global.diffdmgmulti);");
-importGroup.QueueFindReplace("gml_Object_o_boxingcontroller_Collision_o_boxing_hitbox", "global.hp[1] / 2", "global.hp[1] / power(2, 1 / global.diffdmgmulti)");
+importGroup.QueueFindReplace("gml_Object_o_boxingcontroller_Collision_o_boxing_hitbox", "global.hp[1] / 2", "(global.diffdmgmulti != 0 ? (global.hp[1] / power(2, 1 / global.diffdmgmulti)) : 0)");
 importGroup.QueueTrimmedLinesFindReplace("gml_Object_o_boxingcontroller_Collision_o_boxing_hitbox", "global.hp[1] -= final_damage_amount;", 
     "global.hp[1] -= final_damage_amount * global.diffdmgmulti;");
 // Apply damage multiplier (Damage Over Time)
@@ -123,7 +123,7 @@ importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_battlecontroller_Step_0
     if (global.charweapon[4] == 13)
     {
         if (global.hp[4] > round(global.maxhp[4] / 3))
-            global.hp[4] -= floor(t_siner / 6);
+            global.hp[4] = max(round(global.maxhp[4] / 3), global.hp[4] - floor(t_siner / 6));
         
         t_siner = t_siner % 6;
         t_siner += global.diffdmgmulti;
