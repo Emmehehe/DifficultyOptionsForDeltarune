@@ -105,7 +105,7 @@ importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_darkcontroller_Draw_0",
     msprite[4] = spr_darkconfigbt;
     msprite[5] = spr_darkmodsbt;
     ");
-importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_darkcontroller_Draw_0", "for (var i = 0; i < 5; i += 1)", "for (var i = 0; i < (array_length(global.modsmenu_data) > 0 ? 6 : 5); i += 1)");
+importGroup.QueueFindReplace("gml_Object_obj_darkcontroller_Draw_0", "i = 0; i < 5; i += 1)", "i = 0; i < (array_length(global.modsmenu_data) > 0 ? 6 : 5); i += 1)");
 importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_darkcontroller_Draw_0", "spritemx = -100;", "spritemx = (array_length(global.modsmenu_data) > 0 ? -80 : -100);");
 importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_darkcontroller_Draw_0",
     "draw_sprite_ext(msprite[i], off, xx + 120 + (i * 100) + spritemx, (yy + tp) - 60, 2, 2, 0, c_white, 1);",
