@@ -28,23 +28,64 @@ importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_gamestart", "function sc
         global.diffdmgmulti = 1;
         global.diffdwnpenalty = 1 / 2;
         global.diffvictoryres = 1 / 8;
-        
+
     ");
 // Load globals from config
-importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_load", "scr_tempsave();", @"
-    scr_tempsave();
+importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_load", "ossafe_file_text_close(myfileid);", @"
+    ossafe_file_text_close(myfileid);
 
     ossafe_ini_open(""difficulty_"" + string(global.filechoice) + "".ini"");
-    
     global.diffdmgmulti = ini_read_real(""DIFFICULTY"", ""DAMAGE_MULTIPLIER"", 1);
-    if (!ini_key_exists(""DIFFICULTY"", ""DAMAGE_MULTIPLIER"")) ini_write_real(""DIFFICULTY"", ""DAMAGE_MULTIPLIER"", global.diffdmgmulti);
     global.diffdwnpenalty = ini_read_real(""DIFFICULTY"", ""DOWN_PENALTY"", 1 / 2);
-    if (!ini_key_exists(""DIFFICULTY"", ""DOWN_PENALTY"")) ini_write_real(""DIFFICULTY"", ""DOWN_PENALTY"", global.diffdwnpenalty);
     global.diffvictoryres = ini_read_real(""DIFFICULTY"", ""VICTORY_RES"", 1 / 8);
-    if (!ini_key_exists(""DIFFICULTY"", ""VICTORY_RES"")) ini_write_real(""DIFFICULTY"", ""VICTORY_RES"", global.diffvictoryres);
+    ossafe_ini_close();
 
+    ");
+// Save globals to config
+importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_saveprocess", "ossafe_file_text_close(myfileid);", @"
+    ossafe_file_text_close(myfileid);
+
+    ossafe_ini_open(""difficulty_"" + string(global.filechoice) + "".ini"");
+    ini_write_real(""DIFFICULTY"", ""DAMAGE_MULTIPLIER"", global.diffdmgmulti);
+    ini_write_real(""DIFFICULTY"", ""DOWN_PENALTY"", global.diffdwnpenalty);
+    ini_write_real(""DIFFICULTY"", ""VICTORY_RES"", global.diffvictoryres);
     ossafe_ini_close();
     ");
+
+// Add mod menu
+importGroup.QueueAppend("gml_Object_obj_darkcontroller_Create_0", @"
+    
+    if (!variable_instance_exists(global, ""modsmenu_data""))
+        global.modsmenu_data = array_create(0);
+
+    var menudata = ds_map_create();
+    ds_map_add(menudata, ""title_en"", ""Difficulty"");
+    ds_map_add(menudata, ""title_size_en"", 138);
+
+    var formdata = array_create(0);
+
+    var rowdata = ds_map_create();
+    ds_map_add(rowdata, ""title_en"", ""Damage Multi"");
+    ds_map_add(rowdata, ""value_range"", ""0-1000%;INF=2147483647"");
+    ds_map_add(rowdata, ""value_name"", ""diffdmgmulti"");
+    array_push(formdata, rowdata);
+
+    var rowdata = ds_map_create();
+    ds_map_add(rowdata, ""title_en"", ""Down Deficit"");
+    ds_map_add(rowdata, ""value_range"", ""0-500%"");
+    ds_map_add(rowdata, ""value_name"", ""diffdwnpenalty"");
+    array_push(formdata, rowdata);
+
+    var rowdata = ds_map_create();
+    ds_map_add(rowdata, ""title_en"", ""Victory Res"");
+    ds_map_add(rowdata, ""value_range"", ""OFF=-1;0-100%"");
+    ds_map_add(rowdata, ""value_name"", ""diffvictoryres"");
+    array_push(formdata, rowdata);
+
+    ds_map_add(menudata, ""form"", formdata);
+
+    array_push(global.modsmenu_data, menudata);
+");
 
 string[] damageLikes = {"gml_GlobalScript_scr_damage", "gml_GlobalScript_scr_damage_proportional", "gml_GlobalScript_scr_damage_sneo_final_attack"};
 
