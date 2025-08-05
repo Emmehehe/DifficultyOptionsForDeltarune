@@ -136,7 +136,7 @@ importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_battlecontroller_Step_0
     if (global.charweapon[4] == 13)
     {
         if (global.hp[4] > round(global.maxhp[4] / 3))
-            global.hp[4] -= floor(t_siner / 6);
+            global.hp[4] = max(round(global.maxhp[4] / 3), global.hp[4] - floor(t_siner / 6));
         
         t_siner = t_siner % 6;
         t_siner += global.diffdmgmulti;
