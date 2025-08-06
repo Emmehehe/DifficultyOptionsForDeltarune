@@ -3,8 +3,7 @@ Mod that adds difficulty options to DELTARUNE.
  - I'm still playing through the game w/ the mod atm, so its very untested, but what I've played so far seems to work fine (some way through chapter 1).
 
 ## Download
-Just click the green `<> Code` button up there and download zip.
- - I'll add releases when I can be bothered.
+Check [releases](https://github.com/Emmehehe/DifficultyOptionsForDeltarune/releases).
 
 ## Installation
 1. (optional) Backup your `DELTARUNE\` folder.
