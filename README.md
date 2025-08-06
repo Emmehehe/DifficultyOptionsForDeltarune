@@ -22,7 +22,6 @@ Just click the green `<> Code` button up there and download zip.
 #### Damage Multi
 Multiply all incoming damage by this value. 100% = normal damage, 50% = half damage, 200% = double damage, etc.
 - Default: 100%
-- **Warning:** [0% could cause crashes atm](https://github.com/Emmehehe/DifficultyOptionsForDeltarune/issues/4).
 - Attacks that are scripted to leave a character at 1 HP, or other threshold, still do so.
 - For wierd attacks that deal damage as a percentage of the current HP, instead uses exponential logic to determine damage scaling. e.g. An attack that normally does 1/2 your HP in vanilla, instead does 70.7% with double damage, and 1/4 with half damage. The calculation is thus: `dmgratio = vanilladmgratio^(1/dmgmulti)`.
 - For any damage over time effects, either tick faster, or apply more damage, or combination of both - where appropriate - proportionate with the multiplier that has been set.
