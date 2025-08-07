@@ -26,7 +26,7 @@ UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
 // Add globals
 importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_gamestart", "function scr_gamestart\\(\\)\\s*{", @$"
     function scr_gamestart()
-    {"{"}
+    {{
         global.diffdmgmulti = 1;
         global.diffdwnpenalty = 1 / 2;
         global.diffvictoryres = 1 / 8;
