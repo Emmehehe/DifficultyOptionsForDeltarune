@@ -36,19 +36,38 @@ importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_gamestart", "function sc
 
     ");
 // Load globals from config
-importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_load", "ossafe_file_text_close(myfileid);", @$"
-    ossafe_file_text_close(myfileid);
+string[] loadLikes = {"gml_GlobalScript_scr_load"};
+if (ch_no > 1)
+{
+    string[] loadCh1 = {"gml_GlobalScript_scr_load_chapter1"};
+    loadLikes = loadLikes.Concat(loadCh1).ToArray();
+}
+if (ch_no > 2)
+{
+    string[] loadCh2 = {"gml_GlobalScript_scr_load_chapter2"};
+    loadLikes = loadLikes.Concat(loadCh2).ToArray();
+}
+if (ch_no > 3)
+{
+    string[] loadCh3 = {"gml_GlobalScript_scr_load_chapter3"};
+    loadLikes = loadLikes.Concat(loadCh3).ToArray();
+}
+foreach (string scrName in loadLikes)
+{   
+    importGroup.QueueTrimmedLinesFindReplace(scrName, "ossafe_file_text_close(myfileid);", @$"
+        ossafe_file_text_close(myfileid);
 
-    ossafe_ini_open(""difficulty_"" + string(global.filechoice) + "".ini"");
-    global.diffdmgmulti = ini_read_real(""DIFFICULTY"", ""DAMAGE_MULTIPLIER"", 1);
-    global.diffdwnpenalty = ini_read_real(""DIFFICULTY"", ""DOWN_PENALTY"", 1 / 2);
-    global.diffvictoryres = ini_read_real(""DIFFICULTY"", ""VICTORY_RES"", 1 / 8);
-    {(ch_no != 3 ? "" : @"
-    global.diffbatboarddmgmulti = ini_read_real(""DIFFICULTY"", ""BATTLEBOARD_DAMAGE_MULTIPLIER"", -1);
-    ")}
-    ossafe_ini_close();
+        ossafe_ini_open(""difficulty_"" + string(global.filechoice) + "".ini"");
+        global.diffdmgmulti = ini_read_real(""DIFFICULTY"", ""DAMAGE_MULTIPLIER"", 1);
+        global.diffdwnpenalty = ini_read_real(""DIFFICULTY"", ""DOWN_PENALTY"", 1 / 2);
+        global.diffvictoryres = ini_read_real(""DIFFICULTY"", ""VICTORY_RES"", 1 / 8);
+        {(ch_no != 3 ? "" : @"
+        global.diffbatboarddmgmulti = ini_read_real(""DIFFICULTY"", ""BATTLEBOARD_DAMAGE_MULTIPLIER"", -1);
+        ")}
+        ossafe_ini_close();
 
-    ");
+        ");
+}
 // Save globals to config
 importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_saveprocess", "ossafe_file_text_close(myfileid);", @$"
     ossafe_file_text_close(myfileid);
