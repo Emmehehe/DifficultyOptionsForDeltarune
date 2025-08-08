@@ -250,6 +250,9 @@ if (ch_no == 3)
     {   
         importGroup.QueueTrimmedLinesFindReplace(scrName, "myhealth--;", $"myhealth = max(1, myhealth - {batboarddmgmulti});");
     }
+    // fix health item not working between 0 and 1
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_board_heal_pickup_Step_0", "if (obj_board_controller.kris_object.myhealth < 1)",
+        "if (obj_board_controller.kris_object.myhealth <= 0)");
 }
 
 // Apply down penalty
