@@ -56,10 +56,3 @@ Is this compatible with X mod?
 > **I can't garauntee anything, but most likely.**
 > The mod install script makes changes to specific lines of vanilla damage code, so anything that doesn't mess with those should be compatible.
 > The mod menu script makes changes to the dark world menu logic and draw code, so disable the mod menu script if you're getting compatibility issues with the dark world menu.
-
-## Feachure considerations
- - [MacOS install script](https://github.com/Emmehehe/DifficultyOptionsForDeltarune/pull/2). This needs testing.
- - Seperate damage modifier for bosses vs. normal guys? Would have to track down every boss script in order to apply the boss modifier :/
- - Battle speed/frame-pace (I've not even had a think about how this would be acheived yet).
-   - NuclearThroneTogether changes the whole game to run off deltaTime w/ configurable framerate + gamespeed option. Might be worth looking into how that was done, one day...
-   - I imagine you can cheat engine the game speed anyway (though would be much nicer if it was only for battle box segments)
