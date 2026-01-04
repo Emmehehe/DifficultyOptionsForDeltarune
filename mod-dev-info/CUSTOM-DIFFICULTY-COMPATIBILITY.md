@@ -47,3 +47,15 @@ There are various difficulty options you can apply via the `diff_apply` function
 - **Victory Res** — `global.diff_apply("DIFFOP_VICRES", maxhp, hp)`
   - Get the HP to set the character to, based on their max HP & current HP.
   - This is 1/8 in vanilla Deltarune.
+- **Player Damage** — `global.diff_apply("DIFFOP_PLRDMG", maxhp, hp)`
+  - Apply player damage multiplier.
+- **Gameboard Player Damage** — `global.diff_apply("DIFFOP_PLRDMG_GB", maxhp, hp)`
+  - Apply gameboard player damage multiplier.
+- **Player Heal** — `global.diff_apply("DIFFOP_PLRHEAL", maxhp, hp)`
+  - Apply player healing multiplier.
+- **Gameboard Player Heal** — `global.diff_apply("DIFFOP_PLRHEAL_GB", maxhp, hp)`
+  - Apply gameboard player healing multiplier.
+- **TP Gain** — `global.diff_apply("DIFFOP_TPGAIN", maxhp, hp)`
+  - Apply TP gain multiplier.
+- **Mercy** — `global.diff_apply("DIFFOP_MERCY", maxhp, hp)`
+  - Apply mercy multiplier.

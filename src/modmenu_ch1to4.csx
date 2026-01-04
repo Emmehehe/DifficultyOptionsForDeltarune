@@ -260,11 +260,11 @@ foreach (string darkcon in darkcons)
         msprite[4] = spr_darkconfigbt{(darkcon.EndsWith("_ch1") ? "_ch1" : "")};
         msprite[5] = spr_darkmodsbt;
         ");
-    importGroup.QueueFindReplace(darkcon + "_Draw_0", "i = 0; i < 5; i += 1)", "i = 0; i < (array_length(global.modmenu_data) > 0 ? 6 : 5); i += 1)");
-    importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Draw_0", "spritemx = -100;", "spritemx = (array_length(global.modmenu_data) > 0 ? -80 : -100);");
+    importGroup.QueueFindReplace(darkcon + "_Draw_0", "i = 0; i < 5; i += 1)", "i = 0; i < 6; i += 1)");
+    importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Draw_0", "spritemx = -100;", "spritemx = -80;");
     importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Draw_0",
         "draw_sprite_ext(msprite[i], off, xx + 120 + (i * 100) + spritemx, (yy + tp) - 60, 2, 2, 0, c_white, 1);",
-        "draw_sprite_ext(msprite[i], off, xx + (array_length(global.modmenu_data) > 0 ? (110 + (i * 80)) : (120 + (i * 100))) + spritemx, (yy + tp) - 60, 2, 2, 0, c_white, 1);");
+        "draw_sprite_ext(msprite[i], off, xx + 110 + (i * 80) + spritemx, (yy + tp) - 60, 2, 2, 0, c_white, 1);");
     string ch1_back_text = "scr_84_get_lang_string(\"obj_darkcontroller_slash_Draw_0_gml_96_0\")";
     string back_text = (ch_no >= 2 || ch_no == 0) ? "back_text" : ch1_back_text;
     importGroup.QueueAppend(darkcon + "_Draw_0", @$"
@@ -283,164 +283,213 @@ foreach (string darkcon in darkcons)
                 scr_darkbox(xx + 50, yy + 80, xx + 590, yy + 420);
             }}
 
-            // top row buttons
-            var isSubmenu = (global.modsubmenuno >= 0);
-            var isMenuLonely = array_length(global.modmenu_data) == 1;
-
             draw_set_color(c_white);
-            var allmodmenus = """";
 
-            for (var i = global.modmenuno; i < array_length(global.modmenu_data); i++)
+            if (array_length(global.modmenu_data) > 0)
             {{
-                allmodmenus += string_upper({ds_map_find_value_lang("global.modmenu_data[i]", @"""title""")}) + (i + 1 < array_length(global.modmenu_data) ? ""        "" : """");
-            }}
+                // top row buttons
+                var isSubmenu = (global.modsubmenuno >= 0);
+                var isMenuLonely = array_length(global.modmenu_data) == 1;
 
-            if (!surface_exists(surf_modtitles))
-            {{
-                surf_modtitles = surface_create(410, 35);
-            }}
-            surface_set_target(surf_modtitles);
-            draw_clear_alpha(c_black, 0);
+                var allmodmenus = """";
 
-            if (isMenuLonely || !isSubmenu)
-            {{
-                draw_set_color(c_white);
-                if (isMenuLonely)
+                for (var i = global.modmenuno; i < array_length(global.modmenu_data); i++)
                 {{
-                    draw_set_halign(fa_center);
-                    draw_text(205, 0, allmodmenus);
-                    draw_set_halign(fa_left);
+                    allmodmenus += string_upper({ds_map_find_value_lang("global.modmenu_data[i]", @"""title""")}) + (i + 1 < array_length(global.modmenu_data) ? ""        "" : """");
+                }}
+
+                if (!surface_exists(surf_modtitles))
+                {{
+                    surf_modtitles = surface_create(410, 35);
+                }}
+                surface_set_target(surf_modtitles);
+                draw_clear_alpha(c_black, 0);
+
+                if (isMenuLonely || !isSubmenu)
+                {{
+                    draw_set_color(c_white);
+                    if (isMenuLonely)
+                    {{
+                        draw_set_halign(fa_center);
+                        draw_text(205, 0, allmodmenus);
+                        draw_set_halign(fa_left);
+                    }}
+                    else
+                    {{
+                        draw_text(0, 0, allmodmenus);
+                    }}
                 }}
                 else
                 {{
+                    draw_set_color(c_gray);
                     draw_text(0, 0, allmodmenus);
+                    draw_set_color(c_orange);
+                    draw_text(0, 0, string_upper({ds_map_find_value_lang("global.modmenu_data[global.modmenuno]", @"""title""")}));
                 }}
+
+                draw_sprite(spr_darkmodsfade, 0, 410 - 35, 0);
+
+                surface_reset_target();
+                draw_surface(surf_modtitles, xx + 110, yy + 110);
+
+                if (!isSubmenu) {{
+                    menusiner += 1;
+                    draw_sprite_part(spr_heart_harrows, menusiner / 20, 8 - 8 * (global.modmenuno > 0), 0, 16 + 8 * (global.modmenuno > 0) + 8 * (global.modmenuno < (array_length(global.modmenu_data) - 1)), 16, xx + 85 - 8 * (global.modmenuno > 0), yy + 120);
+                }}
+
+                // form buttons
+                var left_margin = {ds_map_find_value_lang("global.modmenu_data[global.modmenuno]", @"""left_margin""")};
+                if (is_undefined(left_margin))
+                    left_margin = 40;
+                var _xPos = xx + 130 + left_margin;
+                var _heartXPos = xx + 105 + left_margin;
+
+                var left_value_pos = {ds_map_find_value_lang("global.modmenu_data[global.modmenuno]", @"""left_value_pos""")};
+                if (is_undefined(left_value_pos))
+                    left_value_pos = 300;
+                var _selectXPos = xx + 130 + left_value_pos;
+
+                draw_set_color(c_white);
+
+                if (!isSubmenu)
+                    draw_set_color(c_gray);
+
+                var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
+
+                var heartyprogress = 150;
+                if (array_length(form_data) >= 0)
+                {{
+                    var i = global.modsubmenuscroll;
+                    var yprogress = 150;
+                    while ((yprogress < 150 + 6 * 35) && (i < array_length(form_data) + 1))
+                    {{
+                        if (i >= array_length(form_data))
+                        {{
+                            draw_set_color(c_white);
+                            draw_text(_xPos, yy + yprogress, string_hash_to_newline({(darkcon.EndsWith("_ch1") ? ch1_back_text : back_text)})); // Back
+                            if (global.modsubmenuno == i)
+                                heartyprogress = yprogress;
+                            yprogress += 35;
+                            continue;
+                        }}
+
+                        if (global.modsubmenuselected && global.modsubmenuno == i)
+                            draw_set_color(c_yellow);
+                        else
+                            draw_set_color(c_white);
+
+                        var row_data = form_data[i];
+                        var value_name = ds_map_find_value(row_data, ""value_name"");
+                        var value = !is_undefined(value_name) ? variable_instance_get(global, value_name) : -1;
+                        var value_range = {ds_map_find_value_lang("row_data", @"""value_range""")};
+                        var ranges = !is_undefined(value_range) ? string_split(value_range, "";"") : [];
+                        var valueString = """";
+                        var isCategory = is_undefined(value_range) && is_undefined(ds_map_find_value(row_data, ""func_name""));
+
+                        draw_text_transformed(_xPos - (isCategory * 28), yy + yprogress - (isCategory * 4), string_hash_to_newline({ds_map_find_value_lang("row_data", @"""title""")}), (isCategory ? 0.5 : 1), (isCategory ? 0.5 : 1), 0);
+                        if (isCategory){{
+                            draw_line(_xPos - 28 - 3, yy + yprogress + 9, _xPos + 400, yy + yprogress + 9);
+                        }}
+
+                        for (var j = 0; j < array_length(ranges); j++) {{
+                            var range = ranges[j];
+                            if (string_pos(""~"", range)) {{
+                                var minMax = string_split(string_replace(range, ""%"", """"), ""~"");
+                                var isPercent = string_ends_with(range, ""%"");
+                                var convVal = isPercent ? value * 100 : value;
+                                if (convVal <= minMax[1] || j+1 == array_length(ranges)) {{
+                                    valueString = string_trim(string_format(convVal, 3, (isPercent && convVal > -20 && convVal < 20) ? 1 : 0) + (isPercent ? ""%"" : """"));
+                                    break;
+                                }}
+                            }} else if (string_pos(""="", range)) {{
+                                var labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                var isString = string_ends_with(range, ""`"");
+                                var isPercent = !isString && string_ends_with(range, ""%"");
+                                var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
+
+                                var isMatch = false;
+                                if (isString)
+                                    isMatch = value == labelValue[1];
+                                else if (isBool)
+                                    isMatch = value == bool(labelValue[1]);
+                                else {{ // number
+                                    var convBack = isPercent ? 1 / 100 : 1;
+                                    isMatch = value == real(labelValue[1]) * convBack;
+                                }}
+
+                                if (isMatch || j+1 == array_length(ranges)) {{
+                                    valueString = labelValue[0];
+                                    break;
+                                }}
+                            }} else if (string_ends_with(range, ""%"")) {{
+                                var minMax = string_split(string_replace(range, ""%"", """"), ""-"");
+                                if (value * 100 <= minMax[1] || j+1 == array_length(ranges)) {{
+                                    valueString = string_trim(string_format(value * 100, 3, value < 0.2 ? 1 : 0) + ""%"");
+                                    break;
+                                }}
+                            }}
+                        }}
+
+                        draw_text(_selectXPos, yy + yprogress, string_hash_to_newline(valueString));
+
+                        if (global.modsubmenuno == i){{
+                            heartyprogress = yprogress;
+                        }}
+                        yprogress += (isCategory ? 12 : 35);
+                        i++;
+                    }}
+
+                    // calcs required to get the scroller size & position correct
+                    var totalmenulength = 0;
+                    var scrollprogress = 0;
+                    for (var i = 0; i < array_length(form_data) + 1; i++) {{
+                        if (i >= array_length(form_data))
+                        {{
+                            if (global.modsubmenuscroll == i){{
+                                scrollprogress = totalmenulength;
+                            }}
+                            totalmenulength += 35;
+                            continue;
+                        }}
+
+                        if (global.modsubmenuscroll == i){{
+                            scrollprogress = totalmenulength;
+                        }}
+                        var isCategory = is_undefined({ds_map_find_value_lang("form_data[i]", @"""value_range""")}) && is_undefined(ds_map_find_value(form_data[i], ""func_name""));
+                        totalmenulength += (isCategory ? 12 : 35);
+                    }}
+
+                    var menuscreenlength = 7 * 35;
+                    if (totalmenulength > menuscreenlength)
+                    {{
+                        var modscrollbary = 180;
+                        var modscrollbarlength = 190;
+                        var modscrollery = modscrollbarlength * (scrollprogress / totalmenulength);
+                        var modscrollerlength = modscrollbarlength * (menuscreenlength / totalmenulength);
+                        draw_set_color(c_dkgray);
+                        draw_rectangle(xx + 85, yy + modscrollbary, xx + 90, yy + modscrollbary + modscrollbarlength, false);
+                        draw_set_color(c_white);
+                        draw_rectangle(xx + 85, yy + modscrollbary + modscrollery, xx + 90, yy + modscrollbary + modscrollerlength + modscrollery, false);
+
+                        if (global.modsubmenuscroll > 0)
+                            draw_sprite_ext(spr_morearrow, 0, xx + 81, (yy + modscrollbary) - 10 - (sin(cur_jewel / 12) * 3), 1, -1, 0, c_white, 1);
+
+                        if ((global.modsubmenuscroll + 7) < (array_length(form_data) + 1))
+                            draw_sprite_ext(spr_morearrow, 0, xx + 81, yy + 10 + modscrollbary + modscrollbarlength + (sin(cur_jewel / 12) * 3), 1, 1, 0, c_white, 1);
+                    }}
+                }}
+
+                if (isSubmenu)
+                    draw_sprite(spr_heart, 0, _heartXPos, yy + 10 + heartyprogress);
             }}
             else
             {{
-                draw_set_color(c_gray);
-                draw_text(0, 0, allmodmenus);
-                draw_set_color(c_orange);
-                draw_text(0, 0, string_upper({ds_map_find_value_lang("global.modmenu_data[global.modmenuno]", @"""title""")}));
+                draw_set_halign(fa_center);
+                draw_set_valign(fa_middle);
+                draw_text(xx + 320, yy + 250, string_hash_to_newline(""NO MOD MENUS FOUND""));
+                draw_set_halign(fa_left);
+                draw_set_valign(fa_top);
             }}
-
-            draw_sprite(spr_darkmodsfade, 0, 410 - 35, 0);
-
-            surface_reset_target();
-            draw_surface(surf_modtitles, xx + 110, yy + 110);
-
-            if (!isSubmenu) {{
-                menusiner += 1;
-                draw_sprite_part(spr_heart_harrows, menusiner / 20, 8 - 8 * (global.modmenuno > 0), 0, 16 + 8 * (global.modmenuno > 0) + 8 * (global.modmenuno < (array_length(global.modmenu_data) - 1)), 16, xx + 85 - 8 * (global.modmenuno > 0), yy + 120);
-            }}
-
-            // form buttons
-            var left_margin = {ds_map_find_value_lang("global.modmenu_data[global.modmenuno]", @"""left_margin""")};
-            if (is_undefined(left_margin))
-                left_margin = 40;
-            var _xPos = xx + 130 + left_margin;
-            var _heartXPos = xx + 105 + left_margin;
-
-            var left_value_pos = {ds_map_find_value_lang("global.modmenu_data[global.modmenuno]", @"""left_value_pos""")};
-            if (is_undefined(left_value_pos))
-                left_value_pos = 300;
-            var _selectXPos = xx + 130 + left_value_pos;
-
-            draw_set_color(c_white);
-
-            if (!isSubmenu)
-                draw_set_color(c_gray);
-
-            var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
-
-            if (array_length(form_data) >= 0)
-            {{
-                for (var i = global.modsubmenuscroll; i < min(global.modsubmenuscroll + 7, array_length(form_data) + 1 /* (back button) */); i++)
-                {{
-                    if (i >= array_length(form_data))
-                    {{
-                        draw_set_color(c_white);
-                        draw_text(_xPos, yy + 150 + (i - global.modsubmenuscroll) * 35, string_hash_to_newline({(darkcon.EndsWith("_ch1") ? ch1_back_text : back_text)})); // Back
-                        continue;
-                    }}
-
-                    if (global.modsubmenuselected && global.modsubmenuno == i)
-                        draw_set_color(c_yellow);
-                    else
-                        draw_set_color(c_white);
-
-                    var row_data = form_data[i];
-                    draw_text(_xPos, yy + 150 + (i - global.modsubmenuscroll) * 35, string_hash_to_newline({ds_map_find_value_lang("row_data", @"""title""")}));
-
-                    var value_name = ds_map_find_value(row_data, ""value_name"");
-                    var value = !is_undefined(value_name) ? variable_instance_get(global, value_name) : -1;
-                    var value_range = {ds_map_find_value_lang("row_data", @"""value_range""")};
-                    var ranges = !is_undefined(value_range) ? string_split(value_range, "";"") : [];
-                    var valueString = """";
-
-                    for (var j = 0; j < array_length(ranges); j++) {{
-                        var range = ranges[j];
-                        if (string_pos(""~"", range)) {{
-                            var minMax = string_split(string_replace(range, ""%"", """"), ""~"");
-                            var isPercent = string_ends_with(range, ""%"");
-                            var convVal = isPercent ? value * 100 : value;
-                            if (convVal <= minMax[1] || j+1 == array_length(ranges)) {{
-                                valueString = string_trim(string_format(convVal, 3, (isPercent && convVal > -20 && convVal < 20) ? 1 : 0) + (isPercent ? ""%"" : """"));
-                                break;
-                            }}
-                        }} else if (string_pos(""="", range)) {{
-                            var labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                            var isString = string_ends_with(range, ""`"");
-                            var isPercent = !isString && string_ends_with(range, ""%"");
-                            var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-
-                            var isMatch = false;
-                            if (isString)
-                                isMatch = value == labelValue[1];
-                            else if (isBool)
-                                isMatch = value == bool(labelValue[1]);
-                            else {{ // number
-                                var convBack = isPercent ? 1 / 100 : 1;
-                                isMatch = value == real(labelValue[1]) * convBack;
-                            }}
-
-                            if (isMatch || j+1 == array_length(ranges)) {{
-                                valueString = labelValue[0];
-                                break;
-                            }}
-                        }} else if (string_ends_with(range, ""%"")) {{
-                            var minMax = string_split(string_replace(range, ""%"", """"), ""-"");
-                            if (value * 100 <= minMax[1] || j+1 == array_length(ranges)) {{
-                                valueString = string_trim(string_format(value * 100, 3, value < 0.2 ? 1 : 0) + ""%"");
-                                break;
-                            }}
-                        }}
-                    }}
-
-                    draw_text(_selectXPos, yy + 150 + (i - global.modsubmenuscroll) * 35, string_hash_to_newline(valueString));
-                }}
-
-                if (array_length(form_data) + 1 > 7)
-                {{
-                    var modscrollbary = 180;
-                    var modscrollbarlength = 190;
-                    var modscrollstep = modscrollbarlength / (array_length(form_data) + 1);
-                    var modscrollerlength = modscrollstep * 7;
-                    draw_set_color(c_dkgray);
-                    draw_rectangle(xx + 85, yy + modscrollbary, xx + 90, yy + modscrollbary + modscrollbarlength, false);
-                    draw_set_color(c_white);
-                    draw_rectangle(xx + 85, yy + modscrollbary + (global.modsubmenuscroll * modscrollstep), xx + 90, yy + modscrollbary + modscrollerlength + (global.modsubmenuscroll * modscrollstep), false);
-
-                    if (global.modsubmenuscroll > 0)
-                        draw_sprite_ext(spr_morearrow, 0, xx + 81, (yy + modscrollbary) - 10 - (sin(cur_jewel / 12) * 3), 1, -1, 0, c_white, 1);
-
-                    if ((global.modsubmenuscroll + 7) < (array_length(form_data) + 1))
-                        draw_sprite_ext(spr_morearrow, 0, xx + 81, yy + 10 + modscrollbary + modscrollbarlength + (sin(cur_jewel / 12) * 3), 1, 1, 0, c_white, 1);
-                }}
-            }}
-
-            if (isSubmenu)
-                draw_sprite(spr_heart, 0, _heartXPos, yy + 160 + ((global.modsubmenuno - global.modsubmenuscroll) * 35));
         }}
     ");
 }
@@ -448,13 +497,52 @@ foreach (string darkcon in darkcons)
 // Add menu step code
 foreach (string darkcon in darkcons)
 {
-    importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "global.menucoord[0] = 4;", "global.menucoord[0] = array_length(global.modmenu_data) <= 0 ? 4 : 5;");
-    importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "if (global.menucoord[0] == 4)", "if (global.menucoord[0] == (array_length(global.modmenu_data) <= 0 ? 4 : 5))");
+    importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "global.menucoord[0] = 4;", "global.menucoord[0] = 5;");
+    importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "if (global.menucoord[0] == 4)", "if (global.menucoord[0] == 5)");
     importGroup.QueueAppend(darkcon + "_Step_0", @$"
         // override for deltaesp's spanish translation
         if (global.modmenu_langoverride != ""es"" && global.lang == ""en"" && variable_instance_exists(global, ""esp_names""))
         {{
             global.modmenu_langoverride = ""es"";
+        }}
+
+        // TODO scroll based on screen area
+        function modsubmenu_up(arg0)
+        {{
+            global.modsubmenuno--;
+
+            if (global.modsubmenuno < global.modsubmenuscroll)
+                global.modsubmenuscroll = global.modsubmenuno;
+
+            if (global.modsubmenuno < 0)
+            {{
+                global.modsubmenuno = arg0 - 1;
+                global.modsubmenuscroll = max(0, arg0 - 7);
+            }}
+        }}
+
+        // TODO scroll based on screen area
+        function modsubmenu_down(arg0)
+        {{
+            global.modsubmenuno++;
+
+            if (global.modsubmenuno >= global.modsubmenuscroll + 7)
+                global.modsubmenuscroll = global.modsubmenuno - 6;
+
+            if (global.modsubmenuno >= arg0)
+            {{
+                global.modsubmenuno = 0;
+                global.modsubmenuscroll = 0;
+            }}
+        }}
+
+        function issubmenucategory(arg0, arg1)
+        {{
+            if (global.modsubmenuno >= (arg0 - 1))
+                return false;
+
+            return
+                is_undefined({ds_map_find_value_lang("arg1[global.modsubmenuno]", @"""value_range""")}) && is_undefined(ds_map_find_value(arg1[global.modsubmenuno], ""func_name""))
         }}
 
         if (global.menuno == 6)
@@ -466,27 +554,41 @@ foreach (string darkcon in darkcons)
                 if (array_length(global.modmenu_data) == 1)
                     global.modsubmenuno = 0;
 
-                if (left_p())
+                if (array_length(global.modmenu_data) > 0)
                 {{
-                    movenoise = 1;
+                    if (left_p())
+                    {{
+                        movenoise = 1;
 
-                    global.modmenuno--;
-                    if (global.modmenuno < 0)
-                        global.modmenuno = array_length(global.modmenu_data) - 1;
-                }}
-                if (right_p())
-                {{
-                    movenoise = 1;
+                        global.modmenuno--;
+                        if (global.modmenuno < 0)
+                            global.modmenuno = array_length(global.modmenu_data) - 1;
+                    }}
+                    if (right_p())
+                    {{
+                        movenoise = 1;
 
-                    global.modmenuno++;
-                    if (global.modmenuno >= array_length(global.modmenu_data))
-                        global.modmenuno = 0;
-                }}
-                if (button1_p() && onebuffer < 0 && twobuffer < 0)
-                {{
-                    onebuffer = 2;
-                    selectnoise = 1;
-                    global.modsubmenuno = 0;
+                        global.modmenuno++;
+                        if (global.modmenuno >= array_length(global.modmenu_data))
+                            global.modmenuno = 0;
+                    }}
+                    if (button1_p() && onebuffer < 0 && twobuffer < 0)
+                    {{
+                        onebuffer = 2;
+                        selectnoise = 1;
+                        global.modsubmenuno = 0;
+
+                        // make sure category header isn't selected
+                        var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
+                        var form_length = ds_map_exists(global.modmenu_data[global.modmenuno], ""form"") ? array_length(form_data) : 0;
+                        // back button
+                        form_length++;
+                        var movecount = 0;
+                        while ((movecount < form_length + 1) && issubmenucategory(form_length, form_data)) {{
+                            modsubmenu_down(form_length);
+                            movecount++;
+                        }}
+                    }}
                 }}
                 if (button2_p() && onebuffer < 0 && twobuffer < 0)
                 {{
@@ -511,30 +613,26 @@ foreach (string darkcon in darkcons)
                 {{
                     movenoise = 1;
 
-                    global.modsubmenuno--;
+                    modsubmenu_up(form_length);
 
-                    if (global.modsubmenuno < global.modsubmenuscroll)
-                        global.modsubmenuscroll = global.modsubmenuno;
-
-                    if (global.modsubmenuno < 0)
-                    {{
-                        global.modsubmenuno = form_length - 1;
-                        global.modsubmenuscroll = max(0, form_length - 7);
+                    // make sure category header isn't selected
+                    var movecount = 0;
+                    while ((movecount < form_length + 1) && issubmenucategory(form_length, form_data)) {{
+                        modsubmenu_up(form_length);
+                        movecount++;
                     }}
                 }}
                 if (down_p())
                 {{
                     movenoise = 1;
 
-                    global.modsubmenuno++;
+                    modsubmenu_down(form_length);
 
-                    if (global.modsubmenuno >= global.modsubmenuscroll + 7)
-                        global.modsubmenuscroll = global.modsubmenuno - 6;
-
-                    if (global.modsubmenuno >= form_length)
-                    {{
-                        global.modsubmenuno = 0;
-                        global.modsubmenuscroll = 0;
+                    // make sure category header isn't selected
+                    var movecount = 0;
+                    while ((movecount < form_length + 1) && issubmenucategory(form_length, form_data)) {{
+                        modsubmenu_down(form_length);
+                        movecount++;
                     }}
                 }}
                 if (button1_p() && onebuffer < 0 && twobuffer < 0)

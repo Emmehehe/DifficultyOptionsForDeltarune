@@ -22,7 +22,7 @@ ds_map_add(menudata, "title_en", "<My Cool Mod for Deltarune>");
 ```
 var formdata = array_create(0);
 ```
-4. Add as many rows to the form as you need. Each row could be a slider/toggle that controls a global variable, or a button that triggers a global function.
+4. Add as many rows to the form as you need. Each row could be a slider/toggle that controls a global variable, a button that triggers a global function, or a header.
 
 <i>Slider/Toggle:</i>
 ```
@@ -39,6 +39,12 @@ ds_map_add(rowdata, "title_en", "<My Cool Button>");
 ds_map_add(rowdata, "func_name", "<somefuncname>");
 array_push(formdata, rowdata);
   ```
+<i>Header:</i>
+  ```
+var rowdata = ds_map_create();
+ds_map_add(rowdata, "title_en", "<My Cool Header>");
+array_push(formdata, rowdata);
+  ```
 5. Finish defining the form controls, and menu.
 ```
 ds_map_add(menudata, "form", formdata);
@@ -50,8 +56,8 @@ array_push(global.modmenu_data, menudata);
 - title_en — English title for the mod's menu.
 - left_margin_en (optional, default: 40) — Adjusts the menu's left side margin. Useful if you're having trouble fitting text in the box.
 - left_value_pos_en (optional, default: 300) — Adjusts the left side position of the values in the menu. Useful if you're having trouble fitting text in the box.
-- form — Array containing rows for controls and buttons.
-  - title_en — English title for the control/button.
+- form — Array containing rows for controls, buttons, and headers.
+  - title_en — English title for the control/button/header.
   - value_range_en (optional) — English value range string for the control.
     - Simple examples: `"0~100%"`, `"OFF=false;ON=true"`, `"OFF=-1;0~100%"`.
     - See [Value Ranges](#Value-Ranges) for a more detailed explaination.

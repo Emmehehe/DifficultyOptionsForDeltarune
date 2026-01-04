@@ -6,12 +6,17 @@
     -NoBackup           Skip creating backups before patching
     -GameDir <path>     Path to DELTARUNE folder (skips auto‑detect)
     -UtmtCli <path>     Path to UndertaleModCli.exe (skips download/search)
+    -NoModMenu          Skip installing Mod Menu
+    -NoCustDiff         Skip installing Custom Difficulty
+    -SkipFullGame       Skip searching for the full game and look for the demo
 #>
 param(
   [switch]$Uninstall,
   [switch]$NoBackup,
   [string]$GameDir,
-  [string]$UtmtCli
+  [string]$UtmtCli,
+  [string]$NoModMenu,
+  [string]$NoCustDiff
 )
 
 $ErrorActionPreference = 'Stop'
@@ -22,16 +27,23 @@ function Die($m){ Write-Host "`n[ERROR] $m" -ForegroundColor Red; exit 1 }
 # Resolve script & mod script paths
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ScriptsDir = Join-Path $ScriptDir 'src'
-$ModScripts = @(
-  (Join-Path $ScriptsDir 'modmenu_ch1to4.csx'),
-  (Join-Path $ScriptsDir 'customdifficulty_ch1to4.csx')
-)
+$ModMenuScript = (Join-Path $ScriptsDir 'modmenu_ch1to4.csx')
+$CustDiffScript = (Join-Path $ScriptsDir 'customdifficulty_ch1to4.csx')
 
 # Verify scripts exist
-foreach ($script in $ModScripts) {
-  if (-not (Test-Path $script)) {
-    Die "Required script not found: $script"
+if (-not $NoModMenu) {
+  if (-not (Test-Path $ModMenuScript)) {
+    Die "Required script not found: $ModMenuScript"
   }
+} else {
+  Log 'Skipping Mod Menu (-NoModMenu flag set)'
+}
+if (-not $NoCustDiff) {
+  if (-not (Test-Path $CustDiffScript)) {
+    Die "Required script not found: $CustDiffScript"
+  }
+} else {
+  Log 'Skipping Custom Difficulty (-NoCustDiff flag set)'
 }
 
 # --- find UndertaleModCli ---
@@ -144,9 +156,11 @@ function Detect-GameDir {
     }
   }
   $found = $null
-  foreach ($c in $candidates) {
-    $try = Join-Path $c 'DELTARUNE'
-    if (Test-Path $try) { $found = $try; break }
+  if (-not $SkipFullGame) {
+    foreach ($c in $candidates) {
+      $try = Join-Path $c 'DELTARUNE'
+      if (Test-Path $try) { $found = $try; break }
+    }
   }
   # If no game found, try to find demo
   if (-not ($found)) {
@@ -259,10 +273,14 @@ if (-not $NoBackup) {
 Log 'Patching chapters ...'
 foreach ($f in $targets) {
   Write-Host ("  -> " + $f.FullName)
-  & $UtmtExe load $f.FullName --scripts $ModScripts[0] --verbose false --output $f.FullName
-  if ($LASTEXITCODE -ne 0) { Die "Failed to apply first patch to $($f.Name)" }
-  & $UtmtExe load $f.FullName --scripts $ModScripts[1] --verbose false --output $f.FullName
-  if ($LASTEXITCODE -ne 0) { Die "Failed to apply second patch to $($f.Name)" }
+  if (-not $NoModMenu) {
+    & $UtmtExe load $f.FullName --scripts $ModMenuScript --verbose false --output $f.FullName
+    if ($LASTEXITCODE -ne 0) { Die "Failed to apply first patch to $($f.Name)" }
+  }
+  if (-not $NoCustDiff) {
+    & $UtmtExe load $f.FullName --scripts $CustDiffScript --verbose false --output $f.FullName
+    if ($LASTEXITCODE -ne 0) { Die "Failed to apply second patch to $($f.Name)" }
+  }
 }
 
 Log 'Done. Launch DELTARUNE and open the Mods menu to configure difficulty.'
