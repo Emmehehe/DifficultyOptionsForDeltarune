@@ -358,7 +358,7 @@ foreach (string darkcon in darkcons)
         array_push(formdata, rowdata);
 
         var rowdata = ds_map_create();
-        ds_map_add(rowdata, ""title_en"", ""Battle"");
+        ds_map_add(rowdata, ""title_en"", ""BATTLE"");
         array_push(formdata, rowdata);
 
         var rowdata = ds_map_create();
@@ -424,7 +424,7 @@ foreach (string darkcon in darkcons)
         ")}
 
         var rowdata = ds_map_create();
-        ds_map_add(rowdata, ""title_en"", ""Down"");
+        ds_map_add(rowdata, ""title_en"", ""DOWN"");
         array_push(formdata, rowdata);
 
         var rowdata = ds_map_create();
@@ -449,7 +449,7 @@ foreach (string darkcon in darkcons)
         array_push(formdata, rowdata);
 
         var rowdata = ds_map_create();
-        ds_map_add(rowdata, ""title_en"", ""Player"");
+        ds_map_add(rowdata, ""title_en"", ""PLAYER"");
         array_push(formdata, rowdata);
 
         var rowdata = ds_map_create();
@@ -1080,7 +1080,12 @@ if (ch_no == 3)
 }
 
 // Apply Player Healing
-// TODO implement for ch1,2,3,4 & demo
+if (ch_no >= 0 && ch_no <= 4) {
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell", "scr_heal((\\S+), healnum);", "scr_heal($1, ceil(global.diff_plrheal * healnum));");
+}
+if (ch_no == 0) {
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell_ch1", "scr_heal_ch1((\\S+), healnum);", "scr_heal_ch1($1, ceil(global.diff_plrheal * healnum));");
+}
 
 // Apply Game Board Player Healing
 if (ch_no == 3)
