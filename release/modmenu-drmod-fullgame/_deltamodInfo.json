@@ -1,11 +1,11 @@
 {
     "metadata": {
-        "name": "Modmenu",
-        "version": "1.5.0",
-        "description": "Modmenu for DELTARUNE. Framework for mods to add option menus.",
+        "name": "Mod Menu",
+        "version": "1.6.0",
+        "description": "Mod menu for DELTARUNE. Framework for mods to add option menus.",
         "author": ["Emmahaha"],
-        "demoMod": false,
         "packageID": "com.emmahaha.modmenu",
+        "game": "toby.deltarune",
         "url": "https://gamebanana.com/mods/615910",
         "tags": ["other"]
     },
