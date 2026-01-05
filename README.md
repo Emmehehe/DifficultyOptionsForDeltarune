@@ -15,6 +15,8 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
   - Nightmare-EX `+150% damage, -50% i-frames, -30% enemy cooldowns`
   - Nightmare-Neo `NIGHTMARE-EX with -50% battle rewards, and no passive regen/revive for downed characters`
   - No-Hit `Infinite damage to every party member`
+
+***Battle***
 - **Damage Multi** — multiply all incoming damage by this value
   - Attacks that are scripted to leave a character at 1 HP, or other threshold, still do so.
   - For attacks that deal damage as a percentage of the current HP, instead uses exponential logic to determine damage scaling. e.g. An attack that normally does 50% of your HP in vanilla, instead does 70.7% with double damage, and 25% with half damage. The calculation is thus: `dmgratio = vanilladmgratio^(1/dmgmulti)`.
@@ -25,21 +27,30 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
   - For no-hit runs, combine this setting with `Damage Multi=INF`.
 - **I-Frames** — multiply the number of i-frames received after damage by this value
 - **Enemy Cooldowns** — multiplier for the cooldown between enemy attacks & bullet patterns
-  - Chapter 4 Enemy Cooldowns is still Work-In-Progress and many encounters won't respect the option currently.
   - A few tweaks have been made to some attacks:
     - Reduce random placement of heart shapers (Head Hathy) at lower cooldowns as the attack can trap you.
     - Cap timer reduction for wave chain (Spade King) as it becomes a solid wall quite quickly.
     - Shorten tails for chain of hell (Spade King's chain bullets) at lower cooldowns as the attack can trap you.
     - Ensure Queen's leg stomp attack waits for an available slot before spawning a leg, instead of flooding the box.
 - **Battle Rewards** — multiply post-battle rewards by this value
+
+***Down***
 - **Down Deficit** — when a party member is downed, their HP is set to -50% max HP; this option overrides that
 - **Downed Regen** — when downed, party members regen 12.5% max HP every turn; this option overrides that
 - **Victory Res** — when a battle is won, all downed party members are healed up to 12.5% max HP; this option overrides that
   - OFF: Can also be switched off entirely by reducing past 0%.
+
+***Player***
+- **Damage** — multiply outgoing damage by this value
+- **Healing** — multiply healing from spells & actions by this value
+- **TP Gain** — multiply TP gain from all sources (except item use) by this value
+- **Mercy** — multiply mercy build-up by this value
 <details> 
   <summary><strong>CHAPTER 3 SPOILERS...</strong></summary>
 
-  - **Gameboard Dmg X** — multiplier for the damage in the chapter 3 game boards
+
+  ***Battle***
+  - **Gameboard Dmg X** — multiplier for the incoming damage in the chapter 3 game boards
     - Only shows up in the menu in chapter 3.
     - INHERIT - Can be set to inherit from the 'Damage Multi' setting by reducing past 0%.
     - Attacks that are scripted to leave a character at 1 HP, or other threshold, still do so.
@@ -47,11 +58,15 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
   - **Gmbrd Enemy CDs** — multiplier for the enemy attack cooldowns in the chapter 3 game boards
     - Only shows up in the menu in chapter 3.
     - INHERIT - Can be set to inherit from the 'Enemy Cooldowns' setting by reducing past 0%.
-</details>
-<details> 
-  <summary><strong>Hidden (.ini only)</strong></summary>
 
-  - **TP Gain** — multiply TP gain from all sources (except item use) by this value
+  ***Player***
+  - **Gmbrd Damage** — multiplier for outgoing damage in the chapter 3 game boards
+    - Only shows up in the menu in chapter 3.
+    - INHERIT - Can be set to inherit from the 'Damage' setting by reducing past 0%.
+
+  - **Gmbrd Healing** — multiplier for healing from collecting candy in the chapter 3 game boards
+    - Only shows up in the menu in chapter 3.
+    - INHERIT - Can be set to inherit from the 'Healing' setting by reducing past 0%.
 </details>
 
 ## How to use
