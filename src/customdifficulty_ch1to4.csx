@@ -1028,13 +1028,13 @@ if (ch_no == 4) {
 
 // Apply Player Damage
 if (ch_no >= 0 && ch_no <= 4) {
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_damage_enemy", "arg1", "ceil(global.diff_plrdmg * arg1);");
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_damage_enemy", "arg1(?!\\))", "ceil(global.diff_plrdmg * arg1)");
 }
 if (ch_no == 0) {
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_damage_enemy_ch1", "arg1", "ceil(global.diff_plrdmg * arg1);");
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_damage_enemy_ch1", "arg1(?!\\))", "ceil(global.diff_plrdmg * arg1)");
 }
 if (ch_no >= 0 && ch_no <= 3) {
-    importGroup.QueueFindReplace($"gml_Object_obj_heroparent_{(ch_no >= 0 || ch_no <= 2) ? "Alarm_1" : "Other_10"}", "dm.damage = damage;", @"
+    importGroup.QueueFindReplace($"gml_Object_obj_heroparent_{((ch_no >= 0 || ch_no <= 2) ? "Alarm_1" : "Other_10")}", "dm.damage = damage;", @"
         damage = ceil(global.diff_plrdmg * damage);
         dm.damage = damage;
     ");
@@ -1070,7 +1070,7 @@ if (ch_no == 3)
         "gml_Object_obj_board_cactus_Step_0", "gml_Object_obj_board_fern_Step_0"};
     foreach (string dam in damDam)
     {
-        importGroup.QueueTrimmedLinesFindReplace(dam, "myhealth--;", $"myhealth -= {gameboarddmgmulti};");
+        importGroup.QueueTrimmedLinesFindReplace(dam, "myhealth--;", $"myhealth -= {gmbrdplrdmg};");
     }
     string[] zeroHps = {"gml_Object_obj_board_hazard_Step_0", "gml_Object_obj_board_cactus_test_Step_0"};
     foreach (string zeroHp in zeroHps)

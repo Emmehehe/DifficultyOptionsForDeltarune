@@ -439,7 +439,8 @@ foreach (string darkcon in darkcons)
                         i++;
                     }}
 
-                    // calcs required to get the scroller size & position correct
+                    // calcs required to get the scroller size & position correct: need to know how far we've scrolled & total length of menu in pixels
+                    var menuscreenlength = 7 * 35;
                     var totalmenulength = 0;
                     var scrollprogress = 0;
                     for (var i = 0; i < array_length(form_data) + 1; i++) {{
@@ -459,7 +460,29 @@ foreach (string darkcon in darkcons)
                         totalmenulength += (isCategory ? 12 : 35);
                     }}
 
-                    var menuscreenlength = 7 * 35;
+                    // also need to account for empty space at the bottom of the menu
+                    var lastscreenlength = 0;
+                    for (var i = array_length(form_data); i >= 0; i--) {{
+                        var newlastscreenlength = lastscreenlength;
+                        if (i >= array_length(form_data))
+                        {{
+                            newlastscreenlength += 35;
+                        }}
+                        else
+                        {{
+                            var isCategory = is_undefined({ds_map_find_value_lang("form_data[i]", @"""value_range""")}) && is_undefined(ds_map_find_value(form_data[i], ""func_name""));
+                            newlastscreenlength += (isCategory ? 12 : 35);
+                        }}
+
+                        if (newlastscreenlength > menuscreenlength)
+                        {{
+                            break;
+                        }}
+                        lastscreenlength = newlastscreenlength;
+                    }}
+                    totalmenulength += menuscreenlength - lastscreenlength;
+
+                    // draw scroll bar based on previous calcs
                     if (totalmenulength > menuscreenlength)
                     {{
                         var modscrollbary = 180;
@@ -506,33 +529,93 @@ foreach (string darkcon in darkcons)
             global.modmenu_langoverride = ""es"";
         }}
 
-        // TODO scroll based on screen area
+        function scrolldownforcontent()
+        {{
+            var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
+            global.modsubmenuscroll = global.modsubmenuno + 1;
+            var menuscreenlength = 7 * 35;
+            var lastscreenlength = 0;
+            for (var i = global.modsubmenuno; i >= 0; i--) {{
+                var newlastscreenlength = lastscreenlength;
+                if (i >= array_length(form_data))
+                {{
+                    newlastscreenlength += 35;
+                }}
+                else
+                {{
+                    var isCategory = is_undefined({ds_map_find_value_lang("form_data[i]", @"""value_range""")}) && is_undefined(ds_map_find_value(form_data[i], ""func_name""));
+                    newlastscreenlength += (isCategory ? 12 : 35);
+                }}
+
+                if (newlastscreenlength > menuscreenlength)
+                {{
+                    break;
+                }}
+                lastscreenlength = newlastscreenlength;
+                global.modsubmenuscroll--;
+            }}
+        }}
+
+        function isneedscrolldown()
+        {{
+            var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
+            var menuscreenlength = 7 * 35;
+            var currentscreenlength = 0;
+            var foundselected = false;
+            for (var i = global.modsubmenuscroll; i < array_length(form_data) + 1; i++) {{
+                var newcurrentscreenlength = currentscreenlength;
+                if (i >= array_length(form_data))
+                {{
+                    newcurrentscreenlength += 35;
+                }}
+                else
+                {{
+                    var isCategory = is_undefined({ds_map_find_value_lang("form_data[i]", @"""value_range""")}) && is_undefined(ds_map_find_value(form_data[i], ""func_name""));
+                    newcurrentscreenlength += (isCategory ? 12 : 35);
+                }}
+
+                if (newcurrentscreenlength > menuscreenlength)
+                {{
+                    break;
+                }}
+                currentscreenlength = newcurrentscreenlength;
+                if (i == global.modsubmenuno)
+                {{
+                    foundselected = true;
+                }}
+            }}
+            return !foundselected;
+        }}
+
         function modsubmenu_up(arg0)
         {{
             global.modsubmenuno--;
 
-            if (global.modsubmenuno < global.modsubmenuscroll)
-                global.modsubmenuscroll = global.modsubmenuno;
-
             if (global.modsubmenuno < 0)
             {{
                 global.modsubmenuno = arg0 - 1;
-                global.modsubmenuscroll = max(0, arg0 - 7);
+
+                scrolldownforcontent();
+            }}
+            else
+            {{
+                if (global.modsubmenuno < global.modsubmenuscroll)
+                    global.modsubmenuscroll = global.modsubmenuno;
             }}
         }}
 
-        // TODO scroll based on screen area
         function modsubmenu_down(arg0)
         {{
             global.modsubmenuno++;
-
-            if (global.modsubmenuno >= global.modsubmenuscroll + 7)
-                global.modsubmenuscroll = global.modsubmenuno - 6;
 
             if (global.modsubmenuno >= arg0)
             {{
                 global.modsubmenuno = 0;
                 global.modsubmenuscroll = 0;
+            }}
+            else if (isneedscrolldown())
+            {{
+                scrolldownforcontent();
             }}
         }}
 
