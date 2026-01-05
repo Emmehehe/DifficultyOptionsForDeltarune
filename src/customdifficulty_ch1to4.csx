@@ -1011,9 +1011,9 @@ if (ch_no == 2 || ch_no == 0) {
     }
 }
 if (ch_no == 3) {
-    importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_enemy_Step_0", "obj_dmgwriter_boogie.damage += ([0-9]+);", "obj_dmgwriter_boogie.damage += ceil(global.diff_mercy * ($1));");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_enemy_Step_0", "global.mercymod[myself] += ([0-9]+);", "global.mercymod[myself] += ceil(global.diff_mercy * ($1));");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_enemy_Step_0", "__mercydmgwriter.damage = ([0-9]+);", "__mercydmgwriter.damage = ceil(global.diff_mercy * ($1));");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_enemy_Step_0", "obj_dmgwriter_boogie\\.damage \\+= ([0-9]+);", "obj_dmgwriter_boogie.damage += ceil(global.diff_mercy * ($1));");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_enemy_Step_0", "global\\.mercymod\\[myself\\] \\+= ([0-9]+);", "global.mercymod[myself] += ceil(global.diff_mercy * ($1));");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_enemy_Step_0", "__mercydmgwriter\\.damage = ([0-9]+);", "__mercydmgwriter.damage = ceil(global.diff_mercy * ($1));");
 }
 if (ch_no == 4) {
     importGroup.QueueFindReplace("gml_Object_obj_organ_enemy_vertical_pillar_Other_15", "if ((global.mercymod[myself] + mercygiven) > 100)", @"
@@ -1034,7 +1034,7 @@ if (ch_no == 0) {
     importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_damage_enemy_ch1", "arg1(?!\\))", "ceil(global.diff_plrdmg * arg1)");
 }
 if (ch_no >= 0 && ch_no <= 3) {
-    importGroup.QueueFindReplace($"gml_Object_obj_heroparent_{((ch_no >= 0 || ch_no <= 2) ? "Alarm_1" : "Other_10")}", "dm.damage = damage;", @"
+    importGroup.QueueFindReplace($"gml_Object_obj_heroparent_{((ch_no >= 0 && ch_no <= 2) ? "Alarm_1" : "Other_10")}", "dm.damage = damage;", @"
         damage = ceil(global.diff_plrdmg * damage);
         dm.damage = damage;
     ");
@@ -1058,8 +1058,6 @@ if (ch_no == 2 || ch_no == 0) {
         "global.monsterhp[0] -= ceil(global.diff_plrdmg * global.monstermaxhp[0] * 0.05);");
     importGroup.QueueFindReplace("gml_Object_obj_sneo_wireheart_Draw_0", "global.monsterhp[0] -= ceil(global.monstermaxhp[0] * 0.03);",
         "global.monsterhp[0] -= ceil(global.diff_plrdmg * global.monstermaxhp[0] * 0.03);");
-    importGroup.QueueFindReplace("gml_Object_obj_spamton_neo_enemy_Step_0", "global.monsterhp[myself] -= ceil(global.monstermaxhp[myself] * 0.06);",
-        "global.monsterhp[myself] -= ceil(global.diff_plrdmg * global.monstermaxhp[myself] * 0.06);");
 }
 
 // Apply Game Board Player Damage
@@ -1075,23 +1073,23 @@ if (ch_no == 3)
     string[] zeroHps = {"gml_Object_obj_board_hazard_Step_0", "gml_Object_obj_board_cactus_test_Step_0"};
     foreach (string zeroHp in zeroHps)
     {
-        importGroup.QueueTrimmedLinesFindReplace(zeroHp, "(myhealth == 0)", "(myhealth <= 0)");
+        importGroup.QueueFindReplace(zeroHp, "(myhealth == 0)", "(myhealth <= 0)");
     }
 }
 
 // Apply Player Healing
 if (ch_no >= 0 && ch_no <= 4) {
-    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell", "scr_heal((\\S+), healnum);", "scr_heal($1, ceil(global.diff_plrheal * healnum));");
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell", "scr_heal\\((\\S+), healnum\\);", "scr_heal($1, ceil(global.diff_plrheal * healnum));");
 }
 if (ch_no == 0) {
-    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell_ch1", "scr_heal_ch1((\\S+), healnum);", "scr_heal_ch1($1, ceil(global.diff_plrheal * healnum));");
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell_ch1", "scr_heal_ch1\\((\\S+), healnum\\);", "scr_heal_ch1($1, ceil(global.diff_plrheal * healnum));");
 }
 
 // Apply Game Board Player Healing
 if (ch_no == 3)
 {
     const string gmbrdplrheal = "(global.diff_gmbrdplrheal < 0 ? global.diff_plrheal : global.diff_gmbrdplrheal)";
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_board_heal_pickup_Step_0", "myhealth += 2",
+    importGroup.QueueFindReplace("gml_Object_obj_board_heal_pickup_Step_0", "myhealth += 2",
         $"myhealth += 2 * {gmbrdplrheal};");
 }
 
