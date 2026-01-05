@@ -392,7 +392,7 @@ foreach (string darkcon in darkcons)
         array_push(formdata, rowdata);
 
         var rowdata = ds_map_create();
-        ds_map_add(rowdata, ""title_en"", ""{(ch_no == 4 ? "WIP: Enemy CDs" : "Enemy Cooldowns")}"");
+        ds_map_add(rowdata, ""title_en"", ""Enemy Cooldowns"");
         ds_map_add(rowdata, ""value_range_en"", ""0~200%"");
         ds_map_add(rowdata, ""value_name"", ""diff_enemycd"");
         ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
@@ -993,10 +993,14 @@ importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "scr_tens
 
 // Apply Mercy Build-up
 if (ch_no >= 0 && ch_no <= 4) {
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "global.mercymod[arg0] += arg1;", "global.mercymod[arg0] += ceil(global.diff_mercy * arg1);");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1);", "ceil(global.diff_mercy * arg1);");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1;", "ceil(global.diff_mercy * arg1;");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1 <", "ceil(global.diff_mercy * arg1) <");
 }
 if (ch_no == 0) {
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "global.mercymod[arg0] += arg1;", "global.mercymod[arg0] += ceil(global.diff_mercy * arg1);");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "arg1);", "ceil(global.diff_mercy * arg1);");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "arg1;", "ceil(global.diff_mercy * arg1;");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "arg1 <", "ceil(global.diff_mercy * arg1) <");
 }
 if (ch_no == 2 || ch_no == 0) {
     importGroup.QueueFindReplace("gml_Object_obj_berdlyplug_enemy_Alarm_0", "var mercyset = ceil(bardlymercy);", "var mercyset = ceil(global.diff_mercy * bardlymercy);");
@@ -1608,10 +1612,49 @@ if (ch_no == 4) {
     importGroup.QueueFindReplace("gml_Object_obj_elnina_mascotattack_Step_0", "shottimer[i] >= shotrate[i]", "shottimer[i] >= global.diff_enemycd * shotrate[i]");
 
     // include guei
-    // TODO
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "((btimer - 40) % ceil(24 * ratio)) == (10 * sameattacker)",
+        "((btimer - 40) % ceil(global.diff_enemycd * 24 * ratio)) == floor(global.diff_enemycd * (10 * sameattacker))");
 
     // include balthizard
-    // TODO
+    importGroup.QueueFindReplace("gml_Object_obj_incense_censer_Step_2", "(timer % (13 + floor(15 * ratio)))", "(timer % ceil(global.diff_enemycd * (13 + floor(15 * ratio))))");
+    importGroup.QueueFindReplace("gml_Object_obj_incense_censer_Step_2", "))) == 5", "))) == floor(global.diff_enemycd * 5)");
+    importGroup.QueueFindReplace("gml_Object_obj_incense_censer_Step_2", "(timer % 7)", "(timer % ceil(global.diff_enemycd * 7))");
+    importGroup.QueueFindReplace("gml_Object_obj_incense_censer_Step_2", "(timer % 3)", "(timer % ceil(global.diff_enemycd * 3))");
+    importGroup.QueueFindReplace("gml_Object_obj_incense_censer_Step_2", "(timer % 10)", "(timer % ceil(global.diff_enemycd * 10))");
+
+    // include holy watercooler
+    importGroup.QueueFindReplace("gml_Object_obj_watercooler_bullet_rainball_Step_0", "timer >= threshold", "timer >= (global.diff_enemycd * threshold)");
+
+    // include winglade
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "timer / 12", "timer / (max(0.5, global.diff_enemycd) * 12)");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "\\(timer == ([0-9]+)\\)", "(timer == floor(max(0.5, global.diff_enemycd) * $1))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "(?<!turn)timer (>=|<|<=|>) ([0-9]+)", "timer $1 floor(max(0.5, global.diff_enemycd) * $2)");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "\\(timer - ([0-9]+)\\) / ([0-9]+)", "(timer - $1) / (max(0.5, global.diff_enemycd) * $2)");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "(timer * 0.1)", "(timer * 0.1 / max(0.5, global.diff_enemycd))");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "timer2 / 4", "timer2 / (4 * max(0.5, global.diff_enemycd))");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "(timer >= timer_limit)", "(timer >= max(0.5, global.diff_enemycd) * timer_limit)");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Other_25", "timer >= 34 && timer < 38", "timer >= (max(0.5, global.diff_enemycd) * 34) && timer < (max(0.5, global.diff_enemycd) * 38)");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Other_25", "(timer == 38)", "(timer == ceil(max(0.5, global.diff_enemycd) * 38))");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Other_25", "(timer > 38)", "(timer > ceil(max(0.5, global.diff_enemycd) * 38))");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_circle_Step_0", "timer == (timer_shoot - 10)", "timer == floor(global.diff_enemycd * (timer_shoot - 10))");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_circle_Step_0", "timer >= floor(timer_shoot / (1 + (scr_monsterpop() == 1)))",
+        "timer >= (global.diff_enemycd * floor(timer_shoot / (1 + (scr_monsterpop() == 1))))");
+
+    // include organik
+    importGroup.QueueFindReplace("gml_Object_obj_organnote_manager_Create_0", "alarm[0] = 8;", "alarm[0] = ceil(global.diff_enemycd * 8);");
+    importGroup.QueueFindReplace("gml_Object_obj_organnote_manager_Alarm_0", "alarm[1] = 1;", "alarm[1] = ceil(global.diff_enemycd * 1);");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_organnote_manager_Alarm_1", "alarm\\[([0-9]+)\\] = ([0-9]+);", "alarm[$1] = ceil(global.diff_enemycd * $2);");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_organnote_manager_Alarm_2", "alarm\\[([0-9]+)\\] = ([0-9]+);", "alarm[$1] = ceil(global.diff_enemycd * $2);");
+    importGroup.QueueFindReplace("gml_Object_obj_organnote_manager_Alarm_2", "alarm[2] = interval;", "alarm[2] = ceil(global.diff_enemycd * interval);");
+
+    importGroup.QueueFindReplace("gml_Object_obj_organ_vertical_pillar_manager_Alarm_0", "alarm[0] = other.interval + 4;", "alarm[0] = ceil(global.diff_enemycd * (other.interval + 4));");
+    importGroup.QueueFindReplace("gml_Object_obj_organ_vertical_pillar_manager_Alarm_0", "alarm[0] = interval;", "alarm[0] = ceil(global.diff_enemycd * interval);");
+    importGroup.QueueFindReplace("gml_Object_obj_organ_vertical_pillar_manager_Other_10", "alarm[0] = start_time;", "alarm[0] = ceil(global.diff_enemycd * start_time);");
+
+    // include wicabel
+    importGroup.QueueRegexFindReplace("gml_Object_obj_bell_enemy_Draw_0", "spinattacktimer == ([0-9]+)", "spinattacktimer == ceil(global.diff_enemycd * $1)");
+    importGroup.QueueFindReplace("gml_Object_obj_bell_enemy_Draw_0", "(spinattacktimer >= 7 || spinattacktimer < 11)",
+        "(spinattacktimer >= (global.diff_enemycd * 7) || spinattacktimer < (global.diff_enemycd * 11))");
 }
 
 // Apply Game Board Enemy Cooldowns
