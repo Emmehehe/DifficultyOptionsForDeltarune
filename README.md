@@ -4,7 +4,7 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
 <img src="https://github.com/user-attachments/assets/4fa53a16-851c-46e3-a805-bb6087690a46" width="480" />
 
 ## Download
-**[Latest release](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/releases/tag/1.5.1)**
+**[Latest release](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/releases/tag/1.6.0)**
 
 ## What you can change
 - **Presets** — Select from various difficulty presets
@@ -47,9 +47,6 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
   - **Gmbrd Enemy CDs** — multiplier for the enemy attack cooldowns in the chapter 3 game boards
     - Only shows up in the menu in chapter 3.
     - INHERIT - Can be set to inherit from the 'Enemy Cooldowns' setting by reducing past 0%.
-  
-  - **Reward Ranking** — when this option is turned on, the 'Battle Rewards' option also affects the ranking that you get from battles in the chapter 3 game boards
-    - Only shows up in the menu in chapter 3.
 </details>
 <details> 
   <summary><strong>Hidden (.ini only)</strong></summary>
