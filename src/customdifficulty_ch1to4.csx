@@ -1105,7 +1105,52 @@ importGroup = new(Data){
 string one_over_cd = "(global.diff_enemycd <= 0 ? 1 : (1/global.diff_enemycd))";
 // some attacks rely on the heart existing so have it fly out onto the box sooner
 importGroup.QueueFindReplace("gml_Object_obj_moveheart_Create_0", "flytime = 8", "flytime = min(8, floor(global.diff_enemycd * 8))");
+importGroup.QueueFindReplace("gml_Object_obj_moveheart_Create_0", "alarm[0] = flytime;", @"
+    if (flytime > 0)
+    {
+        alarm[0] = flytime;
+    }
+    else
+    {
+        x = distx;
+        y = disty;
+
+        if (!i_ex(obj_heart))
+        {
+            heart = instance_create(x, y, obj_heart);
+            heart.sprite_index = sprite_index;
+            heart.mask_index = mask_index;
+        }
+
+        instance_destroy();
+    }
+");
 importGroup.QueueFindReplace("gml_Object_obj_moveheart_Step_0", "image_alpha += 0.334;", $"image_alpha += max(0.334, {one_over_cd} * 0.334)");
+if (ch_no == 0)
+{{
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_ch1_Create_0", "flytime = 8", "flytime = min(8, floor(global.diff_enemycd * 8))");
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_ch1_Create_0", "alarm[0] = flytime;", @"
+        if (flytime > 0)
+        {
+            alarm[0] = flytime;
+        }
+        else
+        {
+            x = distx;
+            y = disty;
+
+            if (!i_ex(obj_heart))
+            {
+                heart = instance_create(x, y, obj_heart);
+                heart.sprite_index = sprite_index;
+                heart.mask_index = mask_index;
+            }
+
+            instance_destroy();
+        }
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_ch1_Step_0", "image_alpha += 0.334;", $"image_alpha += max(0.334, {one_over_cd} * 0.334)");
+}}
 
 string[] bulletCons = {"gml_Object_obj_dbulletcontroller"};
 if (ch_no == 0) {
@@ -1467,6 +1512,11 @@ if (ch_no == 3) {
     // include zaper
     importGroup.QueueRegexFindReplace("gml_Object_obj_zapper_laser_manager_Alarm_0", "alarm\\[(0|1)\\] (\\+?-?)= ([^;]+)", "alarm[$1] $2= ceil(global.diff_enemycd * ($3))");
 
+    // Fix shutta crash
+    importGroup.QueueFindReplace("gml_Object_obj_shutta_rotation_attack_Other_10", "other.afterimage_count", "min(other.afterimage_count, array_length(afterimage))");
+    importGroup.QueueFindReplace("gml_Object_obj_shutta_rotation_attack_Other_11", "other.afterimage_count", "min(other.afterimage_count, array_length(afterimage))");
+    importGroup.QueueFindReplace("gml_Object_obj_shutta_rotation_attack_Other_12", "other.afterimage_count", "min(other.afterimage_count, array_length(afterimage))");
+
     // include Tenna
     importGroup.QueueRegexFindReplace("gml_Object_obj_tenna_smashcut_attack_Step_0", "timer == ([0-9|\\.]+)", "timer == ceil(global.diff_enemycd * ($1))");
     importGroup.QueueRegexFindReplace("gml_Object_obj_tenna_smashcut_attack_Step_0", "timer (\\+?-?)= ([^;]+)", "timer $1= floor(global.diff_enemycd * ($2))");
@@ -1502,13 +1552,13 @@ if (ch_no == 3) {
     importGroup.QueueRegexFindReplace("gml_Object_obj_actor_tenna_Draw_0", "lightemuptimer (\\+?-?)= ([^;]+)", "lightemuptimer $1= floor(global.diff_enemycd * ($2))");
 
     // include da knight
-    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "(roaring_timer % 5)", "(roaring_timer % ceil(global.diff_enemycd * 5))");
-    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "(attack_timer == 4)", "(attack_timer == ceil(global.diff_enemycd * 4))");
-    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "attack_timer = floor(-1 + intensity);", "attack_timer = floor(global.diff_enemycd * (-1 + intensity));");
-    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Other_10", "(roaring_timer % 5)", "(roaring_timer % ceil(global.diff_enemycd * 5))");
-    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Other_10", "(attack_timer == 4)", "(attack_timer == ceil(global.diff_enemycd * 4))");
+    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "(roaring_timer % 5)", "(roaring_timer % ceil(max(0.25, global.diff_enemycd) * 5))");
+    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "(attack_timer == 4)", "(attack_timer == ceil(max(0.25, global.diff_enemycd) * 4))");
+    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "attack_timer = floor(-1 + intensity);", "attack_timer = floor(max(0.25, global.diff_enemycd) * (-1 + intensity));");
+    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Other_10", "(roaring_timer % 5)", "(roaring_timer % ceil(max(0.25, global.diff_enemycd) * 5))");
+    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Other_10", "(attack_timer == 4)", "(attack_timer == ceil(max(0.25, global.diff_enemycd) * 4))");
     importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Other_10", "attack_timer = floor(attack_timer_goal + attack_token);",
-        "attack_timer = floor(global.diff_enemycd * (attack_timer_goal + attack_token));");
+        "attack_timer = floor(max(0.25, global.diff_enemycd) * (attack_timer_goal + attack_token));");
     importGroup.QueueFindReplace("gml_Object_obj_roaringknight_boxsplitter_attack_Step_0", "(timer >= spawn_speed)", "(timer >= global.diff_enemycd * spawn_speed)");
     importGroup.QueueFindReplace("gml_Object_obj_roaringknight_boxsplitter_attack_Step_0", "timer = -4;", "timer = floor(global.diff_enemycd * -4);");
     importGroup.QueueFindReplace("gml_Object_obj_roaringknight_boxsplitter_attack_Draw_0", "(timer / 30)", "(timer / (global.diff_enemycd * 30))");
