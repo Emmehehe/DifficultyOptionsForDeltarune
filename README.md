@@ -27,6 +27,7 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
   - For no-hit runs, combine this setting with `Damage Multi=INF`.
 - **I-Frames** — multiply the number of i-frames received after damage by this value
 - **Enemy Cooldowns** — multiplier for the cooldown between enemy attacks & bullet patterns
+  - Heavily scripted attacks/encounters may not change much if at all.
   - A few tweaks have been made to some attacks:
     - Reduce random placement of heart shapers (Head Hathy) at lower cooldowns as the attack can trap you.
     - Cap timer reduction for wave chain (Spade King) as it becomes a solid wall quite quickly.
