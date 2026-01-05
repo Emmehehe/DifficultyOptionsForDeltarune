@@ -32,6 +32,8 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
     - Cap timer reduction for wave chain (Spade King) as it becomes a solid wall quite quickly.
     - Shorten tails for chain of hell (Spade King's chain bullets) at lower cooldowns as the attack can trap you.
     - Ensure Queen's leg stomp attack waits for an available slot before spawning a leg, instead of flooding the box.
+    - Chapter 3's super boss' full-screen attack is hard capped at >25% cooldown to prevent crashing.
+    - Winglade's aim attack is hard capped at >50% cooldown to prevent it from getting stuck.
 - **Battle Rewards** — multiply post-battle rewards by this value
 
 ***Down***
