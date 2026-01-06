@@ -1,7 +1,7 @@
 # Custom Difficulty Mod for DELTARUNE
 Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or no-hit! )
 
-<img src="https://github.com/user-attachments/assets/4fa53a16-851c-46e3-a805-bb6087690a46" width="480" />
+<img src="https://github.com/user-attachments/assets/9e9be8b9-0c3c-4b28-9a12-3aa2d328189c" width="480" />
 
 ## Download
 **[Latest release](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/releases/tag/1.6.0)**
