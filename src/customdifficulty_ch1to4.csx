@@ -993,14 +993,13 @@ importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "scr_tens
 
 // Apply Mercy Build-up
 if (ch_no >= 0 && ch_no <= 4) {
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1);", "ceil(global.diff_mercy * arg1);");
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1;", "ceil(global.diff_mercy * arg1;");
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1 <", "ceil(global.diff_mercy * arg1) <");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1;", "ceil(global.diff_mercy * arg1);");
+    if (ch_no != 1) {
+        importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1 <", "ceil(global.diff_mercy * arg1) <");
+    }
 }
 if (ch_no == 0) {
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "arg1);", "ceil(global.diff_mercy * arg1);");
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "arg1;", "ceil(global.diff_mercy * arg1;");
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "arg1 <", "ceil(global.diff_mercy * arg1) <");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "arg1;", "ceil(global.diff_mercy * arg1);");
 }
 if (ch_no == 2 || ch_no == 0) {
     importGroup.QueueFindReplace("gml_Object_obj_berdlyplug_enemy_Alarm_0", "var mercyset = ceil(bardlymercy);", "var mercyset = ceil(global.diff_mercy * bardlymercy);");
