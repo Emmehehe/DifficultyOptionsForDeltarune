@@ -361,12 +361,12 @@ foreach (string darkcon in darkcons)
                 {{
                     var i = global.modsubmenuscroll;
                     var yprogress = 150;
-                    while ((yprogress < 150 + 6 * 35) && (i < array_length(form_data) + 1))
+                    while ((yprogress <= 150 + 6 * 35) && (i < array_length(form_data) + 1))
                     {{
                         if (i >= array_length(form_data))
                         {{
                             draw_set_color(c_white);
-                            draw_text(_xPos, yy + yprogress, string_hash_to_newline({(darkcon.EndsWith("_ch1") ? ch1_back_text : back_text)})); // Back
+                            draw_text(_xPos, yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline({(darkcon.EndsWith("_ch1") ? ch1_back_text : back_text)})); // Back
                             if (global.modsubmenuno == i)
                                 heartyprogress = yprogress;
                             yprogress += 35;
@@ -386,7 +386,7 @@ foreach (string darkcon in darkcons)
                         var valueString = """";
                         var isCategory = is_undefined(value_range) && is_undefined(ds_map_find_value(row_data, ""func_name""));
 
-                        draw_text_transformed(_xPos - (isCategory * 28), yy + yprogress - (isCategory * 4), string_hash_to_newline({ds_map_find_value_lang("row_data", @"""title""")}), (isCategory ? 0.5 : 1), (isCategory ? 0.5 : 1), 0);
+                        draw_text_transformed(_xPos - (isCategory * 28), yy + yprogress - (isCategory * 5){(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline({ds_map_find_value_lang("row_data", @"""title""")}), (isCategory ? 0.5 : 1), (isCategory ? 0.5 : 1), 0);
                         if (isCategory){{
                             draw_line(_xPos - 28 - 3, yy + yprogress + 9, _xPos + 400, yy + yprogress + 9);
                         }}
@@ -430,7 +430,7 @@ foreach (string darkcon in darkcons)
                             }}
                         }}
 
-                        draw_text(_selectXPos, yy + yprogress, string_hash_to_newline(valueString));
+                        draw_text(_selectXPos, yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(valueString));
 
                         if (global.modsubmenuno == i){{
                             heartyprogress = yprogress;
