@@ -41,9 +41,6 @@ UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
     ThrowOnNoOpFindReplace = true
 };
 
-// Hide TP Gain from the menu to reduce clutter as it's not that useful. Users can still adjust TP Gain from the .ini file if needed.
-readonly bool hide_tpgain = true;
-
 // Hide Reward Ranking from the menu to reduce clutter as it's not that useful. Users can still adjust Reward Ranking from the .ini file if needed.
 readonly bool hide_rewardrank = true;
 
@@ -63,6 +60,11 @@ readonly struct Preset {
     public readonly float downdeficit { get; init; }   = 1 / 2f;
     public readonly float downedregen { get; init; }   = 1 / 8f;
     public readonly float victoryres { get; init; }    = 1 / 8f;
+    public readonly float plrdmg { get; init; }        = 1;
+    public readonly float gmbrdplrdmg { get; init; }  = -1;
+    public readonly float plrheal { get; init; }       = 1;
+    public readonly float gmbrdplrheal { get; init; }  = -1;
+    public readonly float mercy { get; init; }         = 1;
 }
 const string preset_default = "Normal";
 Dictionary<string, Preset> presets = new Dictionary<string, Preset>();
@@ -145,6 +147,11 @@ foreach (string scrName in gamestartLikes)
                             global.diff_downdeficit = {pair.Value.downdeficit.ToString("F10", CultureInfo.InvariantCulture)};
                             global.diff_downedregen = {pair.Value.downedregen.ToString("F10", CultureInfo.InvariantCulture)};
                             global.diff_victoryres = {pair.Value.victoryres.ToString("F10", CultureInfo.InvariantCulture)};
+                            global.diff_plrdmg = {pair.Value.plrdmg.ToString("F10", CultureInfo.InvariantCulture)};
+                            global.diff_gmbrdplrdmg = {pair.Value.gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)};
+                            global.diff_plrheal = {pair.Value.plrheal.ToString("F10", CultureInfo.InvariantCulture)};
+                            global.diff_gmbrdplrheal = {pair.Value.gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)};
+                            global.diff_mercy = {pair.Value.mercy.ToString("F10", CultureInfo.InvariantCulture)};
                             break;
                     "))}
                     case ""Custom"":
@@ -195,6 +202,16 @@ foreach (string scrName in gamestartLikes)
                     return ceil(global.diff_downedregen * arg1);
                     case ""DIFFOP_VICRES"":
                     return ceil(global.diff_victoryres >= 0 ? max(1, arg1 * global.diff_victoryres) : arg2);
+                    case ""DIFFOP_PLRDMG"":
+                    return ceil(global.diff_plrdmg * arg1);
+                    case ""DIFFOP_PLRDMG_GB"":
+                    return ceil(global.diff_gmbrdplrdmg * arg1);
+                    case ""DIFFOP_PLRHEAL"":
+                    return ceil(global.diff_plrheal * arg1);
+                    case ""DIFFOP_PLRHEAL_GB"":
+                    return ceil(global.diff_gmbrdplrheal * arg1);
+                    case ""DIFFOP_MERCY"":
+                    return ceil(global.diff_mercy * arg1);
                 }}
             }}
 
@@ -241,6 +258,11 @@ foreach (string scrName in loadLikes)
         global.diff_downdeficit = ini_read_real(""DIFFICULTY"", ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)});
         global.diff_downedregen = ini_read_real(""DIFFICULTY"", ""DOWNED_REGEN"", {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)});
         global.diff_victoryres = ini_read_real(""DIFFICULTY"", ""VICTORY_RES"", {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_plrdmg = ini_read_real(""DIFFICULTY"", ""PLR_DMG"", {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_gmbrdplrdmg = ini_read_real(""DIFFICULTY"", ""GMBRD_PLR_DMG"", {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_plrheal = ini_read_real(""DIFFICULTY"", ""PLR_HEAL"", {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_gmbrdplrheal = ini_read_real(""DIFFICULTY"", ""GMBRD_PLR_HEAL"", {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_mercy = ini_read_real(""DIFFICULTY"", ""MERCY"", {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)});
         ossafe_ini_close();
 
         // Determine preset
@@ -256,7 +278,12 @@ foreach (string scrName in loadLikes)
                 && global.diff_rewardranking == {pair.Value.rewardranking.ToString().ToLower()}
                 && global.diff_downdeficit == {pair.Value.downdeficit.ToString("F10", CultureInfo.InvariantCulture)}
                 && global.diff_downedregen == {pair.Value.downedregen.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_victoryres == {pair.Value.victoryres.ToString("F10", CultureInfo.InvariantCulture)}) {{
+                && global.diff_victoryres == {pair.Value.victoryres.ToString("F10", CultureInfo.InvariantCulture)}
+                && global.diff_plrdmg == {pair.Value.plrdmg.ToString("F10", CultureInfo.InvariantCulture)}
+                && global.diff_gmbrdplrdmg == {pair.Value.gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}
+                && global.diff_plrheal == {pair.Value.plrheal.ToString("F10", CultureInfo.InvariantCulture)}
+                && global.diff_gmbrdplrheal == {pair.Value.gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}
+                && global.diff_mercy == {pair.Value.mercy.ToString("F10", CultureInfo.InvariantCulture)}) {{
                 global.diff_preset = ""{pair.Key}"";
             }}
         "))}
@@ -292,6 +319,11 @@ foreach (string scrName in saveLikes)
         ini_write_real(""DIFFICULTY"", ""DOWN_DEFICIT"", global.diff_downdeficit);
         ini_write_real(""DIFFICULTY"", ""DOWNED_REGEN"", global.diff_downedregen);
         ini_write_real(""DIFFICULTY"", ""VICTORY_RES"", global.diff_victoryres);
+        ini_write_real(""DIFFICULTY"", ""PLR_DMG"", global.diff_plrdmg);
+        ini_write_real(""DIFFICULTY"", ""GMBRD_PLR_DMG"", global.diff_gmbrdplrdmg);
+        ini_write_real(""DIFFICULTY"", ""PLR_HEAL"", global.diff_plrheal);
+        ini_write_real(""DIFFICULTY"", ""GMBRD_PLR_HEAL"", global.diff_gmbrdplrheal);
+        ini_write_real(""DIFFICULTY"", ""MERCY"", global.diff_mercy);
         ossafe_ini_close();
         ");
 }
@@ -326,6 +358,10 @@ foreach (string darkcon in darkcons)
         array_push(formdata, rowdata);
 
         var rowdata = ds_map_create();
+        ds_map_add(rowdata, ""title_en"", ""BATTLE"");
+        array_push(formdata, rowdata);
+
+        var rowdata = ds_map_create();
         ds_map_add(rowdata, ""title_en"", ""Damage Multi"");
         ds_map_add(rowdata, ""value_range_en"", ""0~1000%;INF=2147483647"");
         ds_map_add(rowdata, ""value_name"", ""diff_damagemulti"");
@@ -356,7 +392,7 @@ foreach (string darkcon in darkcons)
         array_push(formdata, rowdata);
 
         var rowdata = ds_map_create();
-        ds_map_add(rowdata, ""title_en"", ""{(ch_no == 4 ? "WIP: Enemy CDs" : "Enemy Cooldowns")}"");
+        ds_map_add(rowdata, ""title_en"", ""Enemy Cooldowns"");
         ds_map_add(rowdata, ""value_range_en"", ""0~200%"");
         ds_map_add(rowdata, ""value_name"", ""diff_enemycd"");
         ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
@@ -367,15 +403,6 @@ foreach (string darkcon in darkcons)
         ds_map_add(rowdata, ""title_en"", ""Gmbrd Enemy CDs"");
         ds_map_add(rowdata, ""value_range_en"", ""INHERIT=-1;0~200%"");
         ds_map_add(rowdata, ""value_name"", ""diff_gmbrdenemycd"");
-        ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
-        array_push(formdata, rowdata);
-        ")}
-
-        {(hide_tpgain ? "" : @"
-        var rowdata = ds_map_create();
-        ds_map_add(rowdata, ""title_en"", ""TP Gain"");
-        ds_map_add(rowdata, ""value_range_en"", ""0~1000%"");
-        ds_map_add(rowdata, ""value_name"", ""diff_tpgain"");
         ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
         array_push(formdata, rowdata);
         ")}
@@ -397,6 +424,10 @@ foreach (string darkcon in darkcons)
         ")}
 
         var rowdata = ds_map_create();
+        ds_map_add(rowdata, ""title_en"", ""DOWN"");
+        array_push(formdata, rowdata);
+
+        var rowdata = ds_map_create();
         ds_map_add(rowdata, ""title_en"", ""Down Deficit"");
         ds_map_add(rowdata, ""value_range_en"", ""0~1000%;[-999]=2147483647"");
         ds_map_add(rowdata, ""value_name"", ""diff_downdeficit"");
@@ -415,6 +446,60 @@ foreach (string darkcon in darkcons)
         ds_map_add(rowdata, ""value_range_en"", ""OFF=-1;0~100%"");
         ds_map_add(rowdata, ""value_name"", ""diff_victoryres"");
         ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
+        array_push(formdata, rowdata);
+
+        var rowdata = ds_map_create();
+        ds_map_add(rowdata, ""title_en"", ""PLAYER"");
+        array_push(formdata, rowdata);
+
+        var rowdata = ds_map_create();
+        ds_map_add(rowdata, ""title_en"", ""Damage"");
+        ds_map_add(rowdata, ""value_range_en"", ""0~1000%;INF=2147483647"");
+        ds_map_add(rowdata, ""value_name"", ""diff_plrdmg"");
+        ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
+        array_push(formdata, rowdata);
+
+        {(ch_no != 3 ? "" : @"
+        var rowdata = ds_map_create();
+        ds_map_add(rowdata, ""title_en"", ""Gmbrd Damage"");
+        ds_map_add(rowdata, ""value_range_en"", ""INHERIT=-1;0-1000%;INF=2147483647"");
+        ds_map_add(rowdata, ""value_name"", ""diff_gmbrdplrdmg"");
+        ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
+        array_push(formdata, rowdata);
+        ")}
+
+        var rowdata = ds_map_create();
+        ds_map_add(rowdata, ""title_en"", ""Healing"");
+        ds_map_add(rowdata, ""value_range_en"", ""0~1000%;INF=2147483647"");
+        ds_map_add(rowdata, ""value_name"", ""diff_plrheal"");
+        ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
+        array_push(formdata, rowdata);
+
+        {(ch_no != 3 ? "" : @"
+        var rowdata = ds_map_create();
+        ds_map_add(rowdata, ""title_en"", ""Gmbrd Healing"");
+        ds_map_add(rowdata, ""value_range_en"", ""INHERIT=-1;0-1000%;INF=2147483647"");
+        ds_map_add(rowdata, ""value_name"", ""diff_gmbrdplrheal"");
+        ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
+        array_push(formdata, rowdata);
+        ")}
+
+        var rowdata = ds_map_create();
+        ds_map_add(rowdata, ""title_en"", ""TP Gain"");
+        ds_map_add(rowdata, ""value_range_en"", ""0~1000%;INF=2147483647"");
+        ds_map_add(rowdata, ""value_name"", ""diff_tpgain"");
+        ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
+        array_push(formdata, rowdata);
+
+        var rowdata = ds_map_create();
+        ds_map_add(rowdata, ""title_en"", ""Mercy"");
+        ds_map_add(rowdata, ""value_range_en"", ""0~1000%;INF=2147483647"");
+        ds_map_add(rowdata, ""value_name"", ""diff_mercy"");
+        ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
+        array_push(formdata, rowdata);
+
+        var rowdata = ds_map_create();
+        ds_map_add(rowdata, ""title_en"", """");
         array_push(formdata, rowdata);
 
         var rowdata = ds_map_create();
@@ -906,6 +991,111 @@ if (ch_no == 0)
 }
 importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "scr_tensionheal(40", "scr_tensionheal(global.diff_tpgain * 40");
 
+// Apply Mercy Build-up
+if (ch_no >= 0 && ch_no <= 4) {
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1;", "ceil(global.diff_mercy * arg1);");
+    if (ch_no != 1) {
+        importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1 <", "ceil(global.diff_mercy * arg1) <");
+    }
+}
+if (ch_no == 0) {
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "arg1;", "ceil(global.diff_mercy * arg1);");
+}
+if (ch_no == 2 || ch_no == 0) {
+    importGroup.QueueFindReplace("gml_Object_obj_berdlyplug_enemy_Alarm_0", "var mercyset = ceil(bardlymercy);", "var mercyset = ceil(global.diff_mercy * bardlymercy);");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_queen_enemy_Step_0", "mercyset = ([0-9]+);", "mercyset =  ceil(global.diff_mercy * ($1));");
+
+    string[] sneoMercies = {"gml_Object_obj_sneo_wireheart_old_Draw_0", "gml_Object_obj_sneo_wireheart_edit_Draw_0", "gml_Object_obj_sneo_hitdetector_Collision_obj_yheart_shot",
+        "gml_Object_obj_sneo_bigshot_Destroy_0", "gml_Object_obj_sneo_wireheart_Draw_0", "gml_Object_obj_spamton_neo_enemy_Step_2"};
+    foreach (string sneoMercy in sneoMercies)
+    {
+        importGroup.QueueRegexFindReplace(sneoMercy, "obj_sneo_bulletcontroller.mercyaccumulated \\+= ([0-9]+);", "obj_sneo_bulletcontroller.mercyaccumulated += ceil(global.diff_mercy * ($1));");
+        importGroup.QueueRegexFindReplace(sneoMercy, "__mercydmgwriter.damage = ([0-9]+);", "__mercydmgwriter.damage = ceil(global.diff_mercy * ($1));");
+    }
+}
+if (ch_no == 3) {
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_enemy_Step_0", "obj_dmgwriter_boogie\\.damage \\+= ([0-9]+);", "obj_dmgwriter_boogie.damage += ceil(global.diff_mercy * ($1));");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_enemy_Step_0", "global\\.mercymod\\[myself\\] \\+= ([0-9]+);", "global.mercymod[myself] += ceil(global.diff_mercy * ($1));");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_enemy_Step_0", "__mercydmgwriter\\.damage = ([0-9]+);", "__mercydmgwriter.damage = ceil(global.diff_mercy * ($1));");
+}
+if (ch_no == 4) {
+    importGroup.QueueFindReplace("gml_Object_obj_organ_enemy_vertical_pillar_Other_15", "if ((global.mercymod[myself] + mercygiven) > 100)", @"
+        mercygiven = ceil(global.diff_mercy * mercygiven)
+        if ((global.mercymod[myself] + mercygiven) > 100)
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_organ_enemy_Step_0", "global.mercymod[myself] += mercygained;", "global.mercymod[myself] += ceil(global.diff_mercy * mercygained);");
+    importGroup.QueueFindReplace("gml_Object_obj_balthizard_enemy_Step_0", "obj_dmgwriter.damage += mercygained;", "obj_dmgwriter.damage += ceil(global.diff_mercy * mercygained);");
+    importGroup.QueueFindReplace("gml_Object_obj_balthizard_enemy_Step_0", "global.mercymod[myself] += mercygained;", "global.mercymod[myself] += ceil(global.diff_mercy * mercygained);");
+    importGroup.QueueFindReplace("gml_Object_obj_balthizard_enemy_Step_0", "shakemaxmercyhp -= mercygained;", "shakemaxmercyhp -= ceil(global.diff_mercy * mercygained);");
+}
+
+// Apply Player Damage
+if (ch_no >= 0 && ch_no <= 4) {
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_damage_enemy", "arg1(?!\\))", "ceil(global.diff_plrdmg * arg1)");
+}
+if (ch_no == 0) {
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_damage_enemy_ch1", "arg1(?!\\))", "ceil(global.diff_plrdmg * arg1)");
+}
+if (ch_no >= 0 && ch_no <= 3) {
+    importGroup.QueueFindReplace($"gml_Object_obj_heroparent_{((ch_no >= 0 && ch_no <= 2) ? "Alarm_1" : "Other_10")}", "dm.damage = damage;", @"
+        damage = ceil(global.diff_plrdmg * damage);
+        dm.damage = damage;
+    ");
+}
+if (ch_no == 0) {
+    importGroup.QueueFindReplace($"gml_Object_obj_heroparent_ch1_Alarm_1", "dm.damage = damage;", @"
+        damage = ceil(global.diff_plrdmg * damage);
+        dm.damage = damage;
+    ");
+}
+if (ch_no == 2 || ch_no == 0) {
+    importGroup.QueueFindReplace("gml_Object_obj_sneo_wireheart_old_Draw_0", "global.monsterhp[0] -= ceil(global.monstermaxhp[0] * 0.03);",
+        "global.monsterhp[0] -= ceil(global.diff_plrdmg * global.monstermaxhp[0] * 0.03);");
+    importGroup.QueueFindReplace("gml_Object_obj_sneo_wireheart_edit_Draw_0", "global.monsterhp[0] -= ceil(global.monstermaxhp[0] * 0.03);",
+        "global.monsterhp[0] -= ceil(global.diff_plrdmg * global.monstermaxhp[0] * 0.03);");
+    importGroup.QueueFindReplace("gml_Object_obj_sneo_hitdetector_Collision_obj_yheart_shot", "if ((global.monsterhp[obj_spamton_neo_enemy.myself] - dmg) < 1)", @"
+        dmg = ceil(global.diff_plrdmg * dmg);
+        if ((global.monsterhp[obj_spamton_neo_enemy.myself] - dmg) < 1)
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_sneo_bigshot_Destroy_0", "global.monsterhp[0] -= ceil(global.monstermaxhp[0] * 0.05);",
+        "global.monsterhp[0] -= ceil(global.diff_plrdmg * global.monstermaxhp[0] * 0.05);");
+    importGroup.QueueFindReplace("gml_Object_obj_sneo_wireheart_Draw_0", "global.monsterhp[0] -= ceil(global.monstermaxhp[0] * 0.03);",
+        "global.monsterhp[0] -= ceil(global.diff_plrdmg * global.monstermaxhp[0] * 0.03);");
+}
+
+// Apply Game Board Player Damage
+if (ch_no == 3)
+{
+    const string gmbrdplrdmg = "(global.diff_gmbrdplrdmg < 0 ? global.diff_plrdmg : global.diff_gmbrdplrdmg)";
+    string[] damDam = {"gml_Object_obj_board_hazard_Step_0", "gml_Object_obj_board_cactus_test_Step_0", "gml_Object_obj_board_npc_Step_0", "gml_Object_obj_board_npc_nosolid_Step_0",
+        "gml_Object_obj_board_cactus_Step_0", "gml_Object_obj_board_fern_Step_0"};
+    foreach (string dam in damDam)
+    {
+        importGroup.QueueTrimmedLinesFindReplace(dam, "myhealth--;", $"myhealth -= {gmbrdplrdmg};");
+    }
+    string[] zeroHps = {"gml_Object_obj_board_hazard_Step_0", "gml_Object_obj_board_cactus_test_Step_0"};
+    foreach (string zeroHp in zeroHps)
+    {
+        importGroup.QueueFindReplace(zeroHp, "(myhealth == 0)", "(myhealth <= 0)");
+    }
+}
+
+// Apply Player Healing
+if (ch_no >= 0 && ch_no <= 4) {
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell", "scr_heal\\((\\S+), healnum\\);", "scr_heal($1, ceil(global.diff_plrheal * healnum));");
+}
+if (ch_no == 0) {
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell_ch1", "scr_heal_ch1\\((\\S+), healnum\\);", "scr_heal_ch1($1, ceil(global.diff_plrheal * healnum));");
+}
+
+// Apply Game Board Player Healing
+if (ch_no == 3)
+{
+    const string gmbrdplrheal = "(global.diff_gmbrdplrheal < 0 ? global.diff_plrheal : global.diff_gmbrdplrheal)";
+    importGroup.QueueFindReplace("gml_Object_obj_board_heal_pickup_Step_0", "myhealth += 2",
+        $"myhealth += 2 * {gmbrdplrheal};");
+}
+
 // Finish edit
 importGroup.Import();
 
@@ -918,7 +1108,52 @@ importGroup = new(Data){
 string one_over_cd = "(global.diff_enemycd <= 0 ? 1 : (1/global.diff_enemycd))";
 // some attacks rely on the heart existing so have it fly out onto the box sooner
 importGroup.QueueFindReplace("gml_Object_obj_moveheart_Create_0", "flytime = 8", "flytime = min(8, floor(global.diff_enemycd * 8))");
+importGroup.QueueFindReplace("gml_Object_obj_moveheart_Create_0", "alarm[0] = flytime;", @"
+    if (flytime > 0)
+    {
+        alarm[0] = flytime;
+    }
+    else
+    {
+        x = distx;
+        y = disty;
+
+        if (!i_ex(obj_heart))
+        {
+            heart = instance_create(x, y, obj_heart);
+            heart.sprite_index = sprite_index;
+            heart.mask_index = mask_index;
+        }
+
+        instance_destroy();
+    }
+");
 importGroup.QueueFindReplace("gml_Object_obj_moveheart_Step_0", "image_alpha += 0.334;", $"image_alpha += max(0.334, {one_over_cd} * 0.334)");
+if (ch_no == 0)
+{{
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_ch1_Create_0", "flytime = 8", "flytime = min(8, floor(global.diff_enemycd * 8))");
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_ch1_Create_0", "alarm[0] = flytime;", @"
+        if (flytime > 0)
+        {
+            alarm[0] = flytime;
+        }
+        else
+        {
+            x = distx;
+            y = disty;
+
+            if (!i_ex(obj_heart))
+            {
+                heart = instance_create(x, y, obj_heart);
+                heart.sprite_index = sprite_index;
+                heart.mask_index = mask_index;
+            }
+
+            instance_destroy();
+        }
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_ch1_Step_0", "image_alpha += 0.334;", $"image_alpha += max(0.334, {one_over_cd} * 0.334)");
+}}
 
 string[] bulletCons = {"gml_Object_obj_dbulletcontroller"};
 if (ch_no == 0) {
@@ -1280,6 +1515,11 @@ if (ch_no == 3) {
     // include zaper
     importGroup.QueueRegexFindReplace("gml_Object_obj_zapper_laser_manager_Alarm_0", "alarm\\[(0|1)\\] (\\+?-?)= ([^;]+)", "alarm[$1] $2= ceil(global.diff_enemycd * ($3))");
 
+    // Fix shutta crash
+    importGroup.QueueFindReplace("gml_Object_obj_shutta_rotation_attack_Other_10", "other.afterimage_count", "min(other.afterimage_count, array_length(afterimage))");
+    importGroup.QueueFindReplace("gml_Object_obj_shutta_rotation_attack_Other_11", "other.afterimage_count", "min(other.afterimage_count, array_length(afterimage))");
+    importGroup.QueueFindReplace("gml_Object_obj_shutta_rotation_attack_Other_12", "other.afterimage_count", "min(other.afterimage_count, array_length(afterimage))");
+
     // include Tenna
     importGroup.QueueRegexFindReplace("gml_Object_obj_tenna_smashcut_attack_Step_0", "timer == ([0-9|\\.]+)", "timer == ceil(global.diff_enemycd * ($1))");
     importGroup.QueueRegexFindReplace("gml_Object_obj_tenna_smashcut_attack_Step_0", "timer (\\+?-?)= ([^;]+)", "timer $1= floor(global.diff_enemycd * ($2))");
@@ -1315,13 +1555,13 @@ if (ch_no == 3) {
     importGroup.QueueRegexFindReplace("gml_Object_obj_actor_tenna_Draw_0", "lightemuptimer (\\+?-?)= ([^;]+)", "lightemuptimer $1= floor(global.diff_enemycd * ($2))");
 
     // include da knight
-    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "(roaring_timer % 5)", "(roaring_timer % ceil(global.diff_enemycd * 5))");
-    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "(attack_timer == 4)", "(attack_timer == ceil(global.diff_enemycd * 4))");
-    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "attack_timer = floor(-1 + intensity);", "attack_timer = floor(global.diff_enemycd * (-1 + intensity));");
-    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Other_10", "(roaring_timer % 5)", "(roaring_timer % ceil(global.diff_enemycd * 5))");
-    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Other_10", "(attack_timer == 4)", "(attack_timer == ceil(global.diff_enemycd * 4))");
+    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "(roaring_timer % 5)", "(roaring_timer % ceil(max(0.25, global.diff_enemycd) * 5))");
+    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "(attack_timer == 4)", "(attack_timer == ceil(max(0.25, global.diff_enemycd) * 4))");
+    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "attack_timer = floor(-1 + intensity);", "attack_timer = floor(max(0.25, global.diff_enemycd) * (-1 + intensity));");
+    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Other_10", "(roaring_timer % 5)", "(roaring_timer % ceil(max(0.25, global.diff_enemycd) * 5))");
+    importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Other_10", "(attack_timer == 4)", "(attack_timer == ceil(max(0.25, global.diff_enemycd) * 4))");
     importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Other_10", "attack_timer = floor(attack_timer_goal + attack_token);",
-        "attack_timer = floor(global.diff_enemycd * (attack_timer_goal + attack_token));");
+        "attack_timer = floor(max(0.25, global.diff_enemycd) * (attack_timer_goal + attack_token));");
     importGroup.QueueFindReplace("gml_Object_obj_roaringknight_boxsplitter_attack_Step_0", "(timer >= spawn_speed)", "(timer >= global.diff_enemycd * spawn_speed)");
     importGroup.QueueFindReplace("gml_Object_obj_roaringknight_boxsplitter_attack_Step_0", "timer = -4;", "timer = floor(global.diff_enemycd * -4);");
     importGroup.QueueFindReplace("gml_Object_obj_roaringknight_boxsplitter_attack_Draw_0", "(timer / 30)", "(timer / (global.diff_enemycd * 30))");
@@ -1371,10 +1611,49 @@ if (ch_no == 4) {
     importGroup.QueueFindReplace("gml_Object_obj_elnina_mascotattack_Step_0", "shottimer[i] >= shotrate[i]", "shottimer[i] >= global.diff_enemycd * shotrate[i]");
 
     // include guei
-    // TODO
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "((btimer - 40) % ceil(24 * ratio)) == (10 * sameattacker)",
+        "((btimer - 40) % ceil(global.diff_enemycd * 24 * ratio)) == floor(global.diff_enemycd * (10 * sameattacker))");
 
     // include balthizard
-    // TODO
+    importGroup.QueueFindReplace("gml_Object_obj_incense_censer_Step_2", "(timer % (13 + floor(15 * ratio)))", "(timer % ceil(global.diff_enemycd * (13 + floor(15 * ratio))))");
+    importGroup.QueueFindReplace("gml_Object_obj_incense_censer_Step_2", "))) == 5", "))) == floor(global.diff_enemycd * 5)");
+    importGroup.QueueFindReplace("gml_Object_obj_incense_censer_Step_2", "(timer % 7)", "(timer % ceil(global.diff_enemycd * 7))");
+    importGroup.QueueFindReplace("gml_Object_obj_incense_censer_Step_2", "(timer % 3)", "(timer % ceil(global.diff_enemycd * 3))");
+    importGroup.QueueFindReplace("gml_Object_obj_incense_censer_Step_2", "(timer % 10)", "(timer % ceil(global.diff_enemycd * 10))");
+
+    // include holy watercooler
+    importGroup.QueueFindReplace("gml_Object_obj_watercooler_bullet_rainball_Step_0", "timer >= threshold", "timer >= (global.diff_enemycd * threshold)");
+
+    // include winglade
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "timer / 12", "timer / (max(0.5, global.diff_enemycd) * 12)");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "\\(timer == ([0-9]+)\\)", "(timer == floor(max(0.5, global.diff_enemycd) * $1))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "(?<!turn)timer (>=|<|<=|>) ([0-9]+)", "timer $1 floor(max(0.5, global.diff_enemycd) * $2)");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "\\(timer - ([0-9]+)\\) / ([0-9]+)", "(timer - $1) / (max(0.5, global.diff_enemycd) * $2)");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "(timer * 0.1)", "(timer * 0.1 / max(0.5, global.diff_enemycd))");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "timer2 / 4", "timer2 / (4 * max(0.5, global.diff_enemycd))");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Step_0", "(timer >= timer_limit)", "(timer >= max(0.5, global.diff_enemycd) * timer_limit)");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Other_25", "timer >= 34 && timer < 38", "timer >= (max(0.5, global.diff_enemycd) * 34) && timer < (max(0.5, global.diff_enemycd) * 38)");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Other_25", "(timer == 38)", "(timer == ceil(max(0.5, global.diff_enemycd) * 38))");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_aim_Other_25", "(timer > 38)", "(timer > ceil(max(0.5, global.diff_enemycd) * 38))");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_circle_Step_0", "timer == (timer_shoot - 10)", "timer == floor(global.diff_enemycd * (timer_shoot - 10))");
+    importGroup.QueueFindReplace("gml_Object_obj_halo_bat_circle_Step_0", "timer >= floor(timer_shoot / (1 + (scr_monsterpop() == 1)))",
+        "timer >= (global.diff_enemycd * floor(timer_shoot / (1 + (scr_monsterpop() == 1))))");
+
+    // include organik
+    importGroup.QueueFindReplace("gml_Object_obj_organnote_manager_Create_0", "alarm[0] = 8;", "alarm[0] = ceil(global.diff_enemycd * 8);");
+    importGroup.QueueFindReplace("gml_Object_obj_organnote_manager_Alarm_0", "alarm[1] = 1;", "alarm[1] = ceil(global.diff_enemycd * 1);");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_organnote_manager_Alarm_1", "alarm\\[([0-9]+)\\] = ([0-9]+);", "alarm[$1] = ceil(global.diff_enemycd * $2);");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_organnote_manager_Alarm_2", "alarm\\[([0-9]+)\\] = ([0-9]+);", "alarm[$1] = ceil(global.diff_enemycd * $2);");
+    importGroup.QueueFindReplace("gml_Object_obj_organnote_manager_Alarm_2", "alarm[2] = interval;", "alarm[2] = ceil(global.diff_enemycd * interval);");
+
+    importGroup.QueueFindReplace("gml_Object_obj_organ_vertical_pillar_manager_Alarm_0", "alarm[0] = other.interval + 4;", "alarm[0] = ceil(global.diff_enemycd * (other.interval + 4));");
+    importGroup.QueueFindReplace("gml_Object_obj_organ_vertical_pillar_manager_Alarm_0", "alarm[0] = interval;", "alarm[0] = ceil(global.diff_enemycd * interval);");
+    importGroup.QueueFindReplace("gml_Object_obj_organ_vertical_pillar_manager_Other_10", "alarm[0] = start_time;", "alarm[0] = ceil(global.diff_enemycd * start_time);");
+
+    // include wicabel
+    importGroup.QueueRegexFindReplace("gml_Object_obj_bell_enemy_Draw_0", "spinattacktimer == ([0-9]+)", "spinattacktimer == ceil(global.diff_enemycd * $1)");
+    importGroup.QueueFindReplace("gml_Object_obj_bell_enemy_Draw_0", "(spinattacktimer >= 7 || spinattacktimer < 11)",
+        "(spinattacktimer >= (global.diff_enemycd * 7) || spinattacktimer < (global.diff_enemycd * 11))");
 }
 
 // Apply Game Board Enemy Cooldowns

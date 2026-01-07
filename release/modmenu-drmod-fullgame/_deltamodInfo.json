@@ -1,13 +1,13 @@
 {
     "metadata": {
-        "name": "Custom Difficulty",
-        "version": "1.5.1",
-        "description": "Difficulty options for DELTARUNE. Make the game Easy, Hard, or Nightmare. No-hit options included.",
+        "name": "Mod Menu",
+        "version": "1.6.0",
+        "description": "Mod menu for DELTARUNE. Framework for mods to add option menus.",
         "author": ["Emmahaha"],
-        "demoMod": false,
-        "packageID": "com.emmahaha.customdiff",
-        "url": "https://gamebanana.com/mods/613308",
-        "tags": ["customization", "gameplay"]
+        "packageID": "com.emmahaha.modmenu",
+        "game": "toby.deltarune",
+        "url": "https://gamebanana.com/mods/615910",
+        "tags": ["other"]
     },
     "deltaruneTargetVersion": "1.04",
     "neededFiles": [
