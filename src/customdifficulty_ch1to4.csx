@@ -1001,6 +1001,35 @@ if (ch_no >= 0 && ch_no <= 4) {
 if (ch_no == 0) {
     importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "arg1;", "ceil(global.diff_mercy * arg1);");
 }
+// Fix crash when sparing lancer in castle town
+if (ch_no == 1) {
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_spell", "if (global.monstertype[star] != 3)", @"
+        if (global.monstertype[star] == 2) {
+            // do nothing
+        }
+        else if (global.monstertype[star] != 3)
+    ");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_spelltext", "if (cancelattack == 1)", @"
+        if (global.monstertype[star] == 2) {
+            global.msg[0] = scr_84_get_subst_string(""* ~1 spared ~2^2!&* But Lancer's bike cannot be stopped.../%"", global.charname[global.char[caster]], global.monstername[star]);
+        }
+        if (cancelattack == 1)
+    ");
+}
+if (ch_no == 0) {
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_spell_ch1", "if (global.monstertype[star] != 3)", @"
+        if (global.monstertype[star] == 2) {
+            // do nothing
+        }
+        else if (global.monstertype[star] != 3)
+    ");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_spelltext_ch1", "if (cancelattack == 1)", @"
+        if (global.monstertype[star] == 2) {
+            global.msg[0] = scr_84_get_subst_string(""* ~1 spared ~2^2!&* But Lancer's bike cannot be stopped.../%"", global.charname[global.char[caster]], global.monstername[star]);
+        }
+        if (cancelattack == 1)
+    ");
+}
 if (ch_no == 2 || ch_no == 0) {
     importGroup.QueueFindReplace("gml_Object_obj_berdlyplug_enemy_Alarm_0", "var mercyset = ceil(bardlymercy);", "var mercyset = ceil(global.diff_mercy * bardlymercy);");
     importGroup.QueueRegexFindReplace("gml_Object_obj_queen_enemy_Step_0", "mercyset = ([0-9]+);", "mercyset =  ceil(global.diff_mercy * ($1));");
@@ -1108,31 +1137,44 @@ importGroup = new(Data){
 string one_over_cd = "(global.diff_enemycd <= 0 ? 1 : (1/global.diff_enemycd))";
 // some attacks rely on the heart existing so have it fly out onto the box sooner
 importGroup.QueueFindReplace("gml_Object_obj_moveheart_Create_0", "flytime = 8", "flytime = min(8, floor(global.diff_enemycd * 8))");
-importGroup.QueueFindReplace("gml_Object_obj_moveheart_Create_0", "alarm[0] = flytime;", @"
-    if (flytime > 0)
-    {
-        alarm[0] = flytime;
-    }
-    else
-    {
-        x = distx;
-        y = disty;
-
-        if (!i_ex(obj_heart))
+if (ch_no == 1)
+{
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_Create_0", "alarm[0] = flytime;", @"
+        if (flytime > 0)
         {
-            heart = instance_create(x, y, obj_heart);
-            heart.sprite_index = sprite_index;
-            heart.mask_index = mask_index;
+            alarm[0] = flytime;
         }
+        else
+        {
+            x = distx;
+            y = disty;
+            instance_create(x, y, obj_heart);
+            instance_destroy();
+        }
+    ");
+}
+if (ch_no == 2 || ch_no == 0)
+{
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_Create_0", "alarm[0] = flytime;", @"
+        if (flytime > 0)
+        {
+            alarm[0] = flytime;
+        }
+        else
+        {
+            x = distx;
+            y = disty;
 
-        instance_destroy();
-    }
-");
-importGroup.QueueFindReplace("gml_Object_obj_moveheart_Step_0", "image_alpha += 0.334;", $"image_alpha += max(0.334, {one_over_cd} * 0.334)");
-if (ch_no == 0)
-{{
-    importGroup.QueueFindReplace("gml_Object_obj_moveheart_ch1_Create_0", "flytime = 8", "flytime = min(8, floor(global.diff_enemycd * 8))");
-    importGroup.QueueFindReplace("gml_Object_obj_moveheart_ch1_Create_0", "alarm[0] = flytime;", @"
+            if (!i_ex(obj_heart))
+                instance_create(x, y, obj_heart);
+
+            instance_destroy();
+        }
+    ");
+}
+if (ch_no == 3)
+{
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_Create_0", "alarm[0] = flytime;", @"
         if (flytime > 0)
         {
             alarm[0] = flytime;
@@ -1152,8 +1194,50 @@ if (ch_no == 0)
             instance_destroy();
         }
     ");
+}
+if (ch_no == 4)
+{
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_Create_0", "alarm[0] = flytime;", @"
+        if (flytime > 0)
+        {
+            alarm[0] = flytime;
+        }
+        else
+        {
+            x = distx;
+            y = disty;
+
+            if (!i_ex(obj_heart))
+            {
+                heart = instance_create(x, y, obj_heart);
+
+                if (i_ex(obj_jackenstein_enemy))
+                    sprite_index = spr_dodgeheart_small;
+            }
+
+            instance_destroy();
+        }
+    ");
+}
+importGroup.QueueFindReplace("gml_Object_obj_moveheart_Step_0", "image_alpha += 0.334;", $"image_alpha += max(0.334, {one_over_cd} * 0.334)");
+if (ch_no == 0)
+{
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_ch1_Create_0", "flytime = 8", "flytime = min(8, floor(global.diff_enemycd * 8))");
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_ch1_Create_0", "alarm[0] = flytime;", @"
+        if (flytime > 0)
+        {
+            alarm[0] = flytime;
+        }
+        else
+        {
+            x = distx;
+            y = disty;
+            instance_create_ch1(x, y, obj_heart_ch1);
+            instance_destroy();
+        }
+    ");
     importGroup.QueueFindReplace("gml_Object_obj_moveheart_ch1_Step_0", "image_alpha += 0.334;", $"image_alpha += max(0.334, {one_over_cd} * 0.334)");
-}}
+}
 
 string[] bulletCons = {"gml_Object_obj_dbulletcontroller"};
 if (ch_no == 0) {
