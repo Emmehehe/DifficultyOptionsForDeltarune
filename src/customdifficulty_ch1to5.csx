@@ -18,7 +18,7 @@ if (alreadyInstalled != null) {
 }
 
 // Prefire checks
-const string expectedDisplayName = "DELTARUNE \\S+ ([1-4](?:&2)?)";
+const string expectedDisplayName = "DELTARUNE \\S+ ([1-5](?:&2)?)";
 if (!Regex.IsMatch(displayName, expectedDisplayName, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(500)))
 {
     ScriptError($"Error 0: data file display name does not match expected: '{expectedDisplayName}', actual display name: '{displayName}'.");
@@ -240,6 +240,21 @@ if (ch_no > 3)
     string[] loadCh3 = {"gml_GlobalScript_scr_load_chapter3"};
     loadLikes = loadLikes.Concat(loadCh3).ToArray();
 }
+if (ch_no > 4)
+{
+    string[] loadCh4 = {"gml_GlobalScript_scr_load_chapter4"};
+    loadLikes = loadLikes.Concat(loadCh3).ToArray();
+}
+// if (ch_no > 5)
+// {
+//     string[] loadCh5 = {"gml_GlobalScript_scr_load_chapter5"};
+//     loadLikes = loadLikes.Concat(loadCh3).ToArray();
+// }
+// if (ch_no > 6)
+// {
+//     string[] loadCh6 = {"gml_GlobalScript_scr_load_chapter6"};
+//     loadLikes = loadLikes.Concat(loadCh3).ToArray();
+// }
 foreach (string scrName in loadLikes)
 {
     importGroup.QueueTrimmedLinesFindReplace(scrName, $"ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"

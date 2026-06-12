@@ -11,7 +11,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SCRIPTS_DIR="$SCRIPT_DIR/src"
-MOD_SCRIPTS=("$SCRIPTS_DIR/modmenu_ch1to4.csx" "$SCRIPTS_DIR/customdifficulty_ch1to4.csx")
+MOD_SCRIPTS=("$SCRIPTS_DIR/modmenu_ch1to5.csx" "$SCRIPTS_DIR/customdifficulty_ch1to5.csx")
 CACHE_DIR="$HOME/.cache/diffmod-utmt"
 mkdir -p "$CACHE_DIR"
 
@@ -131,7 +131,7 @@ APP
 find_chapter_files() {
   local RES="$1"
   local files=()
-  for ch in 1 2 3 4; do
+  for ch in 1 2 3 4 5; do
     local f="$RES/chapter${ch}_mac/game.ios"
     [[ -f "$f" ]] && files+=("$f")
   done

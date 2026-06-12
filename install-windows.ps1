@@ -27,8 +27,8 @@ function Die($m){ Write-Host "`n[ERROR] $m" -ForegroundColor Red; exit 1 }
 # Resolve script & mod script paths
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ScriptsDir = Join-Path $ScriptDir 'src'
-$ModMenuScript = (Join-Path $ScriptsDir 'modmenu_ch1to4.csx')
-$CustDiffScript = (Join-Path $ScriptsDir 'customdifficulty_ch1to4.csx')
+$ModMenuScript = (Join-Path $ScriptsDir 'modmenu_ch1to5.csx')
+$CustDiffScript = (Join-Path $ScriptsDir 'customdifficulty_ch1to5.csx')
 
 # Verify scripts exist
 if (-not $NoModMenu) {
@@ -187,7 +187,7 @@ function Detect-GameDir {
 function Find-ChapterFiles {
   param([string]$GamePath)
   $files = @()
-  for ($ch = 1; $ch -le 4; $ch++) {
+  for ($ch = 1; $ch -le 5; $ch++) {
     # Windows uses chapterX_windows\data.win pattern
     $f = Join-Path $GamePath "chapter${ch}_windows\data.win"
     if (Test-Path $f) { 
