@@ -1,3 +1,4 @@
 # Ignore release output
 release/output
 *.xdelta
+*.win

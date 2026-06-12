@@ -1091,6 +1091,15 @@ if (ch_no == 2 || ch_no == 0) {
     importGroup.QueueFindReplace("gml_Object_obj_sneo_wireheart_Draw_0", "global.monsterhp[0] -= ceil(global.monstermaxhp[0] * 0.03);",
         "global.monsterhp[0] -= ceil(global.diff_plrdmg * global.monstermaxhp[0] * 0.03);");
 }
+// fix susie vs. lancer softlock
+if (ch_no == 1 || ch_no == 0) {
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_monstersetup", "global.monstermaxhp[myself] = 2400;", "global.monstermaxhp[myself] = ceil(global.diff_plrdmg * 2400);");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_monstersetup", "global.monsterhp[myself] = 2400;", "global.monsterhp[myself] = ceil(global.diff_plrdmg * 2400);");
+    if (ch_no == 0) {
+        importGroup.QueueFindReplace("gml_GlobalScript_scr_monstersetup_ch1", "global.monstermaxhp[myself] = 2400;", "global.monstermaxhp[myself] = ceil(global.diff_plrdmg * 2400);");
+        importGroup.QueueFindReplace("gml_GlobalScript_scr_monstersetup_ch1", "global.monsterhp[myself] = 2400;", "global.monsterhp[myself] = ceil(global.diff_plrdmg * 2400);");
+    }
+}
 
 // Apply Game Board Player Damage
 if (ch_no == 3)
