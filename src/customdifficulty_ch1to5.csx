@@ -243,7 +243,7 @@ if (ch_no > 3)
 if (ch_no > 4)
 {
     string[] loadCh4 = {"gml_GlobalScript_scr_load_chapter4"};
-    loadLikes = loadLikes.Concat(loadCh3).ToArray();
+    loadLikes = loadLikes.Concat(loadCh4).ToArray();
 }
 // if (ch_no > 5)
 // {

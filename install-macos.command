@@ -11,7 +11,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SCRIPTS_DIR="$SCRIPT_DIR/src"
-MOD_SCRIPTS=("$SCRIPTS_DIR/modmenu_ch1to5.csx" "$SCRIPTS_DIR/customdifficulty_ch1to5.csx")
+MOD_SCRIPTS=("$SCRIPTS_DIR/modmenu.csx" "$SCRIPTS_DIR/customdifficulty_ch1to5.csx")
 CACHE_DIR="$HOME/.cache/diffmod-utmt"
 mkdir -p "$CACHE_DIR"
 

@@ -27,7 +27,7 @@ function Die($m){ Write-Host "`n[ERROR] $m" -ForegroundColor Red; exit 1 }
 # Resolve script & mod script paths
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ScriptsDir = Join-Path $ScriptDir 'src'
-$ModMenuScript = (Join-Path $ScriptsDir 'modmenu_ch1to5.csx')
+$ModMenuScript = (Join-Path $ScriptsDir 'modmenu.csx')
 $CustDiffScript = (Join-Path $ScriptsDir 'customdifficulty_ch1to5.csx')
 
 # Verify scripts exist

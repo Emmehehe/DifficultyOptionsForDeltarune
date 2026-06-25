@@ -220,16 +220,16 @@ Example:
 
 1. Download [UndertaleModTool CLI](https://github.com/UnderminersTeam/UndertaleModTool/releases) for your platform
 2. Extract it next to the game files
-3. Apply scripts in this order: `modmenu_ch1to5.csx` then `customdifficulty_ch1to5.csx`
+3. Apply scripts in this order: `modmenu.csx` then `customdifficulty_ch1to5.csx`
 
 **Windows**
 
 ```bat
-UndertaleModCli.exe load "chapter1_windows\data.win" --scripts "src\modmenu_ch1to5.csx" --verbose false --output "chapter1_windows\data.win"
-UndertaleModCli.exe load "chapter2_windows\data.win" --scripts "src\modmenu_ch1to5.csx" --verbose false --output "chapter2_windows\data.win"
-UndertaleModCli.exe load "chapter3_windows\data.win" --scripts "src\modmenu_ch1to5.csx" --verbose false --output "chapter3_windows\data.win"
-UndertaleModCli.exe load "chapter4_windows\data.win" --scripts "src\modmenu_ch1to5.csx" --verbose false --output "chapter4_windows\data.win"
-UndertaleModCli.exe load "chapter5_windows\data.win" --scripts "src\modmenu_ch1to5.csx" --verbose false --output "chapter5_windows\data.win"
+UndertaleModCli.exe load "chapter1_windows\data.win" --scripts "src\modmenu.csx" --verbose false --output "chapter1_windows\data.win"
+UndertaleModCli.exe load "chapter2_windows\data.win" --scripts "src\modmenu.csx" --verbose false --output "chapter2_windows\data.win"
+UndertaleModCli.exe load "chapter3_windows\data.win" --scripts "src\modmenu.csx" --verbose false --output "chapter3_windows\data.win"
+UndertaleModCli.exe load "chapter4_windows\data.win" --scripts "src\modmenu.csx" --verbose false --output "chapter4_windows\data.win"
+UndertaleModCli.exe load "chapter5_windows\data.win" --scripts "src\modmenu.csx" --verbose false --output "chapter5_windows\data.win"
 
 UndertaleModCli.exe load "chapter1_windows\data.win" --scripts "src\customdifficulty_ch1to5.csx" --verbose false --output "chapter1_windows\data.win"
 UndertaleModCli.exe load "chapter2_windows\data.win" --scripts "src\customdifficulty_ch1to5.csx" --verbose false --output "chapter2_windows\data.win"
@@ -241,11 +241,11 @@ UndertaleModCli.exe load "chapter5_windows\data.win" --scripts "src\customdiffic
 **macOS**
 
 ```bash
-./UndertaleModCli load chapter1_mac/game.ios --scripts src/modmenu_ch1to5.csx --verbose false --output chapter1_mac/game.ios
-./UndertaleModCli load chapter2_mac/game.ios --scripts src/modmenu_ch1to5.csx --verbose false --output chapter2_mac/game.ios
-./UndertaleModCli load chapter3_mac/game.ios --scripts src/modmenu_ch1to5.csx --verbose false --output chapter3_mac/game.ios
-./UndertaleModCli load chapter4_mac/game.ios --scripts src/modmenu_ch1to5.csx --verbose false --output chapter4_mac/game.ios
-./UndertaleModCli load chapter5_mac/game.ios --scripts src/modmenu_ch1to5.csx --verbose false --output chapter5_mac/game.ios
+./UndertaleModCli load chapter1_mac/game.ios --scripts src/modmenu.csx --verbose false --output chapter1_mac/game.ios
+./UndertaleModCli load chapter2_mac/game.ios --scripts src/modmenu.csx --verbose false --output chapter2_mac/game.ios
+./UndertaleModCli load chapter3_mac/game.ios --scripts src/modmenu.csx --verbose false --output chapter3_mac/game.ios
+./UndertaleModCli load chapter4_mac/game.ios --scripts src/modmenu.csx --verbose false --output chapter4_mac/game.ios
+./UndertaleModCli load chapter5_mac/game.ios --scripts src/modmenu.csx --verbose false --output chapter5_mac/game.ios
 
 ./UndertaleModCli load chapter1_mac/game.ios --scripts src/customdifficulty_ch1to5.csx --verbose false --output chapter1_mac/game.ios
 ./UndertaleModCli load chapter2_mac/game.ios --scripts src/customdifficulty_ch1to5.csx --verbose false --output chapter2_mac/game.ios
@@ -257,11 +257,11 @@ UndertaleModCli.exe load "chapter5_windows\data.win" --scripts "src\customdiffic
 **Linux w\ Proton**
 
 ```bash
-./UndertaleModCli load chapter1_windows/data.win --scripts src/modmenu_ch1to5.csx --verbose false --output chapter1_windows/data.win
-./UndertaleModCli load chapter2_windows/data.win --scripts src/modmenu_ch1to5.csx --verbose false --output chapter2_windows/data.win
-./UndertaleModCli load chapter3_windows/data.win --scripts src/modmenu_ch1to5.csx --verbose false --output chapter3_windows/data.win
-./UndertaleModCli load chapter4_windows/data.win --scripts src/modmenu_ch1to5.csx --verbose false --output chapter4_windows/data.win
-./UndertaleModCli load chapter5_windows/data.win --scripts src/modmenu_ch1to5.csx --verbose false --output chapter5_windows/data.win
+./UndertaleModCli load chapter1_windows/data.win --scripts src/modmenu.csx --verbose false --output chapter1_windows/data.win
+./UndertaleModCli load chapter2_windows/data.win --scripts src/modmenu.csx --verbose false --output chapter2_windows/data.win
+./UndertaleModCli load chapter3_windows/data.win --scripts src/modmenu.csx --verbose false --output chapter3_windows/data.win
+./UndertaleModCli load chapter4_windows/data.win --scripts src/modmenu.csx --verbose false --output chapter4_windows/data.win
+./UndertaleModCli load chapter5_windows/data.win --scripts src/modmenu.csx --verbose false --output chapter5_windows/data.win
 
 ./UndertaleModCli load chapter1_windows/data.win --scripts src/customdifficulty_ch1to5.csx --verbose false --output chapter1_windows/data.win
 ./UndertaleModCli load chapter2_windows/data.win --scripts src/customdifficulty_ch1to5.csx --verbose false --output chapter2_windows/data.win
