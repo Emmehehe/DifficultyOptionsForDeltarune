@@ -248,12 +248,12 @@ if (ch_no > 4)
 // if (ch_no > 5)
 // {
 //     string[] loadCh5 = {"gml_GlobalScript_scr_load_chapter5"};
-//     loadLikes = loadLikes.Concat(loadCh3).ToArray();
+//     loadLikes = loadLikes.Concat(loadCh5).ToArray();
 // }
 // if (ch_no > 6)
 // {
 //     string[] loadCh6 = {"gml_GlobalScript_scr_load_chapter6"};
-//     loadLikes = loadLikes.Concat(loadCh3).ToArray();
+//     loadLikes = loadLikes.Concat(loadCh6).ToArray();
 // }
 foreach (string scrName in loadLikes)
 {
@@ -564,6 +564,7 @@ foreach (string scrName in damageLikes)
         if (global.charaction[hpi] == 10)
         ");
 }
+// TODO build all overworld/plat script array instead of copy pasting maybe
 if (ch_no == 0)
 {
     importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage_all_overworld_ch1", "hpdiff = tdamage;", @"
@@ -575,6 +576,13 @@ importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage_all_overwo
     tdamage = ceil(tdamage * global.diff_damagemulti);
     hpdiff = tdamage;
     ");
+if (ch_no >= 5)
+{
+    importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage_all_platmode", "hpdiff = tdamage;", @"
+        tdamage = ceil(tdamage * global.diff_damagemulti);
+        hpdiff = tdamage;
+        ");
+}
 if (ch_no == 1 || ch_no == 0)
 {
     importGroup.QueueTrimmedLinesFindReplace(ch_no == 0 ? "gml_Object_obj_laserscythe_ch1_Other_15" : "gml_Object_obj_laserscythe_Other_15",
@@ -880,6 +888,13 @@ if (ch_no == 4) {
         "if (global.diff_hitall <= 0 && global.chapter == 4 && i_ex(obj_sound_of_justice_enemy) && obj_sound_of_justice_enemy.phase == 2)");
     importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage", "if (global.hp[1] < 1)", "if (global.diff_hitall <= 0 && global.hp[1] < 1)");
 }
+if (ch_no == 5) {
+    importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage", "target = choose(0, 1);", @"
+        if (global.diff_hitall > 0)
+            return;
+        target = choose(0, 1);
+    ");
+}
 // Disable these weird down exceptions if hit.all=on
 if (ch_no == 3) {
     importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage_maxhp", "if (global.hp[1] < 0)",
@@ -905,8 +920,8 @@ if (ch_no == 2) {
     importGroup.QueueFindReplace("gml_Object_obj_sneo_fakeheart_Create_0", "global.inv = 300", "global.inv = global.diff_iframes * 300");
 }
 if (ch_no >= 2) {
-    string[] ch2to4IFramers = {"gml_GlobalScript_scr_damage_sneo_final_attack", "gml_GlobalScript_scr_damage_proportional", "gml_GlobalScript_scr_weaken_party"};
-    iFramers = iFramers.Concat(ch2to4IFramers).ToArray();
+    string[] ch2UpIFramers = {"gml_GlobalScript_scr_damage_sneo_final_attack", "gml_GlobalScript_scr_damage_proportional", "gml_GlobalScript_scr_weaken_party"};
+    iFramers = iFramers.Concat(ch2UpIFramers).ToArray();
 }
 if (ch_no == 3) {
     string[] ch3IFramers = {"gml_Object_obj_roaringknight_splitslash_Step_0", "gml_Object_obj_roaringknight_quickslash_big_Step_0", "gml_GlobalScript_scr_damage_fixed",
@@ -924,6 +939,10 @@ if (ch_no == 4) {
     importGroup.QueueFindReplace("gml_Object_obj_small_jackolantern_Other_15", "global.inv = min(global.inv, 10)", "global.inv = min(global.inv, global.diff_iframes * 10)");
     importGroup.QueueFindReplace("gml_Object_obj_ghosthouse_jackolantern_Other_15", "global.inv = min(global.inv, 10 - floor(hits / 2))",
         "global.inv = min(global.inv, global.diff_iframes * (10 - floor(hits / 2)))");
+}
+if (ch_no >= 5) {
+    string[] ch5UpIFramers = {"gml_GlobalScript_scr_damage_all_platmode"};
+    iFramers = iFramers.Concat(ch5UpIFramers).ToArray();
 }
 foreach (string scrName in iFramers)
 {
@@ -979,9 +998,9 @@ if (ch_no == 2 || ch_no == 0) {
         "gml_Object_o_boxingcontroller_Step_0", "gml_Object_o_boxinggraze_Alarm_0"};
     tensionHeals = tensionHeals.Concat(ch2TensionHeals).ToArray();
 }
-if (ch_no >= 3 && ch_no <= 4) {
-    string[] ch3to4TensionHeals = {"gml_Object_obj_heroparent_Step_0"};
-    tensionHeals = tensionHeals.Concat(ch3to4TensionHeals).ToArray();
+if (ch_no >= 3) {
+    string[] ch3UpTensionHeals = {"gml_Object_obj_heroparent_Step_0"};
+    tensionHeals = tensionHeals.Concat(ch3UpTensionHeals).ToArray();
 }
 if (ch_no == 3) {
     string[] ch3TensionHeals = {"gml_Object_obj_tracking_sword_slash_extra_graze_Step_0", "gml_Object_obj_heroparent_Other_10"};
@@ -997,17 +1016,20 @@ foreach (string scrName in tensionHeals)
     importGroup.QueueFindReplace(scrName, "scr_tensionheal(", "scr_tensionheal(global.diff_tpgain * ");
 }
 // avoid tp heal items
-if (ch_no == 4) {
-    importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "scr_tensionheal(5", "scr_tensionheal(global.diff_tpgain * 5");
-}
 if (ch_no == 0)
 {
     importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_ch1_Step_0", "scr_tensionheal_ch1(40", "scr_tensionheal_ch1(global.diff_tpgain * 40");
 }
 importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "scr_tensionheal(40", "scr_tensionheal(global.diff_tpgain * 40");
+if (ch_no == 4) {
+    importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "scr_tensionheal(5", "scr_tensionheal(global.diff_tpgain * 5");
+}
+if (ch_no == 5) {
+    importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "scr_tensionheal(20", "scr_tensionheal(global.diff_tpgain * 20");
+}
 
 // Apply Mercy Build-up
-if (ch_no >= 0 && ch_no <= 4) {
+{
     importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1;", "ceil(global.diff_mercy * arg1);");
     if (ch_no != 1) {
         importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1 <", "ceil(global.diff_mercy * arg1) <");
@@ -1074,7 +1096,7 @@ if (ch_no == 4) {
 }
 
 // Apply Player Damage
-if (ch_no >= 0 && ch_no <= 4) {
+{
     importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_damage_enemy", "arg1(?!\\))", "ceil(global.diff_plrdmg * arg1)");
 }
 if (ch_no == 0) {
@@ -1091,6 +1113,13 @@ if (ch_no == 0) {
         damage = ceil(global.diff_plrdmg * damage);
         dm.damage = damage;
     ");
+}
+if (ch_no == 4) {
+    importGroup.QueueFindReplace($"gml_Object_obj_heroparent_Step_0", "global.monsterinstance[global.chartarget[myself]].hurtamt = damage;",
+        "global.monsterinstance[global.chartarget[myself]].hurtamt = ceil(global.diff_plrdmg * damage);");
+}
+if (ch_no >= 5) {
+    importGroup.QueueFindReplace($"gml_Object_obj_heroparent_Step_0", "dm.damage = damage;", "dm.damage = ceil(global.diff_plrdmg * damage);");
 }
 if (ch_no == 2 || ch_no == 0) {
     importGroup.QueueFindReplace("gml_Object_obj_sneo_wireheart_old_Draw_0", "global.monsterhp[0] -= ceil(global.monstermaxhp[0] * 0.03);",
@@ -1134,7 +1163,7 @@ if (ch_no == 3)
 }
 
 // Apply Player Healing
-if (ch_no >= 0 && ch_no <= 4) {
+{
     importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell", "scr_heal\\((\\S+), healnum\\);", "scr_heal($1, ceil(global.diff_plrheal * healnum));");
 }
 if (ch_no == 0) {
@@ -1320,6 +1349,10 @@ if (ch_no == 4) {
     "-40 - irandom(30)", "starttime - 1", "100", "88", "-50", "40"};
     btimerEquals = btimerEquals.Concat(ch4BtimerEquals).ToArray();
 }
+if (ch_no == 5) {
+    string[] ch5BtimerEquals = {"ceil(24 * ratio) - 1", "irandom(1500)", "irandom(150)", "-10", "-180", "32", "-999", "40 - floor(0.5 + (40 * _binterval))"};
+    btimerEquals = btimerEquals.Concat(ch5BtimerEquals).ToArray();
+}
 string[] btimerEqualEquals = {};
 if (ch_no == 1 || ch_no == 0) {
     string[] ch1BtimerEqualEquals = {"10"};
@@ -1338,6 +1371,10 @@ if (ch_no == 3) {
 if (ch_no == 4) {
     string[] ch4BtimerEqualEquals = {"(starttime - 1)", "59", "35"};
     btimerEqualEquals = btimerEqualEquals.Concat(ch4BtimerEqualEquals).ToArray();
+}
+if (ch_no == 5) {
+    string[] ch5BtimerEqualEquals = {"special", "-6", "-173", "109", "119"};
+    btimerEqualEquals = btimerEqualEquals.Concat(ch5BtimerEqualEquals).ToArray();
 }
 foreach (string con in bulletCons)
 {
