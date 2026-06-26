@@ -1447,7 +1447,7 @@ if (ch_no == 4) {
     btimerEqualEquals = btimerEqualEquals.Concat(ch4BtimerEqualEquals).ToArray();
 }
 if (ch_no == 5) {
-    string[] ch5BtimerEqualEquals = {"special", "-6", "-173", "109", "119"};
+    string[] ch5BtimerEqualEquals = {"-6", "-173", "109", "119"};
     btimerEqualEquals = btimerEqualEquals.Concat(ch5BtimerEqualEquals).ToArray();
 }
 (string A, string B) [] btimerModulos = {};
@@ -1482,7 +1482,7 @@ foreach (string con in bulletCons)
         importGroup.QueueRegexFindReplace(con + "_Step_0", "btimer -= ([^;]+)", "btimer -= ceil(global.diff_enemycd * $1)");
         foreach ((string A, string B) terms in btimerModulos)
         {
-            importGroup.QueueFindReplace(con + "_Step_0", $"(btimer % {terms.A}) == {terms.B}", $"(btimer % ceil(global.diff_enemycd * ({terms.A})) == floor(global.diff_enemycd * {terms.B})");
+            importGroup.QueueFindReplace(con + "_Step_0", $"(btimer % {terms.A}) == {terms.B}", $"(btimer % ceil(global.diff_enemycd * ({terms.A}))) == floor(global.diff_enemycd * {terms.B})");
         }
     }
 }
@@ -1969,7 +1969,59 @@ if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_Object_obj_sheary_smashcut_attack_Step_0", "timer2 == ((25 + (10 * type)) - ((3 + type) * difficulty))",
         "timer2 == ceil(global.diff_enemycd * ((25 + (10 * type)) - ((3 + type) * difficulty)))");
 
-    // TODO netskie shadow copy and default attack and also make sure the fake bullets are spread out properly
+    // revert this change so that netskie fake rabbick bullets can work properly: preserve original timing and add new, variably timed attacks
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer >= (global.diff_enemycd * bmax)", "btimer >= bmax");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer == special && i_ex(obj_netskie_enemy))", @"
+        if (btimer >= (global.diff_enemycd * bmax))
+        {
+            rab = instance_create(obj_growtangle.x + obj_growtangle.sprite_width + 10, obj_growtangle.y, obj_rabbitbullet);
+            rab.hspeed = choose(3 + random(1), 3 + random(1), 6) * -1;
+
+            if (rab.hspeed == -6)
+                rab.x += 50 + random(30);
+
+            scr_bullet_inherit(rab);
+        }
+
+        if (btimer == special && i_ex(obj_netskie_enemy))
+    ");
+    // netskie shadowman attack
+    importGroup.QueueFindReplace("gml_Object_obj_shadowman_tommygun_Step_0", "bullet_timer = 4;", "bullet_timer = ceil(global.diff_enemycd * 4);");
+    importGroup.QueueFindReplace("gml_Object_obj_shadowman_tommygun_Step_0", "bullet_timer += (10 + (irandom(1) * 5) + (4 * sameattack));", "bullet_timer += ceil(global.diff_enemycd * (10 + (irandom(1) * 5) + (4 * sameattack)));");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_tommygun_Step_0", "netskie_count == (-?[0-9]+)", $"netskie_count == floor({one_over_cd} * $1)");
+    // spread out floradinn fake bullets properly
+    importGroup.QueueFindReplace("gml_Object_obj_netskie_enemy_Create_0", "choose(1, 2)", $"irandom_range(1, max(1, floor({one_over_cd} * 2)))");
+    importGroup.QueueFindReplace("gml_Object_obj_netskie_enemy_Create_0", "choose(3, 4)", $"irandom_range(max(2, floor({one_over_cd} * 3)), max(2, floor({one_over_cd} * 4)))");
+    importGroup.QueueFindReplace("gml_Object_obj_netskie_enemy_Create_0", "choose(5, 6)", $"irandom_range(max(3, floor({one_over_cd} * 5)), max(3, floor({one_over_cd} * 6)))");
+    importGroup.QueueFindReplace("gml_Object_obj_netskie_enemy_Create_0", "choose(7, 8)", $"irandom_range(max(4, floor({one_over_cd} * 7)), max(4, floor({one_over_cd} * 8)))");
+    importGroup.QueueFindReplace("gml_Object_obj_netskie_enemy_Create_0", "choose(9, 10)", $"irandom_range(max(5, floor({one_over_cd} * 9)), max(5, floor({one_over_cd} * 10)))");
+    importGroup.QueueFindReplace("gml_Object_obj_netskie_enemy_Create_0", "choose(11, 12)", $"irandom_range(max(6, floor({one_over_cd} * 11)), max(6, floor({one_over_cd} * 12)))");
+    // netskie foxtrot attack
+    importGroup.QueueFindReplace("gml_Object_obj_bullet_foxtrot_Create_0", "timer = 30;", "timer = ceil(global.diff_enemycd * 30);");
+    importGroup.QueueFindReplace("gml_Object_obj_bullet_foxtrot_Step_0", "timer = 30 + (10 * sameattack);", "timer = ceil(global.diff_enemycd * 30 + (10 * sameattack));");
+    importGroup.QueueFindReplace("gml_Object_obj_bullet_foxtrot_Step_0", "timer < 21 && timer > 4", "timer < global.diff_enemycd * 21 && timer > global.diff_enemycd * 4");
+    importGroup.QueueFindReplace("gml_Object_obj_bullet_foxtrot_Step_0", "(timer % 3) == 2", "(timer % ceil(global.diff_enemycd * 3)) == floor(global.diff_enemycd * 2)");
+    importGroup.QueueFindReplace("gml_Object_obj_bullet_foxtrot_Step_0", "2 + (timer / 5)", $"({one_over_cd} * (2 + (timer / 5)))");
+
+    // aqua yes!! silly little adorable murder gremlin!!! sdgsdfhsdfjgbsdigbsdjkfgnk *dies*
+    importGroup.QueueFindReplace("gml_Object_obj_attack_knifechain_manager2_Alarm_0", "alarm[0] = 35;", "alarm[0] = ceil(global.diff_enemycd * 35);");
+    importGroup.QueueFindReplace("gml_Object_obj_attack_knifechain_manager2_Alarm_0", "alarm[0] = 16;", "alarm[0] = ceil(global.diff_enemycd * 16);");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "_aqua_fanofknives.timer = 10;", "_aqua_fanofknives.timer = floor(global.diff_enemycd * 10);");
+    importGroup.QueueFindReplace("gml_Object_obj_attack_knifefan_manager_Create_0", "timer = 30;", "timer = floor(global.diff_enemycd * 30);");
+    importGroup.QueueFindReplace("gml_Object_obj_attack_knifefan_manager_Create_0", "timer = 50;", "timer = floor(global.diff_enemycd * 50);");
+    importGroup.QueueFindReplace("gml_Object_obj_attack_knifefan_manager_Step_0", "timer == (cooldown - 6)", "timer == ceil(global.diff_enemycd * (cooldown - 6))");
+    importGroup.QueueFindReplace("gml_Object_obj_attack_knifefan_manager_Step_0", "timer >= cooldown", "timer >= ceil(global.diff_enemycd * cooldown)");
+    importGroup.QueueFindReplace("gml_Object_obj_attack_knife_leafling_Create_0", "alarm[0] = 10;", "alarm[0] = ceil(global.diff_enemycd * 10);");
+    importGroup.QueueFindReplace("gml_Object_obj_attack_knife_leafling_Alarm_0", "alarm[0] = cooldown;", "alarm[0] = ceil(global.diff_enemycd * cooldown);");
+
+    // TODO aqua knife plat
+
+    // type == 145
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(my_timer % ceil(10 + (40 * ratio))) == (24 * sameattacker)",
+        "(my_timer % ceil(global.diff_enemycd * (10 + (40 * ratio)))) == floor(global.diff_enemycd * 24 * sameattacker)");
+    // type == 146
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "((btimer - 12) % ceil(25 * ratio)) == (17 * sameattacker)",
+        "((btimer - floor(global.diff_enemycd * 12)) % ceil(global.diff_enemycd * 25 * ratio)) == floor(global.diff_enemycd * 17 * sameattacker)");
 }
 
 // Apply Game Board Enemy Cooldowns
