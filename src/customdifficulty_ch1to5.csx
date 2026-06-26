@@ -684,8 +684,10 @@ foreach (string scrName in damageLikes)
     importGroup.QueueFindReplace(scrName, "global.maxhp[chartarget] / 2", "max(-999, global.maxhp[chartarget] * global.diff_downdeficit)");
     importGroup.QueueFindReplace(scrName, "global.maxhp[0] / 2", "max(-999, global.maxhp[0] * global.diff_downdeficit)");
 }
-if (ch_no == 4) {
+if (ch_no >= 4) {
     importGroup.QueueFindReplace("gml_GlobalScript_scr_down_partymember", "global.maxhp[_chartarget] / 2", "max(-999, global.maxhp[_chartarget] * global.diff_downdeficit)");
+}
+if (ch_no == 4) {
     string[] heavySmokers = {"1", "2", "3"};
     foreach (string smoker in heavySmokers)
     {
@@ -699,6 +701,10 @@ if (ch_no == 0)
     importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_ch1_Step_0", "global.maxhp[i] / 8", "global.diff_victoryres >= 0 ? max(1, global.maxhp[i] * global.diff_victoryres) : global.hp[i]");
 }
 importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "global.maxhp[i] / 8", "global.diff_victoryres >= 0 ? max(1, global.maxhp[i] * global.diff_victoryres) : global.hp[i]");
+if (ch_no >= 5)
+{
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_endcombat_instant", "global.maxhp[i] / 8", "global.diff_victoryres >= 0 ? max(1, global.maxhp[i] * global.diff_victoryres) : global.hp[i]");
+}
 
 // Downed Regen
 if (ch_no == 0)
@@ -763,6 +769,16 @@ if (ch_no == 4) {
         "gml_Object_obj_gh_fireball_bouncy_Other_15", "gml_Object_obj_incense_bullet_fire_Other_15", "gml_Object_obj_tm_quizzap_Other_15", "gml_Object_obj_ow_pathingenemy_Other_15",
         "gml_Object_obj_lightbullet_Other_15", "gml_Object_obj_elnina_bouncingbullet_Other_15", "gml_Object_obj_gh_fireball_linear_Other_15", "gml_Object_obj_mike_spike_Other_15"};
     singleHits = singleHits.Concat(ch4SingleHits).ToArray();
+}
+if (ch_no == 5) {
+    string[] ch5SingleHits = {"gml_Object_obj_flowery_shockwave_Other_15", "gml_Object_obj_rabbitbullet_Other_15", "gml_Object_obj_flowery_crescent_effect_Other_15", "gml_Object_obj_orange_green_controller_Other_10",
+        "gml_Object_obj_orange_green_controller_Other_11", "gml_Object_obj_flowery_bullet_parent_Other_15", "gml_Object_obj_flowery_bullet_Other_15", "gml_Object_obj_pink_enemy_Other_12",
+        "gml_Object_obj_sheary_smashcutter_Step_2", "gml_Object_obj_tommygun_bullet_Other_15", "gml_Object_obj_mane_Other_15", "gml_Object_obj_bullet_scarecrow1_Other_15", "gml_Object_obj_aquabullet_Other_15",
+        "gml_Object_obj_attack_knifefan_bullet_Other_15", "gml_Object_obj_overworld_foxbullet_Other_15", "gml_Object_obj_spike_bullet_Other_15", "gml_Object_obj_dancing_beetle_Other_15", "gml_Object_obj_bullet_dashbar_Other_15",
+        "gml_Object_obj_rotating_object_parent_new_Other_15", "gml_Object_obj_purple_aim_attack_Create_0", "gml_Object_obj_bullet_knife_Other_15", "gml_Object_obj_omega_knife_Other_15",
+        "gml_Object_obj_bullet_wheelspring_Other_15", "gml_Object_obj_flowery_crescent_Other_15", "gml_Object_obj_bullet_scarecrow2_Other_15", "gml_Object_obj_netskiebullet1_Other_15", "gml_Object_obj_flower_wall_Other_15",
+        "gml_Object_obj_tm_quizzap_Other_15", "gml_Object_obj_orangeheart_Create_0", "gml_Object_obj_climb_kris_Step_0", "gml_Object_obj_dbulletcontroller_Step_0", "gml_Object_obj_flowery_star_Other_15"};
+    singleHits = singleHits.Concat(ch5SingleHits).ToArray();
 }
 foreach (string scrName in singleHits)
 {
@@ -944,9 +960,19 @@ if (ch_no >= 5) {
     string[] ch5UpIFramers = {"gml_GlobalScript_scr_damage_all_platmode"};
     iFramers = iFramers.Concat(ch5UpIFramers).ToArray();
 }
+if (ch_no == 5) {
+    string[] ch5IFramers = {"gml_Object_obj_orange_green_controller_Other_10", "gml_Object_obj_orange_green_controller_Other_11", "gml_Object_obj_sheary_smashcutter_Step_2", "gml_Object_obj_pinknodeact_Step_0"};
+    iFramers = iFramers.Concat(ch5IFramers).ToArray();
+}
 foreach (string scrName in iFramers)
 {
     importGroup.QueueFindReplace(scrName, "global.inv = global.invc", "global.inv = global.diff_iframes * global.invc");
+}
+if (ch_no == 5) {
+    // Orange soul i-frames
+    importGroup.QueueFindReplace("gml_Object_obj_heart_Step_0", "global.inv = 60;", "global.inv = global.diff_iframes * 60;");
+    importGroup.QueueFindReplace("gml_Object_obj_orangeheart_Create_0", "global.inv > 24", "global.inv > global.diff_iframes * 24");
+    importGroup.QueueFindReplace("gml_Object_obj_orangeheart_Create_0", "global.inv = 24;", "global.inv = global.diff_iframes * 24;");
 }
 
 // Apply Battle Rewards
@@ -1011,11 +1037,17 @@ if (ch_no == 4) {
         "gml_Object_obj_darkshape_greenblob_Step_0", "gml_Object_obj_attackpress_Other_11", "gml_Object_obj_hammer_of_justice_enemy_Draw_0"};
     tensionHeals = tensionHeals.Concat(ch4TensionHeals).ToArray();
 }
+if (ch_no == 5) {
+    string[] ch5TensionHeals = {"gml_Object_obj_grazebox_Collision_obj_orangeheart_bullet", "gml_Object_obj_green_enemy_Step_0", "gml_Object_obj_orangeheart_helpful_flower_Create_0", "gml_Object_obj_orange_enemy_Step_0", 
+        "gml_Object_obj_orangeheart_wall_Create_0", "gml_Object_obj_orangeheart_wall_Step_0", "gml_Object_obj_flowery_enemy_Step_0", "gml_Object_obj_bullet_healing_Step_0", "gml_Object_obj_orangeheart_floweryjarona_Step_0", 
+        "gml_Object_obj_bullet_green_food_Other_15", "gml_Object_obj_orangeheart_jumppad_Step_0", "gml_Object_obj_dokiheart_Step_0", "gml_Object_obj_blue_enemy_Step_0", };
+    tensionHeals = tensionHeals.Concat(ch5TensionHeals).ToArray();
+}
 foreach (string scrName in tensionHeals)
 {
     importGroup.QueueFindReplace(scrName, "scr_tensionheal(", "scr_tensionheal(global.diff_tpgain * ");
 }
-// avoid tp heal items
+// avoid tp heal items / round to int
 if (ch_no == 0)
 {
     importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_ch1_Step_0", "scr_tensionheal_ch1(40", "scr_tensionheal_ch1(global.diff_tpgain * 40");
@@ -1026,6 +1058,7 @@ if (ch_no == 4) {
 }
 if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "scr_tensionheal(20", "scr_tensionheal(global.diff_tpgain * 20");
+    importGroup.QueueFindReplace("gml_Object_obj_date_controller_Step_0", "scr_tensionheal(round(", "scr_tensionheal(round(global.diff_tpgain * ");
 }
 
 // Apply Mercy Build-up
@@ -1094,6 +1127,16 @@ if (ch_no == 4) {
     importGroup.QueueFindReplace("gml_Object_obj_balthizard_enemy_Step_0", "global.mercymod[myself] += mercygained;", "global.mercymod[myself] += ceil(global.diff_mercy * mercygained);");
     importGroup.QueueFindReplace("gml_Object_obj_balthizard_enemy_Step_0", "shakemaxmercyhp -= mercygained;", "shakemaxmercyhp -= ceil(global.diff_mercy * mercygained);");
 }
+if (ch_no == 5) {
+    importGroup.QueueFindReplace("gml_Object_obj_trashy_hoop_Create_0", "damage += arg0;", "damage += ceil(global.diff_mercy * arg0);");
+    importGroup.QueueFindReplace("gml_Object_obj_trashy_hoop_Create_0", "100, arg0);", "100, ceil(global.diff_mercy * arg0));");
+    importGroup.QueueFindReplace("gml_Object_obj_trashy_broom_Step_0", "damage++;", "damage += ceil(global.diff_mercy);");
+    importGroup.QueueFindReplace("gml_Object_obj_trashy_broom_Step_0", "100, 1);", "100, ceil(global.diff_mercy));");
+    importGroup.QueueFindReplace("gml_Object_obj_flowery_enemy_Step_0", "global.mercymod[myself] += 10;", "global.mercymod[myself] += ceil(global.diff_mercy * 10);");
+    importGroup.QueueFindReplace("gml_Object_obj_yellow_trial_manager_Create_0", "global.mercymod[myself] += 10;", "global.mercymod[myself] += ceil(global.diff_mercy * 10);");
+    importGroup.QueueFindReplace("gml_Object_obj_monster1_Step_0", "global.mercymod[myself] += 120;", "global.mercymod[myself] += ceil(global.diff_mercy * 120);");
+    importGroup.QueueFindReplace("gml_Object_obj_placeholderenemy_Step_0", "global.mercymod[myself] += 200;", "global.mercymod[myself] += ceil(global.diff_mercy * 200);");
+}
 
 // Apply Player Damage
 {
@@ -1119,7 +1162,10 @@ if (ch_no == 4) {
         "global.monsterinstance[global.chartarget[myself]].hurtamt = ceil(global.diff_plrdmg * damage);");
 }
 if (ch_no >= 5) {
-    importGroup.QueueFindReplace($"gml_Object_obj_heroparent_Step_0", "dm.damage = damage;", "dm.damage = ceil(global.diff_plrdmg * damage);");
+    importGroup.QueueFindReplace($"gml_Object_obj_heroparent_Step_0", "dm.damage = damage;", @"
+        damage = ceil(global.diff_plrdmg * damage);
+        dm.damage = damage;
+    ");
 }
 if (ch_no == 2 || ch_no == 0) {
     importGroup.QueueFindReplace("gml_Object_obj_sneo_wireheart_old_Draw_0", "global.monsterhp[0] -= ceil(global.monstermaxhp[0] * 0.03);",
@@ -1168,6 +1214,9 @@ if (ch_no == 3)
 }
 if (ch_no == 0) {
     importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell_ch1", "scr_heal_ch1\\((\\S+), healnum\\);", "scr_heal_ch1($1, ceil(global.diff_plrheal * healnum));");
+}
+if (ch_no >= 5) {
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_spell", "scr_heal(0, scr_heal_amount_modify_by_equipment(5));", "scr_heal(0, ceil(global.diff_plrheal * scr_heal_amount_modify_by_equipment(5)));");
 }
 
 // Apply Game Board Player Healing
@@ -1272,6 +1321,27 @@ if (ch_no == 4)
         }
     ");
 }
+if (ch_no == 5)
+{
+    importGroup.QueueFindReplace("gml_Object_obj_moveheart_Create_0", "alarm[0] = flytime;", @"
+        if (flytime > 0)
+        {
+            alarm[0] = flytime;
+        }
+        else
+        {
+            x = distx;
+            y = disty;
+
+            if (orange == true)
+                instance_create_depth(x, y, -99999999, obj_flowery_act_menu_heart);
+            else if (!i_ex(obj_heart))
+                instance_create(x, y, obj_heart);
+
+            instance_destroy();
+        }
+    ");
+}
 importGroup.QueueFindReplace("gml_Object_obj_moveheart_Step_0", "image_alpha += 0.334;", $"image_alpha += max(0.334, {one_over_cd} * 0.334)");
 if (ch_no == 0)
 {
@@ -1325,6 +1395,10 @@ if (ch_no == 4) {
     string[] ch4BulletCons = {"gml_Object_obj_encounter_guei_alt"};
     bulletCons = bulletCons.Concat(ch4BulletCons).ToArray();
 }
+if (ch_no == 5) {
+    string[] ch5BulletCons = {"gml_Object_obj_attack_blue_ponddancing_Draw_0"};
+    bulletCons = bulletCons.Concat(ch5BulletCons).ToArray();
+}
 string[] btimerEquals = {"99"};
 if (ch_no == 1 || ch_no == 0) {
     string[] ch1BtimerEquals = {"20", "10", "-8"};
@@ -1350,7 +1424,7 @@ if (ch_no == 4) {
     btimerEquals = btimerEquals.Concat(ch4BtimerEquals).ToArray();
 }
 if (ch_no == 5) {
-    string[] ch5BtimerEquals = {"ceil(24 * ratio) - 1", "irandom(1500)", "irandom(150)", "-10", "-180", "32", "-999", "40 - floor(0.5 + (40 * _binterval))"};
+    string[] ch5BtimerEquals = {"ceil(24 * ratio) - 1", "irandom(1500)", "irandom(150)", "-10", "-180", "32", "-999", "40 - floor(0.5 + (40 * _binterval))", "brate - 1"};
     btimerEquals = btimerEquals.Concat(ch5BtimerEquals).ToArray();
 }
 string[] btimerEqualEquals = {};
@@ -1376,6 +1450,14 @@ if (ch_no == 5) {
     string[] ch5BtimerEqualEquals = {"special", "-6", "-173", "109", "119"};
     btimerEqualEquals = btimerEqualEquals.Concat(ch5BtimerEqualEquals).ToArray();
 }
+(string A, string B) [] btimerModulos = {};
+if (ch_no == 5) {
+    (string A, string B) [] ch5BtimerModulos = {
+        ("ceil(31 * power(ratio, 1.28))", "(25 * sameattacker)"), ("ceil(24 * ratio)", "(4 * sameattacker)"), ("(6 * ceil(ratio))", "0"), ("ceil(27 * ratio)", "(20 * sameattacker)"),
+        ("((3 + ceil(18 * ratio)) - (5 * (ratio == 1)))", "(3 * sameattacker)"), ("ceil(59 * ratio)", "(30 * sameattacker)"), ("40", "20"), ("60", "0"), ("_rate", "0"),
+        ("ceil(31 * power(ratio, 1.28))", "(25 * sameattacker)")};
+    btimerModulos = btimerModulos.Concat(ch5BtimerModulos).ToArray();
+}
 foreach (string con in bulletCons)
 {
     foreach (string term in btimerEquals)
@@ -1394,6 +1476,14 @@ foreach (string con in bulletCons)
     foreach (string term in btimerEqualEquals)
     {
         importGroup.QueueFindReplace(con + "_Step_0", $"btimer == {term}", $"btimer == ceil(global.diff_enemycd * ({term}))");
+    }
+    if (ch_no == 5) // TODO only chapter 5, for now...
+    {
+        importGroup.QueueRegexFindReplace(con + "_Step_0", "btimer -= ([^;]+)", "btimer -= ceil(global.diff_enemycd * $1)");
+        foreach ((string A, string B) terms in btimerModulos)
+        {
+            importGroup.QueueFindReplace(con + "_Step_0", $"(btimer % {terms.A}) == {terms.B}", $"(btimer % ceil(global.diff_enemycd * ({terms.A})) == floor(global.diff_enemycd * {terms.B})");
+        }
     }
 }
 if (ch_no == 1 || ch_no == 0) {
@@ -1799,6 +1889,87 @@ if (ch_no == 4) {
     importGroup.QueueRegexFindReplace("gml_Object_obj_bell_enemy_Draw_0", "spinattacktimer == ([0-9]+)", "spinattacktimer == ceil(global.diff_enemycd * $1)");
     importGroup.QueueFindReplace("gml_Object_obj_bell_enemy_Draw_0", "(spinattacktimer >= 7 || spinattacktimer < 11)",
         "(spinattacktimer >= (global.diff_enemycd * 7) || spinattacktimer < (global.diff_enemycd * 11))");
+}
+if (ch_no == 5) {
+    importGroup.QueueFindReplace("gml_Object_obj_attack_blue_ponddancing_Draw_0", "if ((btimer % brate) == 0)", "if ((btimer % ceil(global.diff_enemycd * brate)) == 0)");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_aqua_miniboss_Step_0", "attacktimer >= attacklimit", "attacktimer >= global.diff_enemycd * attacklimit");
+
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_gun_Create_0", "shottimer = shotdelay_start;", "shottimer = ceil(global.diff_enemycd * shotdelay_start);");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_gun_Create_0", "shottimer = shotdelay;", "shottimer = ceil(global.diff_enemycd * shotdelay);");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_gun_Step_0", "shottimer = shotdelay;", "shottimer = ceil(global.diff_enemycd * shotdelay);");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_gun_Step_0", "shottimer == (shotdelay - 1)", "shottimer == floor(global.diff_enemycd * (shotdelay - 1))");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_gun_Step_0", "shottimer > rapiddelay", "shottimer > (global.diff_enemycd * rapiddelay)");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_gun_Step_0", "(shottimer - rapiddelay) / (shotdelay - 16)", "(shottimer - global.diff_enemycd * rapiddelay) / (global.diff_enemycd * (shotdelay - 16))");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_gun_Step_0", "shottimer < (shotdelay - 8)", "shottimer < global.diff_enemycd * (shotdelay - 8)");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_gun_Step_0", "shottimer == (rapiddelay - 1)", "shottimer == floor(global.diff_enemycd * (rapiddelay - 1))");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_gun_Step_0", "shottimer / ", $"{one_over_cd} * shottimer / ");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_gun_Draw_0", "shottimer / ", $"{one_over_cd} * shottimer / ");
+
+    importGroup.QueueRegexFindReplace("gml_Object_obj_starwalker_overworld_Step_0", "attacktimer = ([0-9]+);", "attacktimer = floor(global.diff_enemycd * $1);");
+    importGroup.QueueFindReplace("gml_Object_obj_starwalker_overworld_Step_0", "attacktimer >= ", "attacktimer >= global.diff_enemycd * ");
+    importGroup.QueueFindReplace("gml_Object_obj_starwalker_overworld_Step_0", "attacktimer = 46 + min(16, attackvolley, difficulty_capped);",
+        "attacktimer = floor(global.diff_enemycd * (46 + min(16, attackvolley, difficulty_capped)));");
+    importGroup.QueueFindReplace("gml_Object_obj_starwalker_overworld_Step_0", "attacktimer = 41 + min(6, attackvolley * 2, difficulty_capped);",
+        "attacktimer = floor(global.diff_enemycd * (41 + min(6, attackvolley * 2, difficulty_capped)));");
+    importGroup.QueueFindReplace("gml_Object_obj_starwalker_overworld_Step_0", "attacktimer += 7;", "attacktimer += floor(global.diff_enemycd * 7);");
+    // fix star bullets dissappearing too soon
+    importGroup.QueueFindReplace("gml_Object_obj_starwalker_overworld_Step_0", "if (shot == 1)", "if (false && shot == 1)");
+    importGroup.QueueAppend("gml_Object_obj_starwalker_overworld_Create_0", "trackstarbullet = array_create(0);");
+    importGroup.QueueFindReplace("gml_Object_obj_starwalker_overworld_Step_0", "configure_bullet(starbullet[i], i, target, count);", @"
+        configure_bullet(starbullet[i], i, target, count);
+        array_push(trackstarbullet, starbullet[i]);
+    ");
+    importGroup.QueueAppend("gml_Object_obj_starwalker_overworld_Step_0", @"
+        var newtrackstarbullet = array_create(0);
+        var cam = view_camera[0];
+        var x1 = camera_get_view_x(cam);
+        var y1 = camera_get_view_y(cam);
+        var x2 = x1 + camera_get_view_width(cam);
+        var y2 = y1 + camera_get_view_height(cam);
+        for (var i = 0; i < array_length(trackstarbullet); i++) {
+            with (trackstarbullet[i]) {
+                if(!point_in_rectangle( x, y, x1, y1, x2, y2))
+                    instance_destroy();
+                else
+                    array_push(newtrackstarbullet, self);
+            }
+        }
+        trackstarbullet = newtrackstarbullet;
+    ");
+
+    importGroup.QueueFindReplace("gml_Object_obj_starwalker_climb_Step_0", "attacktimer == 20", "attacktimer == ceil(global.diff_enemycd * 20)");
+    importGroup.QueueFindReplace("gml_Object_obj_starwalker_climb_Step_0", "attacktimer >= ", "attacktimer >= global.diff_enemycd * ");
+    importGroup.QueueFindReplace("gml_Object_obj_starwalker_climb_Step_0", "attacktimer = 15;", "attacktimer = floor(global.diff_enemycd * 15);");
+    importGroup.QueueFindReplace("gml_Object_obj_starwalker_climb_Step_0", "attacktimer = -99;", "attacktimer = floor(global.diff_enemycd * -99);");
+
+    // TODO can't figure out why trashy's bullet tragectories get messed up at giga low cds but seems work fine for all the presets
+    importGroup.QueueRegexFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(?<!\\w|\\.)timer = (-?[0-9]+);", "timer = floor(global.diff_enemycd * $1);");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "timer = irandom(timer_goal - 1);", "timer = floor(global.diff_enemycd * irandom(timer_goal - 1));");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(?<!\\w|\\.)timer == (-?[0-9]+)", "timer == ceil(global.diff_enemycd * $1)");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(?<!\\w|\\.)timer < (-?[0-9]+)", "timer < (global.diff_enemycd * $1)");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(?<!\\w|\\.)timer >= (-?[0-9]+)", "timer >= (global.diff_enemycd * $1)");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(?<!\\w|\\.)timer % (-?[0-9]+)", "timer % ceil(global.diff_enemycd * $1)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "global.time", $"{one_over_cd} * global.time");
+
+    importGroup.QueueFindReplace("gml_Object_obj_trashy_trio_Create_0", "attack_timer * 16", $"{one_over_cd} * attack_timer * 16");
+    importGroup.QueueFindReplace("gml_Object_obj_trashy_trio_Create_0", "attack_timer >= 12", "attack_timer >= (global.diff_enemycd * 12)");
+    importGroup.QueueFindReplace("gml_Object_obj_trashy_trio_Create_0", "attack_timer > 10", "attack_timer > (global.diff_enemycd * 10)");
+    importGroup.QueueFindReplace("gml_Object_obj_trashy_trio_Create_0", "attack_timer % 2", "attack_timer % ceil(global.diff_enemycd * 2)");
+
+    // fix delay at start of floradinn spike attack and maybe others
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if ((btimer - 90) >= ((10 * ratio) + (sameattacker * sameattack)))",
+        "if ((btimer - global.diff_enemycd * 90) >= (global.diff_enemycd * ((10 * ratio) + (sameattacker * sameattack))))");
+    // floradinn mane attack
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "special = 10;", "special = ceil(max(2, global.diff_enemycd * 10));");
+    // sheary attack
+    importGroup.QueueFindReplace("gml_Object_obj_sheary_smashcut_attack_Create_0", "timer = 10;", "timer = floor(global.diff_enemycd * 10);");
+    importGroup.QueueFindReplace("gml_Object_obj_sheary_smashcut_attack_Create_0", "timer2 = 12;", "timer2 = floor(global.diff_enemycd * 12);");
+    importGroup.QueueFindReplace("gml_Object_obj_sheary_smashcut_attack_Step_0", "timer == ((24 + ((10 - difficulty) * type)) - (difficulty * 2))",
+        "timer == ceil(global.diff_enemycd * ((24 + ((10 - difficulty) * type)) - (difficulty * 2)))");
+    importGroup.QueueFindReplace("gml_Object_obj_sheary_smashcut_attack_Step_0", "timer2 == ((25 + (10 * type)) - ((3 + type) * difficulty))",
+        "timer2 == ceil(global.diff_enemycd * ((25 + (10 * type)) - ((3 + type) * difficulty)))");
+
+    // TODO netskie shadow copy and default attack and also make sure the fake bullets are spread out properly
 }
 
 // Apply Game Board Enemy Cooldowns
