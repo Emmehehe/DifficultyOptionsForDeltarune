@@ -2014,7 +2014,18 @@ if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_Object_obj_attack_knife_leafling_Create_0", "alarm[0] = 10;", "alarm[0] = ceil(global.diff_enemycd * 10);");
     importGroup.QueueFindReplace("gml_Object_obj_attack_knife_leafling_Alarm_0", "alarm[0] = cooldown;", "alarm[0] = ceil(global.diff_enemycd * cooldown);");
 
-    // TODO aqua knife plat
+    // platforming aqua knife
+    importGroup.QueueFindReplace("gml_Object_obj_plat_dash_aqua_Step_0", "(timer == 8)", "(timer == ceil(global.diff_enemycd * 8))");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_dash_aqua_Step_0", "timer >= timerlimit", "timer >= global.diff_enemycd * timerlimit");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_sethglasses_miniboss_Step_0", "(timer % tt)", "(timer % ceil(global.diff_enemycd * tt))");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_enm_sethglasses_miniboss_Step_0", "(timer % 3)", "(timer % ceil(global.diff_enemycd * 3))");
+    importGroup.QueueFindReplace("gml_Object_obj_knifewall_generator_Step_0", "(timer % 3)", "(timer % ceil(global.diff_enemycd * 3))");
+    importGroup.QueueFindReplace("gml_Object_obj_knifewall_generator_Step_0", "(timer % interval)", "(timer % ceil(global.diff_enemycd * interval))");
+    importGroup.QueueFindReplace("gml_Object_obj_knifewall_generator_Step_0", "timer >= 60", "timer >= global.diff_enemycd * 60");
+    // TODO the platforming aqua pattern doesn't cooldown reduce, and I do not know why
+
+    // Terakota
+    importGroup.QueueFindReplace("gml_Object_obj_terracota_pots_controller_Draw_0", "timer == timermax", "timer == ceil(global.diff_enemycd * timermax)");
 
     // type == 145
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(my_timer % ceil(10 + (40 * ratio))) == (24 * sameattacker)",
@@ -2022,6 +2033,50 @@ if (ch_no == 5) {
     // type == 146
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "((btimer - 12) % ceil(25 * ratio)) == (17 * sameattacker)",
         "((btimer - floor(global.diff_enemycd * 12)) % ceil(global.diff_enemycd * 25 * ratio)) == floor(global.diff_enemycd * 17 * sameattacker)");
+
+    // green & orange
+    importGroup.QueueFindReplace("gml_Object_obj_attack_green_cookingtime_Draw_0", "timer == (timermax - 3)", "timer == ceil(global.diff_enemycd * (timermax - 3))");
+    importGroup.QueueFindReplace("gml_Object_obj_attack_green_cookingtime_Draw_0", "(timer >= timermax)", "(timer >= global.diff_enemycd * timermax)");
+    importGroup.QueueFindReplace("gml_Object_obj_attack_green_cookingtime_Draw_0", "timer = -2;", "timer = floor(global.diff_enemycd * -2);");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 1", "(mytimer % ceil(global.diff_enemycd * 56)) == 1");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(other.mytimer > 5)", "(other.mytimer > global.diff_enemycd * 5)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 15", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 15)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 22", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 22)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 29", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 29)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 25", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 25)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 30", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 30)");
+    // TODO be nice to include the omega attack
+
+    // yellow hat shooter
+    importGroup.QueueFindReplace("gml_Object_obj_dw_fcastle_dangerous_platforming_Step_0", "hat_timer = -1;", "hat_timer = round(global.diff_enemycd * -1);");
+
+    // blue + yellow boss
+    // TODO this stuff is giga scripted and doesn't play ball well
+    // importGroup.QueueFindReplace("gml_Object_obj_blue_guidelines_Step_0", "(timer % 3)", "(timer % ceil(global.diff_enemycd * 3))");
+    // importGroup.QueueFindReplace("gml_Object_obj_blue_guidelines_Step_0", "(timer == 32)", "(timer == ceil(global.diff_enemycd * 32))");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Alarm_0", "alarm[0] = 64;", "alarm[0] = ceil(global.diff_enemycd * 64);");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Alarm_3", "alarm[3] = 40;", "alarm[3] = ceil(global.diff_enemycd * 40);");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "alarm[0] = 96;", "alarm[0] = ceil(global.diff_enemycd * 96);");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "alarm[3] = 40;", "alarm[3] = ceil(global.diff_enemycd * 40);");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "alarm[0] = 1 + (8 * (abs(x - (other.x + 50)) / 150));", "alarm[0] = ceil(global.diff_enemycd * (1 + (8 * (abs(x - (other.x + 50)) / 150))));");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "image_index = other.dancer_speed_counter + ((40 - alarm[1]) * 0.4);",
+    //     "image_index = other.dancer_speed_counter + ((ceil(global.diff_enemycd * 40) - alarm[1]) * 0.4);");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "alarm[0] == 64", "alarm[0] == floor(global.diff_enemycd * 64);");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "alarm[1] = 24", "alarm[1] = ceil(global.diff_enemycd * 24);");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "alarm[2] = 13", "alarm[2] = ceil(global.diff_enemycd * 13);");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "24 - alarm[1]", "ceil(global.diff_enemycd * 24) - alarm[1]");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "24 - other.alarm[1]", "ceil(global.diff_enemycd * 24) - other.alarm[1]");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "timer == 48", "timer == (43 + ceil(global.diff_enemycd * 5))");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "timer == 72", "timer == (43 + ceil(global.diff_enemycd * 29))");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "timer == 106", "timer == (43 + ceil(global.diff_enemycd * 63))");
+    importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_flower_aim_Other_10", "alarm[0] = attack_speed;", "alarm[0] = ceil(global.diff_enemycd * attack_speed);");
+    importGroup.QueueFindReplace("gml_Object_obj_blue_singing2_Step_0", "timer % (20 + offset)", "timer % ceil(global.diff_enemycd * (20 + offset))");
+    importGroup.QueueFindReplace("gml_Object_obj_blue_singing2_Step_0", "sin(timer / 19)", $"sin({one_over_cd} * timer / 19)");
+    importGroup.QueueFindReplace("gml_Object_obj_blue_singing2_Draw_0", "timer * 7", $"{one_over_cd} * timer * 7");
+
+    // TODO Mad Mew Mew
+
+    // TODO Final Flowery
 }
 
 // Apply Game Board Enemy Cooldowns
