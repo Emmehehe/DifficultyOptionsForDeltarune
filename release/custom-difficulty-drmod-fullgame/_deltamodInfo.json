@@ -9,31 +9,31 @@
         "url": "https://gamebanana.com/mods/613308",
         "tags": ["customization", "gameplay"]
     },
-    "deltaruneTargetVersion": "TODO",
+    "deltaruneTargetVersion": "1.05",
     "neededFiles": [
         {
             "file": "chapter1_windows/data.win",
-            "checksum": "fd410845c40cd084eb33a3410bfdb790cc0ad9f938fe088420ca57774c0dfcb7"
+            "checksum": "82c2bb61b8d78cd287120f6301588fecba34ec5a890bac711b7a8774c760ec70"
         },
 
         {
             "file": "chapter2_windows/data.win",
-            "checksum": "3fdd81e30723e5dfde2309c349600ce92a2305a706d33ae9edeacbcb20c6ce3c"
+            "checksum": "116dcb1dda3517634571417fbe1db862d6381008526a4bf8ebde8ca88b7dc5f1"
         },
 
         {
             "file": "chapter3_windows/data.win",
-            "checksum": "83b49c0a2939a6cabefd024f5c2c7d8c08df242d3bf7a725a4f2bbe97a5f081d"
+            "checksum": "f24458adcd1faf8d8ba432addea03fc265adf831e7fd92c130d92a87bb858dc5"
         },
 
         {
             "file": "chapter4_windows/data.win",
-            "checksum": "07e2df1088e56532b992fc9c59f88a4d66420ada4da9ff49ba6823a7f2cc3d47"
-        }
+            "checksum": "0e6c152582df6b9884360b2010df38ff20f9b6d1ba49e87601e4c57b9f1c1abb"
+        },
 
         {
             "file": "chapter5_windows/data.win",
-            "checksum": "TODO"
+            "checksum": "cd940118eff1a3f24dd8dca3932901f85bfc83761e175e36736622316e7ed556"
         }
     ]
 }
