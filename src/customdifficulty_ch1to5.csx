@@ -1142,6 +1142,12 @@ if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_GlobalScript_scr_dokiadd", "arg1;", "ceil(global.diff_mercy * arg1);");
     importGroup.QueueFindReplace("gml_GlobalScript_scr_dokiadd", "arg1 <", "ceil(global.diff_mercy * arg1) <");
     importGroup.QueueFindReplace("gml_Object_obj_pink_enemy_Step_0", "scr_mercyadd(myself, 25);", $"scr_mercyadd(myself, {one_over_mercy} * 25);");
+    // prevent final flowery softlock
+    importGroup.QueueFindReplace("gml_Object_obj_flowery_enemy_Step_0", " && global.mercymod[myself] < 20", "");
+    importGroup.QueueFindReplace("gml_Object_obj_flowery_enemy_Step_0", " && global.mercymod[myself] < 30", "");
+    importGroup.QueueFindReplace("gml_Object_obj_flowery_enemy_Step_0", " && global.mercymod[myself] < 40", "");
+    importGroup.QueueFindReplace("gml_Object_obj_flowery_enemy_Step_0", " && global.mercymod[myself] < 50", "");
+    importGroup.QueueFindReplace("gml_Object_obj_flowery_enemy_Step_0", " && global.mercymod[myself] < 60", "");
 }
 
 // Apply Player Damage
@@ -2096,7 +2102,11 @@ if (ch_no == 5) {
         "btimer -= round(0.5 + ((45 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 1)) / _bullet_interval_modifier));");
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "until (btimer < (global.diff_enemycd * (btimer_start + _startdelay)));", "until (btimer < (btimer_start + _startdelay));");
 
-    // TODO Final Flowery
+    // Final Flowery
+    // importGroup.QueueFindReplace("gml_Object_obj_debug_orangeheartcontroller_Step_0", "= abs((fakecamxspeedbase + fakecamxspeedadditional) / ", $"= abs({one_over_cd} * (fakecamxspeedbase + fakecamxspeedadditional) / ");
+    importGroup.QueueFindReplace("gml_Object_obj_debug_orangeheartcontroller_Step_0", "= abs((fakecamxspeedbase + fakecamxspeedadditional) / 10", $"= abs({one_over_cd} * (fakecamxspeedbase + fakecamxspeedadditional) / 10");
+    importGroup.QueueFindReplace("gml_Object_obj_debug_orangeheartcontroller_Step_0", "if ((timer % 8) == 0)", "if ((timer % ceil(global.diff_enemycd * 8)) == 0)");
+    importGroup.QueueFindReplace("gml_Object_obj_debug_orangeheartcontroller_Step_0", "if (((timer + 3) % 90) == 0)", "if (((timer + ceil(global.diff_enemycd * 3)) % ceil(global.diff_enemycd * 90)) == 0)");
 }
 
 // Apply Game Board Enemy Cooldowns
