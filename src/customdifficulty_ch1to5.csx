@@ -1128,6 +1128,8 @@ if (ch_no == 4) {
     importGroup.QueueFindReplace("gml_Object_obj_balthizard_enemy_Step_0", "shakemaxmercyhp -= mercygained;", "shakemaxmercyhp -= ceil(global.diff_mercy * mercygained);");
 }
 if (ch_no == 5) {
+
+    string one_over_mercy = "(global.diff_mercy <= 0 ? 1 : (1/global.diff_mercy))";
     importGroup.QueueFindReplace("gml_Object_obj_trashy_hoop_Create_0", "damage += arg0;", "damage += ceil(global.diff_mercy * arg0);");
     importGroup.QueueFindReplace("gml_Object_obj_trashy_hoop_Create_0", "100, arg0);", "100, ceil(global.diff_mercy * arg0));");
     importGroup.QueueFindReplace("gml_Object_obj_trashy_broom_Step_0", "damage++;", "damage += ceil(global.diff_mercy);");
@@ -1136,6 +1138,10 @@ if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_Object_obj_yellow_trial_manager_Create_0", "global.mercymod[myself] += 10;", "global.mercymod[myself] += ceil(global.diff_mercy * 10);");
     importGroup.QueueFindReplace("gml_Object_obj_monster1_Step_0", "global.mercymod[myself] += 120;", "global.mercymod[myself] += ceil(global.diff_mercy * 120);");
     importGroup.QueueFindReplace("gml_Object_obj_placeholderenemy_Step_0", "global.mercymod[myself] += 200;", "global.mercymod[myself] += ceil(global.diff_mercy * 200);");
+    // convert mercy to doki
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_dokiadd", "arg1;", "ceil(global.diff_mercy * arg1);");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_dokiadd", "arg1 <", "ceil(global.diff_mercy * arg1) <");
+    importGroup.QueueFindReplace("gml_Object_obj_pink_enemy_Step_0", "scr_mercyadd(myself, 25);", $"scr_mercyadd(myself, {one_over_mercy} * 25);");
 }
 
 // Apply Player Damage
@@ -2017,6 +2023,7 @@ if (ch_no == 5) {
     // platforming aqua knife
     importGroup.QueueFindReplace("gml_Object_obj_plat_dash_aqua_Step_0", "(timer == 8)", "(timer == ceil(global.diff_enemycd * 8))");
     importGroup.QueueFindReplace("gml_Object_obj_plat_dash_aqua_Step_0", "timer >= timerlimit", "timer >= global.diff_enemycd * timerlimit");
+    importGroup.QueueFindReplace("gml_Object_obj_plat_dash_aqua_Step_0", "if (timer == 45)", "if (timer == ceil(global.diff_enemycd * 45))");
     importGroup.QueueFindReplace("gml_Object_obj_plat_enm_sethglasses_miniboss_Step_0", "(timer % tt)", "(timer % ceil(global.diff_enemycd * tt))");
     importGroup.QueueFindReplace("gml_Object_obj_plat_enm_sethglasses_miniboss_Step_0", "(timer % 3)", "(timer % ceil(global.diff_enemycd * 3))");
     importGroup.QueueFindReplace("gml_Object_obj_knifewall_generator_Step_0", "(timer % 3)", "(timer % ceil(global.diff_enemycd * 3))");
@@ -2074,7 +2081,20 @@ if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_Object_obj_blue_singing2_Step_0", "sin(timer / 19)", $"sin({one_over_cd} * timer / 19)");
     importGroup.QueueFindReplace("gml_Object_obj_blue_singing2_Draw_0", "timer * 7", $"{one_over_cd} * timer * 7");
 
-    // TODO Mad Mew Mew
+    // Mad Mew Mew
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer >= (global.diff_enemycd * (btimer_start + 15)))", "if (btimer >= (btimer_start + 15))");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer -= ceil(global.diff_enemycd * round(0.5 + ((13 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 2)) / _bullet_interval_modifier)));",
+        "btimer -= round(0.5 + ((13 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 2)) / _bullet_interval_modifier));");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "until (btimer < (global.diff_enemycd * (btimer_start + 15)));", "until (btimer < (btimer_start + 15));");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer == ceil(global.diff_enemycd * -173))", "if (btimer == -173)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer = floor(global.diff_enemycd * 32);", "btimer = 32;");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer >= (global.diff_enemycd * 40))", "if (btimer >= 40)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer = floor(global.diff_enemycd * (40 - floor(0.5 + (40 * _binterval))));", "btimer = (40 - floor(0.5 + (40 * _binterval)));");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "until (btimer < (global.diff_enemycd * 40));", "until (btimer < 40);");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer >= (global.diff_enemycd * (btimer_start + _startdelay)))", "if (btimer >= (btimer_start + _startdelay))");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer -= ceil(global.diff_enemycd * round(0.5 + ((45 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 1)) / _bullet_interval_modifier)));",
+        "btimer -= round(0.5 + ((45 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 1)) / _bullet_interval_modifier));");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "until (btimer < (global.diff_enemycd * (btimer_start + _startdelay)));", "until (btimer < (btimer_start + _startdelay));");
 
     // TODO Final Flowery
 }
