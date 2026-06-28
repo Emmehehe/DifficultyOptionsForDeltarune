@@ -5,6 +5,13 @@ For an example of this mod in action see the [Custom Difficulty mod](https://gam
 For reference, you can see the exact code that this mod uses to configure its menu [here](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/blob/1.3.0/src/customdifficulty_ch1to4.csx#L159-L250).
 There's also an example of setting up the variables and saving/loading them if you scroll up.
 
+## How to add the mod tool to the game
+
+1. Open the data.win for any chapter (or demo) in [UndertaleModTool](https://github.com/UnderminersTeam/UndertaleModTool/releases)
+2. Scripts > Run other script...
+3. Open the [modmenu.csx file](https://gamebanana.com/tools/20839)
+4. Done! 'MODS' button should appear in the dark world menu in-game. Now you'll need to follow the instructions below to add your custom menu.
+
 ## Steps to create a menu using the framework
 
 In `gml_Object_obj_darkcontroller_Create_0` & `gml_Object_obj_darkcontroller_ch1_Create_0`(for demo only):
