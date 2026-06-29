@@ -19,7 +19,7 @@ if (alreadyInstalled != null) {
 }
 
 // Prefire checks
-const string expectedDisplayName = "DELTARUNE \\S+ ([1-4](?:&2)?)";
+const string expectedDisplayName = "DELTARUNE \\S+ ([1-7](?:&2)?)";
 if (!Regex.IsMatch(displayName, expectedDisplayName, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(500)))
 {
     ScriptError($"Error 0: data file display name does not match expected: '{expectedDisplayName}', actual display name: '{displayName}'.");
@@ -136,7 +136,7 @@ UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
     ThrowOnNoOpFindReplace = true
 };
 
-// The demo is on an old version of game maker that doesn't have the string_split, string_ends_with, or string_trim functions so add implementations
+// The demo is on an old version of game maker that doesn't have the string_split, string_ends_with, or string_trim functions so add (very) basic implementations
 string[] darkcons = {"gml_Object_obj_darkcontroller"};
 if (ch_no == 0)
 {
@@ -252,6 +252,7 @@ foreach (string darkcon in darkcons)
 string global_lang = @"(global.modmenu_langoverride != """" ? global.modmenu_langoverride : global.lang)";
 Func<string,string,string> ds_map_find_value_lang =
     (id, key) => @$"(ds_map_exists({id}, {key} + ""_"" + {global_lang}) ? ds_map_find_value({id}, {key} + ""_"" + {global_lang}) :  ds_map_find_value({id}, {key} + ""_en""))";
+
 
 // Add menu draw code
 foreach (string darkcon in darkcons)
