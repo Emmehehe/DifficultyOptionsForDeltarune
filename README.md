@@ -77,7 +77,7 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
 1. Open the menu in a dark world.
 2. Go to **MODS** and adjust settings.
 
-## Installation via Deltamod/Deltahub
+## Installation via Deltamod/G3M
 **Full game** — custom-difficulty-drmod-fullgame-{version number}.zip
 
 **Demo** — custom-difficulty-drmod-demo-{version number}.zip
