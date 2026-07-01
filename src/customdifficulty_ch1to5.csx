@@ -2016,8 +2016,8 @@ if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_Object_obj_bullet_foxtrot_Step_0", "2 + (timer / 5)", $"({one_over_cd} * (2 + (timer / 5)))");
 
     // aqua yes!! silly little adorable murder gremlin!!! sdgsdfhsdfjgbsdigbsdjkfgnk *dies*
-    importGroup.QueueFindReplace("gml_Object_obj_attack_knifechain_manager2_Alarm_0", "alarm[0] = 35;", "alarm[0] = ceil(global.diff_enemycd * 35);");
-    importGroup.QueueFindReplace("gml_Object_obj_attack_knifechain_manager2_Alarm_0", "alarm[0] = 16;", "alarm[0] = ceil(global.diff_enemycd * 16);");
+    // importGroup.QueueFindReplace("gml_Object_obj_attack_knifechain_manager2_Alarm_0", "alarm[0] = 35;", "alarm[0] = ceil(global.diff_enemycd * 35);");
+    // importGroup.QueueFindReplace("gml_Object_obj_attack_knifechain_manager2_Alarm_0", "alarm[0] = 16;", "alarm[0] = ceil(global.diff_enemycd * 16);");
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "_aqua_fanofknives.timer = 10;", "_aqua_fanofknives.timer = floor(global.diff_enemycd * 10);");
     importGroup.QueueFindReplace("gml_Object_obj_attack_knifefan_manager_Create_0", "timer = 30;", "timer = floor(global.diff_enemycd * 30);");
     importGroup.QueueFindReplace("gml_Object_obj_attack_knifefan_manager_Create_0", "timer = 50;", "timer = floor(global.diff_enemycd * 50);");
