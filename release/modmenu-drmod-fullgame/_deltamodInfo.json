@@ -29,11 +29,11 @@
         {
             "file": "chapter4_windows/data.win",
             "checksum": "0e6c152582df6b9884360b2010df38ff20f9b6d1ba49e87601e4c57b9f1c1abb"
-        }
+        },
 
         {
             "file": "chapter5_windows/data.win",
-            "checksum": "cd940118eff1a3f24dd8dca3932901f85bfc83761e175e36736622316e7ed556"
+            "checksum": "de1f204ea4a9591c8f7d0355f59065db0261592a9faf5529f7d789df295fb1cc"
         }
     ]
 }
