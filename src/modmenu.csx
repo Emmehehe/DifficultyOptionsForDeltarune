@@ -371,7 +371,7 @@ foreach (string darkcon in darkcons)
                             if (global.modsubmenuno == i)
                                 heartyprogress = yprogress;
                             yprogress += 35;
-                            continue;
+                            break;
                         }}
 
                         if (global.modsubmenuselected && global.modsubmenuno == i)
