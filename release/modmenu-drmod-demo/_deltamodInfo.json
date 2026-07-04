@@ -1,7 +1,7 @@
 {
     "metadata": {
         "name": "Mod Menu",
-        "version": "1.7.0",
+        "version": "1.7.1",
         "description": "Mod menu for DELTARUNE. Framework for mods to add option menus.",
         "author": ["Emmahaha"],
         "packageID": "com.emmahaha.modmenudemo",
