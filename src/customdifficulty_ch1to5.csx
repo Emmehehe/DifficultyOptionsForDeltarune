@@ -1548,8 +1548,11 @@ foreach (string con in bulletCons)
     {
         importGroup.QueueFindReplace(con + "_Step_0", $"btimer == {term}", $"btimer == ceil(global.diff_enemycd * ({term}))");
     }
-    if (ch_no == 5) // TODO only chapter 5, for now...
+    if (ch_no != 2)
     {
+        // TODO -= swatchling & sneo in ch2
+        // TODO % weather duo in ch3
+        // TODO % mizzle/watercoolers in ch4
         importGroup.QueueRegexFindReplace(con + "_Step_0", "btimer -= ([^;]+)", "btimer -= ceil(global.diff_enemycd * $1)");
         foreach ((string A, string B) terms in btimerModulos)
         {
