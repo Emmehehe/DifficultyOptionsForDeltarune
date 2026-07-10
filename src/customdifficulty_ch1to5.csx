@@ -271,7 +271,7 @@ foreach (string scrName in gamestartLikes)
                     case ""DIFFOP_MERCY"":
                     return ceil(global.diff_mercy * arg1);
                     case ""DIFFOP_SAVEHEAL"":
-                    return ceil(global.diff_saveheal * arg1);
+                    return global.diff_saveheal || arg1;
                 }}
             }}
 
