@@ -61,10 +61,12 @@ readonly struct Preset {
     public readonly float downedregen { get; init; }   = 1 / 8f;
     public readonly float victoryres { get; init; }    = 1 / 8f;
     public readonly float plrdmg { get; init; }        = 1;
-    public readonly float gmbrdplrdmg { get; init; }  = -1;
+    public readonly float gmbrdplrdmg { get; init; }   = -1;
     public readonly float plrheal { get; init; }       = 1;
     public readonly float gmbrdplrheal { get; init; }  = -1;
     public readonly float mercy { get; init; }         = 1;
+    public readonly bool saveheal { get; init; }       = true;
+
 }
 const string preset_default = "Normal";
 Dictionary<string, Preset> presets = new Dictionary<string, Preset>();
@@ -152,6 +154,7 @@ foreach (string scrName in gamestartLikes)
                             global.diff_plrheal = {pair.Value.plrheal.ToString("F10", CultureInfo.InvariantCulture)};
                             global.diff_gmbrdplrheal = {pair.Value.gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)};
                             global.diff_mercy = {pair.Value.mercy.ToString("F10", CultureInfo.InvariantCulture)};
+                            global.diff_saveheal = {pair.Value.saveheal.ToString().ToLower()};
                             break;
                     "))}
                     case ""Custom"":
@@ -212,6 +215,8 @@ foreach (string scrName in gamestartLikes)
                     return ceil(global.diff_gmbrdplrheal * arg1);
                     case ""DIFFOP_MERCY"":
                     return ceil(global.diff_mercy * arg1);
+                    case ""DIFFOP_SAVEHEAL"":
+                    return ceil(global.diff_saveheal * arg1);
                 }}
             }}
 
@@ -278,6 +283,7 @@ foreach (string scrName in loadLikes)
         global.diff_plrheal = ini_read_real(""DIFFICULTY"", ""PLR_HEAL"", {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)});
         global.diff_gmbrdplrheal = ini_read_real(""DIFFICULTY"", ""GMBRD_PLR_HEAL"", {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)});
         global.diff_mercy = ini_read_real(""DIFFICULTY"", ""MERCY"", {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_saveheal = ini_read_real(""DIFFICULTY"", ""SAVE_POINT_HEAL"", {presets[preset_default].saveheal.ToString("F10", CultureInfo.InvariantCulture)});
         ossafe_ini_close();
 
         // Determine preset
@@ -298,7 +304,8 @@ foreach (string scrName in loadLikes)
                 && global.diff_gmbrdplrdmg == {pair.Value.gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}
                 && global.diff_plrheal == {pair.Value.plrheal.ToString("F10", CultureInfo.InvariantCulture)}
                 && global.diff_gmbrdplrheal == {pair.Value.gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_mercy == {pair.Value.mercy.ToString("F10", CultureInfo.InvariantCulture)}) {{
+                && global.diff_mercy == {pair.Value.mercy.ToString("F10", CultureInfo.InvariantCulture)}
+                && global.diff_saveheal == {pair.Value.saveheal.ToString("F10", CultureInfo.InvariantCulture)}) {{
                 global.diff_preset = ""{pair.Key}"";
             }}
         "))}
@@ -339,6 +346,7 @@ foreach (string scrName in saveLikes)
         ini_write_real(""DIFFICULTY"", ""PLR_HEAL"", global.diff_plrheal);
         ini_write_real(""DIFFICULTY"", ""GMBRD_PLR_HEAL"", global.diff_gmbrdplrheal);
         ini_write_real(""DIFFICULTY"", ""MERCY"", global.diff_mercy);
+        ini_write_real(""DIFFICULTY"", ""SAVE_POINT_HEAL"", global.diff_saveheal);
         ossafe_ini_close();
         ");
 }
@@ -510,6 +518,13 @@ foreach (string darkcon in darkcons)
         ds_map_add(rowdata, ""title_en"", ""Mercy"");
         ds_map_add(rowdata, ""value_range_en"", ""0~1000%;INF=2147483647"");
         ds_map_add(rowdata, ""value_name"", ""diff_mercy"");
+        ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
+        array_push(formdata, rowdata);
+
+        var rowdata = ds_map_create();
+        ds_map_add(rowdata, ""title_en"", ""SAVE Point Heal"");
+        ds_map_add(rowdata, ""value_range_en"", ""OFF=false;ON=true"");
+        ds_map_add(rowdata, ""value_name"", ""diff_saveheal"");
         ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
         array_push(formdata, rowdata);
 
@@ -979,33 +994,33 @@ if (ch_no == 5) {
 if (ch_no == 0)
 {
     importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_battlecontroller_ch1_Step_0", "global.xp += global.monsterexp[3];", @"
-        global.monsterexp[3] *= global.diff_battlerewards;
+        global.monsterexp[3] = round(global.diff_battlerewards * global.monsterexp[3]);
         global.xp += global.monsterexp[3];
     ");
     importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_battlecontroller_ch1_Step_0", "global.gold += global.monstergold[3];", @"
-        global.monstergold[3] *= global.diff_battlerewards;
+        global.monstergold[3] = round(global.diff_battlerewards * global.monstergold[3]);
         global.gold += global.monstergold[3];
     ");
 }
 importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_battlecontroller_Step_0", "global.xp += global.monsterexp[3];", @"
-    global.monsterexp[3] *= global.diff_battlerewards;
+    global.monsterexp[3] = round(global.diff_battlerewards * global.monsterexp[3]);
     global.xp += global.monsterexp[3];
 ");
 importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_battlecontroller_Step_0", "global.gold += global.monstergold[3];", @"
-    global.monstergold[3] *= global.diff_battlerewards;
+    global.monstergold[3] = round(global.diff_battlerewards * global.monstergold[3]);
     global.gold += global.monstergold[3];
 ");
 if (ch_no == 3) {
     importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_gameshow_battlemanager_Step_0", " var scoretoAdd = totalstring;", @"
         var scoretoAdd = totalstring;
-        scoretoAdd = string(global.diff_battlerewards * real(scoretoAdd));
+        scoretoAdd = string(round(global.diff_battlerewards * real(scoretoAdd)));
     ");
 }
 
 // Apply Reward Ranking
 if (ch_no == 3) {
     importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_gameshow_battlemanager_Draw_0", "global.flag[1116] += real(totalstring);", @"
-        global.flag[1116] += global.diff_rewardranking > 0 ? (global.diff_battlerewards * real(totalstring)) : real(totalstring);
+        global.flag[1116] += global.diff_rewardranking > 0 ? round(global.diff_battlerewards * real(totalstring)) : real(totalstring);
     ");
 }
 
@@ -1237,6 +1252,14 @@ if (ch_no == 3)
     const string gmbrdplrheal = "(global.diff_gmbrdplrheal < 0 ? global.diff_plrheal : global.diff_gmbrdplrheal)";
     importGroup.QueueFindReplace("gml_Object_obj_board_heal_pickup_Step_0", "myhealth += 2",
         $"myhealth += 2 * {gmbrdplrheal};");
+}
+
+// Apply SAVE Point Heal
+{
+    importGroup.QueueRegexFindReplace("gml_Object_obj_savepoint_Other_10", "if (global.hp[i] < global.maxhp[i])", "if (global.diff_saveheal && global.hp[i] < global.maxhp[i])");
+}
+if (ch_no == 0) {
+    importGroup.QueueRegexFindReplace("gml_Object_obj_savepoint_ch1_Other_10", "if (global.hp[i] < global.maxhp[i])", "if (global.diff_saveheal && global.hp[i] < global.maxhp[i])");
 }
 
 // Finish edit
