@@ -29,7 +29,7 @@ There are various difficulty options you can apply via the `diff_apply` function
 - **Gameboard Dmg X** — `global.diff_apply("DIFFOP_DAMAGE_GB", damage)`
   - Apply gameboard damage multiplier.
 - **Hit.All** — `global.diff_apply("DIFFOP_HITALL", isHitAll)`
-  - Union of Hit.All & input (= Hit.All || isHitAll)
+  - Union of 'Hit.All' & input (= 'Hit.All' || isHitAll)
 - **I-Frames** — `global.diff_apply("DIFFOP_IFRAMES", iFrames)`
   - Apply i-frames multiplier.
 - **Enemy Cooldowns** — `global.diff_apply("DIFFOP_ENEMYCD", cooldown)`
@@ -59,3 +59,5 @@ There are various difficulty options you can apply via the `diff_apply` function
   - Apply TP gain multiplier.
 - **Mercy** — `global.diff_apply("DIFFOP_MERCY", maxhp, hp)`
   - Apply mercy multiplier.
+- **SAVE Point Heal** — `global.diff_apply("DIFFOP_SAVEHEAL", isHeal)`
+  - Union of 'SAVE Point Heal' & input (= 'SAVE Point Heal' || isHeal)

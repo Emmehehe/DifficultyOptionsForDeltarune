@@ -1,7 +1,7 @@
 {
     "metadata": {
         "name": "Mod Menu",
-        "version": "1.7.1",
+        "version": "1.7.2",
         "description": "Mod menu for DELTARUNE. Framework for mods to add option menus.",
         "author": ["Emmahaha"],
         "packageID": "com.emmahaha.modmenu",
@@ -33,7 +33,7 @@
 
         {
             "file": "chapter5_windows/data.win",
-            "checksum": "de1f204ea4a9591c8f7d0355f59065db0261592a9faf5529f7d789df295fb1cc"
+            "checksum": "81f86fb98bdd9f3de029043adbb453f276a9fb7e26a4db1f3ee0ae3675e81c5a"
         }
     ]
 }

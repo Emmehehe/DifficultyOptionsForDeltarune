@@ -4,7 +4,7 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
 <img src="https://github.com/user-attachments/assets/9e9be8b9-0c3c-4b28-9a12-3aa2d328189c" width="480" />
 
 ## Download
-**[Latest release](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/releases/tag/1.7.1)**
+**[Latest release](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/releases/tag/1.7.2)**
 
 ## What you can change
 - **Presets** — Select from various difficulty presets
@@ -48,6 +48,7 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
 - **Healing** — multiply healing from spells & actions by this value
 - **TP Gain** — multiply TP gain from all sources (except item use) by this value
 - **Mercy** — multiply mercy build-up by this value
+- **SAVE Point Heal** — toggle the healing from save points
 <details> 
   <summary><strong>CHAPTER 3 SPOILERS...</strong></summary>
 
