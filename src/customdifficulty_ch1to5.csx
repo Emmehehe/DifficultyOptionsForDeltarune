@@ -332,13 +332,6 @@ foreach (string scrName in loadLikes)
 
         {loadsettingsblock("global.filechoice")}
 
-        global.diff_importvaluerange = """";
-        for (var i = 0; i < 3; i++) {{
-            if (i != global.filechoice && ossafe_file_exists(""difficulty_"" + string(i) + "".ini"")) {{
-                global.diff_importvaluerange += (global.diff_importvaluerange != """" ? "";"" : """") + ""SLOT"" + string(i + 1) + ""="" + string(i);
-            }}
-        }}
-
         ");
 }
 
@@ -377,6 +370,26 @@ foreach (string scrName in saveLikes)
         ");
 }
 
+// Delete config if file is deleted
+// TODO this would probably work but delete the config for all chapters which feels wrong.
+// {
+//     importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Step_0", "ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
+//         ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");
+
+//         if (ossafe_file_exists(""difficulty_"" + string(MENUCOORD[5]) + "".ini""))
+//                     ossafe_file_delete(""difficulty_"" + string(MENUCOORD[5]) + "".ini"");
+//     ");
+// }
+// if (ch_no == 0)
+// {
+//     importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Step_0", "ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
+//         ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");
+
+//         if (ossafe_file_exists_ch1(""difficulty_"" + string(MENUCOORD[5]) + "".ini""))
+//                     ossafe_file_delete_ch1(""difficulty_"" + string(MENUCOORD[5]) + "".ini"");
+//     ");
+// }
+
 // Add mod menu
 string[] darkcons = {"gml_Object_obj_darkcontroller"};
 if (ch_no == 0)
@@ -387,6 +400,16 @@ if (ch_no == 0)
 foreach (string darkcon in darkcons)
 {
     importGroup.QueueAppend(darkcon + "_Create_0", @$"
+
+        global.diff_importvaluerange = """";
+        for (var i = 0; i < 3; i++) {{
+            if (i != global.filechoice && ossafe_file_exists(""difficulty_"" + string(i) + "".ini"")) {{
+                global.diff_importvaluerange += (global.diff_importvaluerange != """" ? "";"" : """") + ""SLOT"" + string(i + 1) + ""="" + string(i);
+            }}
+        }}
+        if (global.diff_importvaluerange != """") {{
+            global.diff_importvaluerange = ""None=-1;"" + global.diff_importvaluerange;
+        }}
 
         if (!variable_instance_exists(global, ""modmenu_data""))
             global.modmenu_data = array_create(0);
