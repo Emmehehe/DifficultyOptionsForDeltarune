@@ -1,7 +1,7 @@
 {
     "metadata": {
         "name": "Custom Difficulty",
-        "version": "1.7.2",
+        "version": "1.7.3",
         "description": "Difficulty options for DELTARUNE. Make the game Easy, Hard, or Nightmare. No-hit options included.",
         "author": ["Emmahaha"],
         "packageID": "com.emmahaha.customdiff",
@@ -28,12 +28,12 @@
 
         {
             "file": "chapter4_windows/data.win",
-            "checksum": "0e6c152582df6b9884360b2010df38ff20f9b6d1ba49e87601e4c57b9f1c1abb"
+            "checksum": "8d2396a6a18cfb6c75fa6a1f59ed539ae0d528294d936d025b9231197cb8d798"
         },
 
         {
             "file": "chapter5_windows/data.win",
-            "checksum": "81f86fb98bdd9f3de029043adbb453f276a9fb7e26a4db1f3ee0ae3675e81c5a"
+            "checksum": "7e3e9c4a0ef84f0129b6a1c9e9f81091e83abbafbf66eb09893c2082cf5618de"
         }
     ]
 }
