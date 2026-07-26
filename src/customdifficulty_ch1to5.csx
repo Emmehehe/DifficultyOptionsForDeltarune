@@ -1137,13 +1137,23 @@ if (ch_no == 5) {
 
 // Apply Mercy Build-up
 {
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1;", "ceil(global.diff_mercy * arg1);");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "global.mercymod[arg0] += arg1;", @"
+        var toadd = ceil(global.diff_mercy * arg1);
+
+        global.mercymod[arg0] += arg1;
+    ");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1;", "toadd;");
     if (ch_no != 1) {
-        importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1 <", "ceil(global.diff_mercy * arg1) <");
+        importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1 <", "toadd <");
     }
 }
 if (ch_no == 0) {
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "arg1;", "ceil(global.diff_mercy * arg1);");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "global.mercymod[arg0] += arg1;", @"
+        var toadd = ceil(global.diff_mercy * arg1);
+
+        global.mercymod[arg0] += toadd;
+    ");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "arg1;", "toadd;");
 }
 // Fix crash when sparing lancer in castle town
 if (ch_no == 1) {
@@ -1209,7 +1219,7 @@ if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_Object_obj_trashy_broom_Step_0", "damage++;", "damage += ceil(global.diff_mercy);");
     importGroup.QueueFindReplace("gml_Object_obj_trashy_broom_Step_0", "99, 1);", "99, ceil(global.diff_mercy));");
     importGroup.QueueFindReplace("gml_Object_obj_flowery_enemy_Step_0", "global.mercymod[myself] += 10;", "global.mercymod[myself] += ceil(global.diff_mercy * 10);");
-    importGroup.QueueFindReplace("gml_Object_obj_yellow_trial_manager_Create_0", "global.mercymod[myself] += 10;", "global.mercymod[myself] += ceil(global.diff_mercy * 10);");
+    // Leave disabled, casues flowery soft-lock: importGroup.QueueFindReplace("gml_Object_obj_yellow_trial_manager_Create_0", "global.mercymod[myself] += 10;", "global.mercymod[myself] += ceil(global.diff_mercy * 10);");
     importGroup.QueueFindReplace("gml_Object_obj_monster1_Step_0", "global.mercymod[myself] += 120;", "global.mercymod[myself] += ceil(global.diff_mercy * 120);");
     importGroup.QueueFindReplace("gml_Object_obj_placeholderenemy_Step_0", "global.mercymod[myself] += 200;", "global.mercymod[myself] += ceil(global.diff_mercy * 200);");
     // convert mercy to doki
@@ -1217,6 +1227,18 @@ if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_GlobalScript_scr_dokiadd", "arg1 <", "ceil(global.diff_mercy * arg1) <");
     importGroup.QueueFindReplace("gml_Object_obj_pink_enemy_Step_0", "scr_mercyadd(myself, 25);", $"scr_mercyadd(myself, {one_over_mercy} * 25);");
     // prevent final flowery softlock
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "global.mercymod[arg0] += toadd;", @"
+
+        if (instance_exists(obj_flowery_enemy)) {
+            if (global.mercymod[arg0] >= 40) {
+                toadd = arg1;
+            } else if (global.mercymod[arg0] + toadd >= 40) {
+                toadd = 40 - global.mercymod[arg0];
+            }
+        }
+
+        global.mercymod[arg0] += toadd;
+    ");
     importGroup.QueueFindReplace("gml_Object_obj_flowery_enemy_Step_0", " && global.mercymod[myself] < 20", "");
     importGroup.QueueFindReplace("gml_Object_obj_flowery_enemy_Step_0", " && global.mercymod[myself] < 30", "");
     importGroup.QueueFindReplace("gml_Object_obj_flowery_enemy_Step_0", " && global.mercymod[myself] < 40", "");
