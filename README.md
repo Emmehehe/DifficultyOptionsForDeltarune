@@ -15,6 +15,7 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
   - Nightmare-EX `+150% damage, -50% i-frames, -30% enemy cooldowns`
   - Nightmare-Neo `NIGHTMARE-EX with -50% battle rewards, and no passive regen/revive for downed characters`
   - No-Hit `Infinite damage to every party member`
+  - Custom `User defined settings`
 
 ***Battle***
 - **Damage Multi** — multiply all incoming damage by this value
