@@ -118,28 +118,30 @@ presets.Add(
         hitall        = true
     });
 
-string loadsettingsblock(string filechoice)
+string loadsettingsblock(string chapter, string filechoice)
 {
+    string saveslot = @$" ""ch"" + string({chapter}) + ""_"" + string({filechoice})";
     return @$"
-        ossafe_ini_open(""difficulty_"" + string({filechoice}) + "".ini"");
-        global.diff_damagemulti = ini_read_real(""DIFFICULTY"", ""DAMAGE_MULTI"", {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_gameboarddmgx = ini_read_real(""DIFFICULTY"", ""GAMEBOARD_DMG_X"", {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_hitall = ini_read_real(""DIFFICULTY"", ""HIT_ALL"", {presets[preset_default].hitall.ToString().ToLower()});
-        global.diff_iframes = ini_read_real(""DIFFICULTY"", ""I_FRAMES"", {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_enemycd = ini_read_real(""DIFFICULTY"", ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_gmbrdenemycd = ini_read_real(""DIFFICULTY"", ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_tpgain = ini_read_real(""DIFFICULTY"", ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_battlerewards = ini_read_real(""DIFFICULTY"", ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_rewardranking = ini_read_real(""DIFFICULTY"", ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()});
-        global.diff_downdeficit = ini_read_real(""DIFFICULTY"", ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_downedregen = ini_read_real(""DIFFICULTY"", ""DOWNED_REGEN"", {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_victoryres = ini_read_real(""DIFFICULTY"", ""VICTORY_RES"", {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_plrdmg = ini_read_real(""DIFFICULTY"", ""PLR_DMG"", {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_gmbrdplrdmg = ini_read_real(""DIFFICULTY"", ""GMBRD_PLR_DMG"", {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_plrheal = ini_read_real(""DIFFICULTY"", ""PLR_HEAL"", {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_gmbrdplrheal = ini_read_real(""DIFFICULTY"", ""GMBRD_PLR_HEAL"", {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_mercy = ini_read_real(""DIFFICULTY"", ""MERCY"", {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_saveheal = ini_read_real(""DIFFICULTY"", ""SAVE_POINT_HEAL"", {presets[preset_default].saveheal.ToString().ToLower()});
+        ossafe_ini_open(""difficulty.ini"");
+
+        global.diff_damagemulti = ini_read_real({saveslot}, ""DAMAGE_MULTI"", {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_gameboarddmgx = ini_read_real({saveslot}, ""GAMEBOARD_DMG_X"", {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_hitall = ini_read_real({saveslot}, ""HIT_ALL"", {presets[preset_default].hitall.ToString().ToLower()});
+        global.diff_iframes = ini_read_real({saveslot}, ""I_FRAMES"", {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_enemycd = ini_read_real({saveslot}, ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_gmbrdenemycd = ini_read_real({saveslot}, ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_tpgain = ini_read_real({saveslot}, ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_battlerewards = ini_read_real({saveslot}, ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_rewardranking = ini_read_real({saveslot}, ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()});
+        global.diff_downdeficit = ini_read_real({saveslot}, ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_downedregen = ini_read_real({saveslot}, ""DOWNED_REGEN"", {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_victoryres = ini_read_real({saveslot}, ""VICTORY_RES"", {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_plrdmg = ini_read_real({saveslot}, ""PLR_DMG"", {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_gmbrdplrdmg = ini_read_real({saveslot}, ""GMBRD_PLR_DMG"", {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_plrheal = ini_read_real({saveslot}, ""PLR_HEAL"", {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_gmbrdplrheal = ini_read_real({saveslot}, ""GMBRD_PLR_HEAL"", {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_mercy = ini_read_real({saveslot}, ""MERCY"", {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_saveheal = ini_read_real({saveslot}, ""SAVE_POINT_HEAL"", {presets[preset_default].saveheal.ToString().ToLower()});
         ossafe_ini_close();
 
         // Determine preset
@@ -168,6 +170,33 @@ string loadsettingsblock(string filechoice)
         else {{
             global.diff_preset = ""Custom"";
         }}
+    ";
+}
+
+string savesettingsblock(string chapter, string filechoice)
+{
+    string saveslot = @$" ""ch"" + string({chapter}) + ""_"" + string({filechoice})";
+    return @$"
+        ossafe_ini_open(""difficulty.ini"");
+        ini_write_real({saveslot}, ""DAMAGE_MULTI"", global.diff_damagemulti);
+        ini_write_real({saveslot}, ""GAMEBOARD_DMG_X"", global.diff_gameboarddmgx);
+        ini_write_real({saveslot}, ""HIT_ALL"", global.diff_hitall);
+        ini_write_real({saveslot}, ""I_FRAMES"", global.diff_iframes);
+        ini_write_real({saveslot}, ""ENEMY_COOLDOWNS"", global.diff_enemycd);
+        ini_write_real({saveslot}, ""GMBRD_ENEMY_CDS"", global.diff_gmbrdenemycd);
+        ini_write_real({saveslot}, ""TP_GAIN"", global.diff_tpgain);
+        ini_write_real({saveslot}, ""BATTLE_REWARDS"", global.diff_battlerewards);
+        ini_write_real({saveslot}, ""REWARD_RANKING"", global.diff_rewardranking);
+        ini_write_real({saveslot}, ""DOWN_DEFICIT"", global.diff_downdeficit);
+        ini_write_real({saveslot}, ""DOWNED_REGEN"", global.diff_downedregen);
+        ini_write_real({saveslot}, ""VICTORY_RES"", global.diff_victoryres);
+        ini_write_real({saveslot}, ""PLR_DMG"", global.diff_plrdmg);
+        ini_write_real({saveslot}, ""GMBRD_PLR_DMG"", global.diff_gmbrdplrdmg);
+        ini_write_real({saveslot}, ""PLR_HEAL"", global.diff_plrheal);
+        ini_write_real({saveslot}, ""GMBRD_PLR_HEAL"", global.diff_gmbrdplrheal);
+        ini_write_real({saveslot}, ""MERCY"", global.diff_mercy);
+        ini_write_real({saveslot}, ""SAVE_POINT_HEAL"", global.diff_saveheal);
+        ossafe_ini_close();
     ";
 }
 
@@ -230,8 +259,6 @@ foreach (string scrName in gamestartLikes)
             }}
 
             global.diff_usepreset_default();
-            global.diff_importslot = -1;
-            global.diff_importvaluerange = """";
 
             // Provide support for mod devs to add compatibility
             global.diff_apply = function(arg0, arg1, arg2) {{
@@ -275,62 +302,57 @@ foreach (string scrName in gamestartLikes)
                 }}
             }}
 
-            global.diff_importfromslot = function() {{
-                if (global.diff_importslot == -1)
-                    return;
-
-                {loadsettingsblock("global.diff_importslot")}
-
-                global.diff_importslot = -1;
+            global.diff_savesettings = function() {{
+                {savesettingsblock("global.chapter", "global.filechoice")}
             }}
 
         ");
 }
 
 // Load globals from config
-string[] loadLikes = {"gml_GlobalScript_scr_load"};
-if (ch_no > 1 || ch_no == 0)
-{
-    string[] loadCh1 = {"gml_GlobalScript_scr_load_chapter1"};
-    loadLikes = loadLikes.Concat(loadCh1).ToArray();
-}
+(string script, string chapter) [] loadLikes = {("gml_GlobalScript_scr_load", "global.chapter")};
 if (ch_no == 0)
 {
-    string[] loadCh1 = {"gml_GlobalScript_scr_load_ch1"};
+    (string script, string chapter) [] loadCh1 = {("gml_GlobalScript_scr_load_ch1", "global.chapter")};
+    loadLikes = loadLikes.Concat(loadCh1).ToArray();
+}
+if (ch_no > 1 || ch_no == 0)
+{
+    (string script, string chapter) [] loadCh1 = {("gml_GlobalScript_scr_load_chapter1", "1")};
     loadLikes = loadLikes.Concat(loadCh1).ToArray();
 }
 if (ch_no > 2)
 {
-    string[] loadCh2 = {"gml_GlobalScript_scr_load_chapter2"};
+    (string script, string chapter) [] loadCh2 = {("gml_GlobalScript_scr_load_chapter2", "2")};
     loadLikes = loadLikes.Concat(loadCh2).ToArray();
 }
 if (ch_no > 3)
 {
-    string[] loadCh3 = {"gml_GlobalScript_scr_load_chapter3"};
+    (string script, string chapter) [] loadCh3 = {("gml_GlobalScript_scr_load_chapter3", "3")};
     loadLikes = loadLikes.Concat(loadCh3).ToArray();
 }
 if (ch_no > 4)
 {
-    string[] loadCh4 = {"gml_GlobalScript_scr_load_chapter4"};
+    (string script, string chapter) [] loadCh4 = {("gml_GlobalScript_scr_load_chapter4", "4")};
     loadLikes = loadLikes.Concat(loadCh4).ToArray();
 }
 // if (ch_no > 5)
 // {
-//     string[] loadCh5 = {"gml_GlobalScript_scr_load_chapter5"};
+//     (string script, string chapter) [] loadCh5 = {("gml_GlobalScript_scr_load_chapter5", "5")};
 //     loadLikes = loadLikes.Concat(loadCh5).ToArray();
 // }
 // if (ch_no > 6)
 // {
-//     string[] loadCh6 = {"gml_GlobalScript_scr_load_chapter6"};
+//     (string script, string chapter) [] loadCh6 = {("gml_GlobalScript_scr_load_chapter6", "6")};
 //     loadLikes = loadLikes.Concat(loadCh6).ToArray();
 // }
 
-foreach (string scrName in loadLikes)
+foreach ((string script, string chapter) loadLike in loadLikes)
 {
-    importGroup.QueueTrimmedLinesFindReplace(scrName, $"ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
-        ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);
+    importGroup.QueueTrimmedLinesFindReplace(loadLike.script, $"ossafe_file_text_close{(loadLike.script.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
+        ossafe_file_text_close{(loadLike.script.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);
 
-        {loadsettingsblock("global.filechoice")}
+        {loadsettingsblock(loadLike.chapter, "global.filechoice")}
 
         ");
 }
@@ -344,51 +366,77 @@ if (ch_no == 0)
 }
 foreach (string scrName in saveLikes)
 {
+    string saveslot = @" ""ch"" + string(global.chapter) + ""_"" + string(global.filechoice)";
     importGroup.QueueTrimmedLinesFindReplace(scrName, $"{(ch_no == 0 ? "var is_valid = " : "")}ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
         {(ch_no == 0 ? "var is_valid = " : "")}ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);
 
-        ossafe_ini_open(""difficulty_"" + string(global.filechoice) + "".ini"");
-        ini_write_real(""DIFFICULTY"", ""DAMAGE_MULTI"", global.diff_damagemulti);
-        ini_write_real(""DIFFICULTY"", ""GAMEBOARD_DMG_X"", global.diff_gameboarddmgx);
-        ini_write_real(""DIFFICULTY"", ""HIT_ALL"", global.diff_hitall);
-        ini_write_real(""DIFFICULTY"", ""I_FRAMES"", global.diff_iframes);
-        ini_write_real(""DIFFICULTY"", ""ENEMY_COOLDOWNS"", global.diff_enemycd);
-        ini_write_real(""DIFFICULTY"", ""GMBRD_ENEMY_CDS"", global.diff_gmbrdenemycd);
-        ini_write_real(""DIFFICULTY"", ""TP_GAIN"", global.diff_tpgain);
-        ini_write_real(""DIFFICULTY"", ""BATTLE_REWARDS"", global.diff_battlerewards);
-        ini_write_real(""DIFFICULTY"", ""REWARD_RANKING"", global.diff_rewardranking);
-        ini_write_real(""DIFFICULTY"", ""DOWN_DEFICIT"", global.diff_downdeficit);
-        ini_write_real(""DIFFICULTY"", ""DOWNED_REGEN"", global.diff_downedregen);
-        ini_write_real(""DIFFICULTY"", ""VICTORY_RES"", global.diff_victoryres);
-        ini_write_real(""DIFFICULTY"", ""PLR_DMG"", global.diff_plrdmg);
-        ini_write_real(""DIFFICULTY"", ""GMBRD_PLR_DMG"", global.diff_gmbrdplrdmg);
-        ini_write_real(""DIFFICULTY"", ""PLR_HEAL"", global.diff_plrheal);
-        ini_write_real(""DIFFICULTY"", ""GMBRD_PLR_HEAL"", global.diff_gmbrdplrheal);
-        ini_write_real(""DIFFICULTY"", ""MERCY"", global.diff_mercy);
-        ini_write_real(""DIFFICULTY"", ""SAVE_POINT_HEAL"", global.diff_saveheal);
-        ossafe_ini_close();
+        {savesettingsblock("global.chapter", "global.filechoice")}
         ");
 }
 
 // Delete config if file is deleted
-// TODO this would probably work but delete the config for all chapters which feels wrong.
-// {
-//     importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Step_0", "ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
-//         ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");
+{
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Step_0", "ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
+        ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");
 
-//         if (ossafe_file_exists(""difficulty_"" + string(MENUCOORD[5]) + "".ini""))
-//                     ossafe_file_delete(""difficulty_"" + string(MENUCOORD[5]) + "".ini"");
-//     ");
-// }
-// if (ch_no == 0)
-// {
-//     importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Step_0", "ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
-//         ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");
+        ossafe_ini_open(""difficulty.ini"");
+        if (ini_section_exists(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[5])))
+            ini_section_delete(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[5]));
+        ossafe_ini_close();
+    ");
+}
+if (ch_no == 0)
+{
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Step_0", "ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
+        ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");
 
-//         if (ossafe_file_exists_ch1(""difficulty_"" + string(MENUCOORD[5]) + "".ini""))
-//                     ossafe_file_delete_ch1(""difficulty_"" + string(MENUCOORD[5]) + "".ini"");
-//     ");
-// }
+        ossafe_ini_open(""difficulty.ini"");
+        if (ini_section_exists(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[5])))
+            ini_section_delete(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[5]));
+        ossafe_ini_close();
+    ");
+}
+
+// copy config if file is copied
+string copysettingsblock = @$"
+    ossafe_ini_open(""difficulty.ini"");
+    if (ini_section_exists(""ch"" + CH + ""_"" + string(MENUCOORD[2]))){{
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""DAMAGE_MULTI"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""DAMAGE_MULTI"", {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""GAMEBOARD_DMG_X"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""GAMEBOARD_DMG_X"", {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""HIT_ALL"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""HIT_ALL"", {presets[preset_default].hitall.ToString().ToLower()}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""I_FRAMES"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""I_FRAMES"", {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""ENEMY_COOLDOWNS"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""GMBRD_ENEMY_CDS"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""TP_GAIN"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""BATTLE_REWARDS"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""REWARD_RANKING"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""DOWN_DEFICIT"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""DOWNED_REGEN"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""DOWNED_REGEN"", {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""VICTORY_RES"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""VICTORY_RES"", {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""PLR_DMG"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""PLR_DMG"", {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""GMBRD_PLR_DMG"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""GMBRD_PLR_DMG"", {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""PLR_HEAL"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""PLR_HEAL"", {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""GMBRD_PLR_HEAL"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""GMBRD_PLR_HEAL"", {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""MERCY"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""MERCY"", {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + CH + ""_"" + string(MENUCOORD[3]), ""SAVE_POINT_HEAL"", ini_read_real(""ch"" + CH + ""_"" + string(MENUCOORD[2]), ""SAVE_POINT_HEAL"", {presets[preset_default].saveheal.ToString().ToLower()}));
+    }}
+    ossafe_ini_close();
+";
+{
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Other_15", "file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");", @$"
+        file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");
+
+        {copysettingsblock}
+    ");
+}
+if (ch_no == 0)
+{
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Other_15", "file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");", @$"
+        file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");
+
+        {copysettingsblock}
+    ");
+}
 
 // Add mod menu
 string[] darkcons = {"gml_Object_obj_darkcontroller"};
@@ -401,16 +449,6 @@ foreach (string darkcon in darkcons)
 {
     importGroup.QueueAppend(darkcon + "_Create_0", @$"
 
-        global.diff_importvaluerange = """";
-        for (var i = 0; i < 3; i++) {{
-            if (i != global.filechoice && ossafe_file_exists(""difficulty_"" + string(i) + "".ini"")) {{
-                global.diff_importvaluerange += (global.diff_importvaluerange != """" ? "";"" : """") + ""SLOT"" + string(i + 1) + ""="" + string(i);
-            }}
-        }}
-        if (global.diff_importvaluerange != """") {{
-            global.diff_importvaluerange = ""None=-1;"" + global.diff_importvaluerange;
-        }}
-
         if (!variable_instance_exists(global, ""modmenu_data""))
             global.modmenu_data = array_create(0);
 
@@ -418,6 +456,7 @@ foreach (string darkcon in darkcons)
         ds_map_add(menudata, ""title_en"", ""Difficulty"");
         ds_map_add(menudata, ""left_margin_en"", 0);
         ds_map_add(menudata, ""left_value_pos_en"", 240);
+        ds_map_add(menudata, ""on_close"", ""diff_savesettings"");
 
         var formdata = array_create(0);
 
@@ -585,16 +624,6 @@ foreach (string darkcon in darkcons)
         ds_map_add(rowdata, ""title_en"", ""Reset to Defaults"");
         ds_map_add(rowdata, ""func_name"", ""diff_usepreset_default"");
         array_push(formdata, rowdata);
-
-        if (global.diff_importvaluerange != """") {{
-            var rowdata = ds_map_create();
-            ds_map_add(rowdata, ""title_en"", ""Import from:"");
-            ds_map_add(rowdata, ""value_range_en"", global.diff_importvaluerange);
-            ds_map_add(rowdata, ""value_name"", ""diff_importslot"");
-            ds_map_add(rowdata, ""func_name"", ""diff_importfromslot"");
-            ds_map_add(rowdata, ""force_scroll"", true);
-            array_push(formdata, rowdata);
-        }}
 
         ds_map_add(menudata, ""form"", formdata);
 

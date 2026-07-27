@@ -733,6 +733,13 @@ foreach (string darkcon in darkcons)
                             global.menuno = 0;
                             global.submenu = 0;
                         }}
+
+                        var on_close = ds_map_find_value(global.modmenu_data[global.modmenuno], ""on_close"");
+                        if (!is_undefined(on_close))
+                        {{
+                            var functocall = variable_instance_get(global, on_close);
+                            functocall();
+                        }}
                     }}
                     else
                     {{
@@ -835,6 +842,13 @@ foreach (string darkcon in darkcons)
                     {{
                         global.menuno = 0;
                         global.submenu = 0;
+                    }}
+
+                    var on_close = ds_map_find_value(global.modmenu_data[global.modmenuno], ""on_close"");
+                    if (!is_undefined(on_close))
+                    {{
+                        var functocall = variable_instance_get(global, on_close);
+                        functocall();
                     }}
                 }}
             }} else {{

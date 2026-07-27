@@ -63,6 +63,7 @@ array_push(global.modmenu_data, menudata);
 - title_en — English title for the mod's menu.
 - left_margin_en (optional, default: 40) — Adjusts the menu's left side margin. Useful if you're having trouble fitting text in the box.
 - left_value_pos_en (optional, default: 300) — Adjusts the left side position of the values in the menu. Useful if you're having trouble fitting text in the box.
+- on_close (optional) — Name of a global function to call when the mod's menu is closed.
 - form — Array containing rows for controls, buttons, and headers.
   - title_en — English title for the control/button/header.
   - value_range_en (optional) — English value range string for the control.
