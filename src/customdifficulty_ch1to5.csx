@@ -205,24 +205,24 @@ string savesettingsblock(string savename)
 {
     return @$"
         ossafe_ini_open(""difficulty.ini"");
-        ini_write_real({saveslot}, ""DAMAGE_MULTI"", global.diff_damagemulti);
-        ini_write_real({saveslot}, ""GAMEBOARD_DMG_X"", global.diff_gameboarddmgx);
-        ini_write_real({saveslot}, ""HIT_ALL"", global.diff_hitall);
-        ini_write_real({saveslot}, ""I_FRAMES"", global.diff_iframes);
-        ini_write_real({saveslot}, ""ENEMY_COOLDOWNS"", global.diff_enemycd);
-        ini_write_real({saveslot}, ""GMBRD_ENEMY_CDS"", global.diff_gmbrdenemycd);
-        ini_write_real({saveslot}, ""TP_GAIN"", global.diff_tpgain);
-        ini_write_real({saveslot}, ""BATTLE_REWARDS"", global.diff_battlerewards);
-        ini_write_real({saveslot}, ""REWARD_RANKING"", global.diff_rewardranking);
-        ini_write_real({saveslot}, ""DOWN_DEFICIT"", global.diff_downdeficit);
-        ini_write_real({saveslot}, ""DOWNED_REGEN"", global.diff_downedregen);
-        ini_write_real({saveslot}, ""VICTORY_RES"", global.diff_victoryres);
-        ini_write_real({saveslot}, ""PLR_DMG"", global.diff_plrdmg);
-        ini_write_real({saveslot}, ""GMBRD_PLR_DMG"", global.diff_gmbrdplrdmg);
-        ini_write_real({saveslot}, ""PLR_HEAL"", global.diff_plrheal);
-        ini_write_real({saveslot}, ""GMBRD_PLR_HEAL"", global.diff_gmbrdplrheal);
-        ini_write_real({saveslot}, ""MERCY"", global.diff_mercy);
-        ini_write_real({saveslot}, ""SAVE_POINT_HEAL"", global.diff_saveheal);
+        ini_write_real({savename}, ""DAMAGE_MULTI"", global.diff_damagemulti);
+        ini_write_real({savename}, ""GAMEBOARD_DMG_X"", global.diff_gameboarddmgx);
+        ini_write_real({savename}, ""HIT_ALL"", global.diff_hitall);
+        ini_write_real({savename}, ""I_FRAMES"", global.diff_iframes);
+        ini_write_real({savename}, ""ENEMY_COOLDOWNS"", global.diff_enemycd);
+        ini_write_real({savename}, ""GMBRD_ENEMY_CDS"", global.diff_gmbrdenemycd);
+        ini_write_real({savename}, ""TP_GAIN"", global.diff_tpgain);
+        ini_write_real({savename}, ""BATTLE_REWARDS"", global.diff_battlerewards);
+        ini_write_real({savename}, ""REWARD_RANKING"", global.diff_rewardranking);
+        ini_write_real({savename}, ""DOWN_DEFICIT"", global.diff_downdeficit);
+        ini_write_real({savename}, ""DOWNED_REGEN"", global.diff_downedregen);
+        ini_write_real({savename}, ""VICTORY_RES"", global.diff_victoryres);
+        ini_write_real({savename}, ""PLR_DMG"", global.diff_plrdmg);
+        ini_write_real({savename}, ""GMBRD_PLR_DMG"", global.diff_gmbrdplrdmg);
+        ini_write_real({savename}, ""PLR_HEAL"", global.diff_plrheal);
+        ini_write_real({savename}, ""GMBRD_PLR_HEAL"", global.diff_gmbrdplrheal);
+        ini_write_real({savename}, ""MERCY"", global.diff_mercy);
+        ini_write_real({savename}, ""SAVE_POINT_HEAL"", global.diff_saveheal);
         ossafe_ini_close();
     ";
 }
@@ -297,7 +297,7 @@ foreach (string scrName in gamestartLikes)
                     }}
                     if (createuserpresetsvaluerange != """")
                         createuserpresetsvaluerange += "";"";
-                    createuserpresetsvaluerange += ""USER "" array_length(newuserpresetnames) + ""=USER "" + array_length(newuserpresetnames) + ""`"";
+                    createuserpresetsvaluerange += ""USER "" + array_length(newuserpresetnames) + ""=USER "" + array_length(newuserpresetnames) + ""`"";
                     ds_map_replace(global.diff_menucreateuserpresetrow, ""value_range_en"", createuserpresetsvaluerange);
                 }}
 
@@ -351,7 +351,7 @@ foreach (string scrName in gamestartLikes)
                     }}
                     if (createuserpresetsvaluerange != """")
                         createuserpresetsvaluerange += "";"";
-                    createuserpresetsvaluerange += ""USER "" array_length(newuserpresetnames) + ""=USER "" + array_length(newuserpresetnames) + ""`"";
+                    createuserpresetsvaluerange += ""USER "" + array_length(newuserpresetnames) + ""=USER "" + array_length(newuserpresetnames) + ""`"";
                     ds_map_replace(global.diff_menucreateuserpresetrow, ""value_range_en"", createuserpresetsvaluerange);
                 }}
 
@@ -611,13 +611,13 @@ foreach (string scrName in saveLikes)
     importGroup.QueueTrimmedLinesFindReplace(scrName, $"{(ch_no == 0 ? "var is_valid = " : "")}ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
         {(ch_no == 0 ? "var is_valid = " : "")}ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);
 
-        {savesettingsblock(@"""ch"" + string({global.chapter}) + ""_"" + string({global.filechoice})")}
+        {savesettingsblock(@"""ch"" + string(global.chapter) + ""_"" + string(global.filechoice)")}
         ");
 }
 
 // Delete config if file is deleted
 {
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Step_0", "ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Step_0", @"ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
         ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");
 
         ossafe_ini_open(""difficulty.ini"");
@@ -628,7 +628,7 @@ foreach (string scrName in saveLikes)
 }
 if (ch_no == 0)
 {
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Step_0", "ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Step_0", @"ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
         ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");
 
         ossafe_ini_open(""difficulty.ini"");
@@ -664,7 +664,7 @@ string copysettingsblock = @$"
     ossafe_ini_close();
 ";
 {
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Other_15", "file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");", @$"
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Other_15", @"file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");", @$"
         file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");
 
         {copysettingsblock}
@@ -672,7 +672,7 @@ string copysettingsblock = @$"
 }
 if (ch_no == 0)
 {
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Other_15", "file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");", @$"
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Other_15", @"file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");", @$"
         file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");
 
         {copysettingsblock}
@@ -877,7 +877,7 @@ foreach (string darkcon in darkcons)
         }}
         if (createuserpresetsvaluerange != """")
             createuserpresetsvaluerange += "";"";
-        createuserpresetsvaluerange += ""USER "" array_length(newuserpresetnames) + ""=USER "" + array_length(newuserpresetnames) + ""`"";
+        createuserpresetsvaluerange += ""USER "" + array_length(newuserpresetnames) + ""=USER "" + array_length(newuserpresetnames) + ""`"";
         ds_map_add(rowdata, ""value_range_en"", createuserpresetsvaluerange);
         ds_map_add(rowdata, ""value_name"", ""diff_saveuserpresetname"");
         ds_map_add(rowdata, ""func_name"", ""diff_saveuserpreset"");
