@@ -823,11 +823,14 @@ foreach (string darkcon in darkcons)
                             }}
                         }}
 
-                        var func_name = ds_map_find_value(row_data, ""func_name"");
-                        if (!is_undefined(func_name))
-                        {{
-                            var functocall = variable_instance_get(global, func_name);
-                            functocall();
+
+                        if (doToggle || array_length(ranges) <= 0) {{
+                            var func_name = ds_map_find_value(row_data, ""func_name"");
+                            if (!is_undefined(func_name))
+                            {{
+                                var functocall = variable_instance_get(global, func_name);
+                                functocall();
+                            }}
                         }}
                     }}
                 }}

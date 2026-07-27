@@ -71,6 +71,8 @@ array_push(global.modmenu_data, menudata);
     - See [Value Ranges](#Value-Ranges) for a more detailed explaination.
   - value_name (required if value_range_en is set) — Name of the global variable this control should adjust.
     - e.g. Set to `"coolmod_funvalue"` for variable `global.coolmod_funvalue`.
+  - disabled (optional) — Disables the control/button (greyed out & user cannot interact with it).
+  - hidden (optional) — Hides the control/button (won't display & won't take up space in the menu).
   - on_change (optional) — Name of a global function to call for every step that the value is changed.
   - force_scroll (optional) — For value ranges that are entirely labels, force scroll behaviour rather than normal toggle behaviour.
   - func_name (optional) — Name of the global function this control/button should trigger.
