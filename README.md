@@ -36,6 +36,8 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
     - Ensure Queen's leg stomp attack waits for an available slot before spawning a leg, instead of flooding the box.
     - Chapter 3's super boss' full-screen attack is hard capped at >25% cooldown to prevent crashing.
     - Winglade's aim attack is hard capped at >50% cooldown to prevent it from getting stuck.
+- **Extra Enemies** — adds extra enemies to basic (non-boss) encounters, can't exceed the normal limit of 3
+    - Enemies added are picked randomly out of the normally occuring enemies in the encounter.
 - **Battle Rewards** — multiply post-battle rewards by this value
 
 ***Down***

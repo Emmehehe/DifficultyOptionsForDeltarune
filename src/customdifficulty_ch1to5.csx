@@ -55,6 +55,7 @@ readonly struct Preset {
     public readonly float enemycd { get; init; }       = 1;
     public readonly float gmbrdenemycd { get; init; }  = -1;
     public readonly float tpgain { get; init; }        = 1;
+    public readonly int extraenemies { get; init; }    = 0;
     public readonly float battlerewards { get; init; } = 1;
     public readonly bool rewardranking { get; init; }  = false;
     public readonly float downdeficit { get; init; }   = 1 / 2f;
@@ -131,6 +132,7 @@ string loadsettingsblock(string chapter, string filechoice)
         global.diff_enemycd = ini_read_real({saveslot}, ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)});
         global.diff_gmbrdenemycd = ini_read_real({saveslot}, ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)});
         global.diff_tpgain = ini_read_real({saveslot}, ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)});
+        global.diff_extraenemies = ini_read_real({saveslot}, ""EXTRA_ENEMIES"", {presets[preset_default].extraenemies.ToString()});
         global.diff_battlerewards = ini_read_real({saveslot}, ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)});
         global.diff_rewardranking = ini_read_real({saveslot}, ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()});
         global.diff_downdeficit = ini_read_real({saveslot}, ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)});
@@ -153,6 +155,7 @@ string loadsettingsblock(string chapter, string filechoice)
                 && global.diff_enemycd == {pair.Value.enemycd.ToString("F10", CultureInfo.InvariantCulture)}
                 && global.diff_gmbrdenemycd == {pair.Value.gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}
                 && global.diff_tpgain == {pair.Value.tpgain.ToString("F10", CultureInfo.InvariantCulture)}
+                && global.diff_extraenemies == {pair.Value.extraenemies.ToString()}
                 && global.diff_battlerewards == {pair.Value.battlerewards.ToString("F10", CultureInfo.InvariantCulture)}
                 && global.diff_rewardranking == {pair.Value.rewardranking.ToString().ToLower()}
                 && global.diff_downdeficit == {pair.Value.downdeficit.ToString("F10", CultureInfo.InvariantCulture)}
@@ -179,6 +182,7 @@ string loadsettingsblock(string chapter, string filechoice)
                     && global.diff_enemycd == ds_map_find_value(presetdata, ""enemycd"")
                     && global.diff_gmbrdenemycd == ds_map_find_value(presetdata, ""gmbrdenemycd"")
                     && global.diff_tpgain == ds_map_find_value(presetdata, ""tpgain"")
+                    && global.diff_extraenemies == ds_map_find_value(presetdata, ""extraenemies"")
                     && global.diff_battlerewards == ds_map_find_value(presetdata, ""battlerewards"")
                     && global.diff_rewardranking == ds_map_find_value(presetdata, ""rewardranking"")
                     && global.diff_downdeficit == ds_map_find_value(presetdata, ""downdeficit"")
@@ -212,6 +216,7 @@ string savesettingsblock(string savename)
         ini_write_real({savename}, ""ENEMY_COOLDOWNS"", global.diff_enemycd);
         ini_write_real({savename}, ""GMBRD_ENEMY_CDS"", global.diff_gmbrdenemycd);
         ini_write_real({savename}, ""TP_GAIN"", global.diff_tpgain);
+        ini_write_real({savename}, ""EXTRA_ENEMIES"", global.diff_extraenemies);
         ini_write_real({savename}, ""BATTLE_REWARDS"", global.diff_battlerewards);
         ini_write_real({savename}, ""REWARD_RANKING"", global.diff_rewardranking);
         ini_write_real({savename}, ""DOWN_DEFICIT"", global.diff_downdeficit);
@@ -285,6 +290,7 @@ foreach (string scrName in gamestartLikes)
                 ds_map_add(presetdata, ""enemycd"", global.diff_enemycd);
                 ds_map_add(presetdata, ""gmbrdenemycd"", global.diff_gmbrdenemycd);
                 ds_map_add(presetdata, ""tpgain"", global.diff_tpgain);
+                ds_map_add(presetdata, ""extraenemies"", global.diff_extraenemies);
                 ds_map_add(presetdata, ""battlerewards"", global.diff_battlerewards);
                 ds_map_add(presetdata, ""rewardranking"", global.diff_rewardranking);
                 ds_map_add(presetdata, ""downdeficit"", global.diff_downdeficit);
@@ -456,6 +462,7 @@ foreach (string scrName in gamestartLikes)
                     global.diff_enemycd = ini_read_real(""DIFFICULTY"", ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)});
                     global.diff_gmbrdenemycd = ini_read_real(""DIFFICULTY"", ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)});
                     global.diff_tpgain = ini_read_real(""DIFFICULTY"", ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)});
+                    global.diff_extraenemies = ini_read_real(""DIFFICULTY"", ""EXTRA_ENEMIES"", {presets[preset_default].extraenemies.ToString()});
                     global.diff_battlerewards = ini_read_real(""DIFFICULTY"", ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)});
                     global.diff_rewardranking = ini_read_real(""DIFFICULTY"", ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()});
                     global.diff_downdeficit = ini_read_real(""DIFFICULTY"", ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)});
@@ -497,6 +504,7 @@ foreach (string scrName in gamestartLikes)
                     ds_map_add(presetdata, ""enemycd"", ini_read_real(""preset_"" + userpresetnames[i], ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)}));
                     ds_map_add(presetdata, ""gmbrdenemycd"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}));
                     ds_map_add(presetdata, ""tpgain"", ini_read_real(""preset_"" + userpresetnames[i], ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)}));
+                    ds_map_add(presetdata, ""extraenemies"", ini_read_real(""preset_"" + userpresetnames[i], ""EXTRA_ENEMIES"", {presets[preset_default].extraenemies.ToString()}));
                     ds_map_add(presetdata, ""battlerewards"", ini_read_real(""preset_"" + userpresetnames[i], ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)}));
                     ds_map_add(presetdata, ""rewardranking"", ini_read_real(""preset_"" + userpresetnames[i], ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()}));
                     ds_map_add(presetdata, ""downdeficit"", ini_read_real(""preset_"" + userpresetnames[i], ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)}));
@@ -525,6 +533,7 @@ foreach (string scrName in gamestartLikes)
                             global.diff_enemycd = {pair.Value.enemycd.ToString("F10", CultureInfo.InvariantCulture)};
                             global.diff_gmbrdenemycd = {pair.Value.gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)};
                             global.diff_tpgain = {pair.Value.tpgain.ToString("F10", CultureInfo.InvariantCulture)};
+                            global.diff_extraenemies = {pair.Value.extraenemies.ToString()};
                             global.diff_battlerewards = {pair.Value.battlerewards.ToString("F10", CultureInfo.InvariantCulture)};
                             global.diff_rewardranking = {pair.Value.rewardranking.ToString().ToLower()};
                             global.diff_downdeficit = {pair.Value.downdeficit.ToString("F10", CultureInfo.InvariantCulture)};
@@ -551,6 +560,7 @@ foreach (string scrName in gamestartLikes)
                             global.diff_enemycd = ds_map_find_value(presetdata, ""enemycd"");
                             global.diff_gmbrdenemycd = ds_map_find_value(presetdata, ""gmbrdenemycd"");
                             global.diff_tpgain = ds_map_find_value(presetdata, ""tpgain"");
+                            global.diff_extraenemies = ds_map_find_value(presetdata, ""extraenemies"");
                             global.diff_battlerewards = ds_map_find_value(presetdata, ""battlerewards"");
                             global.diff_rewardranking = ds_map_find_value(presetdata, ""rewardranking"");
                             global.diff_downdeficit = ds_map_find_value(presetdata, ""downdeficit"");
@@ -598,6 +608,8 @@ foreach (string scrName in gamestartLikes)
                     return ceil((global.diff_gmbrdenemycd < 0 ? global.diff_enemycd : global.diff_gmbrdenemycd) * arg1);
                     case ""DIFFOP_TPGAIN"":
                     return ceil(global.diff_tpgain * arg1);
+                    case ""DIFFOP_EXTRAENEMIES"":
+                    return global.diff_extraenemies;
                     case ""DIFFOP_REWARDS"":
                     return ceil(global.diff_battlerewards * arg1);
                     case ""DIFFOP_REWARDRANK_GB"":
@@ -729,6 +741,7 @@ string copysettingsblock = @$"
         ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""ENEMY_COOLDOWNS"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)}));
         ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""GMBRD_ENEMY_CDS"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}));
         ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""TP_GAIN"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)}));
+        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""EXTRA_ENEMIES"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""EXTRA_ENEMIES"", {presets[preset_default].extraenemies.ToString()}));
         ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""BATTLE_REWARDS"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)}));
         ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""REWARD_RANKING"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()}));
         ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""DOWN_DEFICIT"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)}));
@@ -845,6 +858,13 @@ foreach (string darkcon in darkcons)
         ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
         array_push(formdata, rowdata);
         ")}
+
+        var rowdata = ds_map_create();
+        ds_map_add(rowdata, ""title_en"", ""Extra Enemies"");
+        ds_map_add(rowdata, ""value_range_en"", ""NONE=0;+1=1;+2=2"");
+        ds_map_add(rowdata, ""value_name"", ""diff_extraenemies"");
+        ds_map_add(rowdata, ""on_change"", ""diff_usepreset_custom"");
+        array_push(formdata, rowdata);
 
         var rowdata = ds_map_create();
         ds_map_add(rowdata, ""title_en"", ""Battle Rewards"");
@@ -1487,6 +1507,74 @@ if (ch_no == 3) {
 if (ch_no == 3) {
     importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_gameshow_battlemanager_Draw_0", "global.flag[1116] += real(totalstring);", @"
         global.flag[1116] += global.diff_rewardranking > 0 ? round(global.diff_battlerewards * real(totalstring)) : real(totalstring);
+    ");
+}
+
+// Apply Extra Enemies
+{
+    importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Create_0", "global.flag[53] = 0;", @"
+        global.flag[53] = 0;
+
+        var extratodo = global.diff_extraenemies;
+        var regularenemies = (global.monstertype[0] > 0) + (global.monstertype[1] > 0) + (global.monstertype[2] > 0);
+
+        if (extratodo > 0 && regularenemies < 3)
+        {
+            xx = __view_get(e__VW.XView, 0);
+            yy = __view_get(e__VW.YView, 0);
+            var basicenemies = [];
+            var totalenemies = regularenemies + extratodo;
+
+            for (i = 0; i < 3; i += 1)
+            {
+                if (global.monstertype[i] > 0 && (global.monsterinstancetype[i] == obj_diamondenemy || global.monsterinstancetype[i] == obj_heartenemy || global.monsterinstancetype[i] == obj_ponman_enemy || global.monsterinstancetype[i] == obj_rabbick_enemy || global.monsterinstancetype[i] == obj_bloxer_enemy || global.monsterinstancetype[i] == obj_jigsawryenemy || global.monsterinstancetype[i] == obj_rudinnranger || global.monsterinstancetype[i] == obj_headhathy))
+                    array_insert(basicenemies, 0, i);
+            }
+
+            if (array_length(basicenemies) > 0)
+            {
+                global.monstermakex[0] = xx + 480;
+                global.monstermakey[0] = yy + ((totalenemies == 1) ? 140 : ((totalenemies == 2) ? 110 : 20));
+                global.monstermakex[1] = xx + 500;
+                global.monstermakey[1] = yy + ((totalenemies == 2) ? 200 : 120);
+                global.monstermakex[2] = xx + 460;
+                global.monstermakey[2] = yy + 220;
+
+                for (i = 0; i < 3; i += 1)
+                {
+                    if (extratodo > 0 && global.monstertype[i] <= 0)
+                    {
+                        var randompick = irandom(array_length(basicenemies) - 1);
+                        global.monsterinstancetype[i] = global.monsterinstancetype[basicenemies[randompick]];
+                        global.monstertype[i] = global.monstertype[basicenemies[randompick]];
+                        extratodo--;
+                    }
+                }
+            }
+        }
+    ");
+    importGroup.QueueAppend("gml_Object_obj_battlecontroller_Create_0", @"
+
+        enum e__VW
+        {
+            XView,
+            YView,
+            WView,
+            HView,
+            Angle,
+            HBorder,
+            VBorder,
+            HSpeed,
+            VSpeed,
+            Object,
+            Visible,
+            XPort,
+            YPort,
+            WPort,
+            HPort,
+            Camera,
+            SurfaceID
+        }
     ");
 }
 

@@ -36,6 +36,8 @@ There are various difficulty options you can apply via the `diff_apply` function
   - Apply enemy cooldown multiplier.
 - **Gmbrd Enemy CDs** — `global.diff_apply("DIFFOP_ENEMYCD_GB", cooldown)`
   - Apply gameboard enemy cooldown multiplier.
+- **Extra Enemies** — `global.diff_apply("DIFFOP_EXTRAENEMIES")`
+  - Returns how many extra enemies the user has configured, between 0 to 2.
 - **Battle Rewards** — `global.diff_apply("DIFFOP_REWARDS", reward)`
   - Apply battle rewards multiplier.
 - **Down Deficit** — `global.diff_apply("DIFFOP_DOWNDEF", maxhp)`
