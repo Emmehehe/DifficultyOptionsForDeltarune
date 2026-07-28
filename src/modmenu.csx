@@ -364,6 +364,12 @@ foreach (string darkcon in darkcons)
                     var yprogress = 150;
                     while ((yprogress <= 150 + 6 * 35) && (i < array_length(form_data) + 1))
                     {{
+                        var row_data = form_data[i];
+                        var row_hidden_data = ds_map_find_value(row_data, ""hidden"");
+                        var row_hidden = !is_undefined(row_hidden_data) ? row_hidden_data : false;
+                        if (row_hidden)
+                            continue;
+
                         if (i >= array_length(form_data))
                         {{
                             draw_set_color(c_white);
@@ -374,12 +380,15 @@ foreach (string darkcon in darkcons)
                             break;
                         }}
 
-                        if (global.modsubmenuselected && global.modsubmenuno == i)
+                        var row_disabled_data = ds_map_find_value(row_data, ""disabled"");
+                        var row_disabled = !is_undefined(row_disabled_data) ? row_disabled_data : false;
+                        if (row_disabled)
+                            draw_set_color(c_gray);
+                        else if (global.modsubmenuselected && global.modsubmenuno == i)
                             draw_set_color(c_yellow);
                         else
                             draw_set_color(c_white);
 
-                        var row_data = form_data[i];
                         var value_name = ds_map_find_value(row_data, ""value_name"");
                         var value = !is_undefined(value_name) ? variable_instance_get(global, value_name) : -1;
                         var value_range = {ds_map_find_value_lang("row_data", @"""value_range""")};
@@ -629,6 +638,29 @@ foreach (string darkcon in darkcons)
                 is_undefined({ds_map_find_value_lang("arg1[global.modsubmenuno]", @"""value_range""")}) && is_undefined(ds_map_find_value(arg1[global.modsubmenuno], ""func_name""))
         }}
 
+        function ishiddenordisabled(arg0, arg1)
+        {{
+            if (global.modsubmenuno >= (arg0 - 1))
+                return false;
+
+            var row_hidden_data = ds_map_find_value(row_data, ""hidden"");
+            var row_hidden = !is_undefined(row_hidden_data) ? row_hidden_data : false;
+            if  (row_hidden)
+                return true;
+
+            var row_disabled_data = ds_map_find_value(row_data, ""disabled"");
+            var row_disabled = !is_undefined(row_disabled_data) ? row_disabled_data : false;
+            if  (row_disabled)
+                return true;
+
+            return false;
+        }}
+
+        function shouldskiprow(arg0, arg1)
+        {{
+            return issubmenucategory(arg0, arg1) || ishiddenordisabled(arg0, arg1);
+        }}
+
         if (global.menuno == 6)
         {{
             var isSubmenu = (global.modsubmenuno >= 0);
@@ -662,13 +694,13 @@ foreach (string darkcon in darkcons)
                         selectnoise = 1;
                         global.modsubmenuno = 0;
 
-                        // make sure category header isn't selected
+                        // make sure category header or hidden/disabled row isn't selected
                         var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
                         var form_length = ds_map_exists(global.modmenu_data[global.modmenuno], ""form"") ? array_length(form_data) : 0;
                         // back button
                         form_length++;
                         var movecount = 0;
-                        while ((movecount < form_length + 1) && issubmenucategory(form_length, form_data)) {{
+                        while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
                             modsubmenu_down(form_length);
                             movecount++;
                         }}
@@ -693,15 +725,22 @@ foreach (string darkcon in darkcons)
                 // back button
                 form_length++;
 
+                // state change could leave us stranded on a non-selectable row, so need to check
+                var movecount = 0;
+                while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
+                    modsubmenu_down(form_length);
+                    movecount++;
+                }}
+
                 if (up_p())
                 {{
                     movenoise = 1;
 
                     modsubmenu_up(form_length);
 
-                    // make sure category header isn't selected
+                    // make sure category header or hidden/disabled row isn't selected
                     var movecount = 0;
-                    while ((movecount < form_length + 1) && issubmenucategory(form_length, form_data)) {{
+                    while ((movecount < form_length + 1) && (shouldskiprow(form_length, form_data))) {{
                         modsubmenu_up(form_length);
                         movecount++;
                     }}
@@ -712,9 +751,9 @@ foreach (string darkcon in darkcons)
 
                     modsubmenu_down(form_length);
 
-                    // make sure category header isn't selected
+                    // make sure category header or hidden/disabled row isn't selected
                     var movecount = 0;
-                    while ((movecount < form_length + 1) && issubmenucategory(form_length, form_data)) {{
+                    while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
                         modsubmenu_down(form_length);
                         movecount++;
                     }}
