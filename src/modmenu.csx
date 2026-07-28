@@ -364,12 +364,6 @@ foreach (string darkcon in darkcons)
                     var yprogress = 150;
                     while ((yprogress <= 150 + 6 * 35) && (i < array_length(form_data) + 1))
                     {{
-                        var row_data = form_data[i];
-                        var row_hidden_data = ds_map_find_value(row_data, ""hidden"");
-                        var row_hidden = !is_undefined(row_hidden_data) ? row_hidden_data : false;
-                        if (row_hidden)
-                            continue;
-
                         if (i >= array_length(form_data))
                         {{
                             draw_set_color(c_white);
@@ -378,6 +372,14 @@ foreach (string darkcon in darkcons)
                                 heartyprogress = yprogress;
                             yprogress += 35;
                             break;
+                        }}
+
+                        var row_data = form_data[i];
+                        var row_hidden_data = ds_map_find_value(row_data, ""hidden"");
+                        var row_hidden = !is_undefined(row_hidden_data) ? row_hidden_data : false;
+                        if (row_hidden) {{
+                            i++;
+                            continue;
                         }}
 
                         var row_disabled_data = ds_map_find_value(row_data, ""disabled"");
@@ -638,17 +640,25 @@ foreach (string darkcon in darkcons)
                 is_undefined({ds_map_find_value_lang("arg1[global.modsubmenuno]", @"""value_range""")}) && is_undefined(ds_map_find_value(arg1[global.modsubmenuno], ""func_name""))
         }}
 
-        function ishiddenordisabled(arg0, arg1)
+        function ishidden(arg0, arg1)
         {{
             if (global.modsubmenuno >= (arg0 - 1))
                 return false;
 
-            var row_hidden_data = ds_map_find_value(row_data, ""hidden"");
+            var row_hidden_data = ds_map_find_value(arg1[global.modsubmenuno], ""hidden"");
             var row_hidden = !is_undefined(row_hidden_data) ? row_hidden_data : false;
             if  (row_hidden)
                 return true;
 
-            var row_disabled_data = ds_map_find_value(row_data, ""disabled"");
+            return false;
+        }}
+
+        function isdisabled(arg0, arg1)
+        {{
+            if (global.modsubmenuno >= (arg0 - 1))
+                return false;
+
+            var row_disabled_data = ds_map_find_value(arg1[global.modsubmenuno], ""disabled"");
             var row_disabled = !is_undefined(row_disabled_data) ? row_disabled_data : false;
             if  (row_disabled)
                 return true;
@@ -658,7 +668,7 @@ foreach (string darkcon in darkcons)
 
         function shouldskiprow(arg0, arg1)
         {{
-            return issubmenucategory(arg0, arg1) || ishiddenordisabled(arg0, arg1);
+            return issubmenucategory(arg0, arg1) || ishidden(arg0, arg1);
         }}
 
         if (global.menuno == 6)
@@ -725,12 +735,12 @@ foreach (string darkcon in darkcons)
                 // back button
                 form_length++;
 
-                // state change could leave us stranded on a non-selectable row, so need to check
-                var movecount = 0;
-                while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
-                    modsubmenu_down(form_length);
-                    movecount++;
-                }}
+                // TODO freezes game :/ // state change could leave us stranded on a non-selectable row, so need to check
+                // var movecount = 0;
+                // while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
+                //     modsubmenu_down(form_length);
+                //     movecount++;
+                // }}
 
                 if (up_p())
                 {{
@@ -758,7 +768,7 @@ foreach (string darkcon in darkcons)
                         movecount++;
                     }}
                 }}
-                if (button1_p() && onebuffer < 0 && twobuffer < 0)
+                if (button1_p() && onebuffer < 0 && twobuffer < 0 && !isdisabled(form_length, form_data))
                 {{
                     onebuffer = 2;
                     selectnoise = 1;
@@ -868,7 +878,7 @@ foreach (string darkcon in darkcons)
                             if (!is_undefined(func_name))
                             {{
                                 var functocall = variable_instance_get(global, func_name);
-                                functocall();
+                                functocall(true);
                             }}
                         }}
                     }}
@@ -1164,14 +1174,15 @@ foreach (string darkcon in darkcons)
                 }}
 
                 se_select = 0;
+                se_cancel = 0;
 
                 if (button1_p() && onebuffer < 0)
                     se_select = 1;
 
                 if (button2_p() && twobuffer < 0)
-                    se_select = 1;
+                    se_cancel = 1;
 
-                if (se_select == 1)
+                if (se_select == 1 || se_cancel == 1)
                 {{
                     selectnoise = 1;
                     onebuffer = 2;
@@ -1182,7 +1193,7 @@ foreach (string darkcon in darkcons)
                     if (!is_undefined(func_name))
                     {{
                         var functocall = variable_instance_get(global, func_name);
-                        functocall();
+                        functocall(se_select);
                     }}
 
                     modscroller_step = 1; // reset to 1 as first interaction should be instantaneous

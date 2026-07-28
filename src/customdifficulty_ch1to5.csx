@@ -250,12 +250,31 @@ foreach (string scrName in gamestartLikes)
                 return false;
             }}
 
+            global.diff_array_sort = function(arg0, arg1) {{
+                // TODO implement a proper sorting algo, cba atm - only runs once on load, save, or delete; so not too worried about it
+                var temparray = [];
+                for (var i = 0; i < array_length(arg0); i++) {{
+                    var insertat = array_length(temparray);
+                    for (var j = 0; j < array_length(temparray); j++) {{
+                        if (arg0[i] < temparray[j]) {{
+                            insertat = j;
+                            break;
+                        }}
+                    }}
+                    array_insert(temparray, insertat, arg0[i]);
+                }}
+                return temparray;
+            }}
+
             global.diff_menupresetrow = -1;
             global.diff_menucreateuserpresetrow = -1;
             global.diff_menudeleteuserpresetrow = -1;
 
             global.diff_saveuserpresetname = ""USER 1"";
-            global.diff_saveuserpreset = function() {{
+            global.diff_saveuserpreset = function(arg0) {{
+                if (!arg0)
+                    return;
+
                 global.diff_preset = global.diff_saveuserpresetname;
 
                 var presetdata = ds_map_create();
@@ -277,11 +296,11 @@ foreach (string scrName in gamestartLikes)
                 ds_map_add(presetdata, ""gmbrdplrheal"", global.diff_gmbrdplrheal);
                 ds_map_add(presetdata, ""mercy"", global.diff_mercy);
                 ds_map_add(presetdata, ""saveheal"", global.diff_saveheal);
-                ds_map_add(global.diff_userpresets, global.diff_saveuserpresetname, presetdata);
+                ds_map_set(global.diff_userpresets, global.diff_saveuserpresetname, presetdata);
 
                 ossafe_ini_open(""difficulty.ini"");
                 var newuserpresetnames = ds_map_keys_to_array(global.diff_userpresets);
-                // TODO array_sort(newuserpresetnames, true);
+                newuserpresetnames = global.diff_array_sort(newuserpresetnames, true);
                 var newmetapresetsvalue = """";
                 for (var i = 0; i < array_length(newuserpresetnames); i++) {{
                     if (i != 0)
@@ -338,13 +357,16 @@ foreach (string scrName in gamestartLikes)
                         deleteuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
                     }}
                     ds_map_replace(global.diff_menudeleteuserpresetrow, ""value_range_en"", deleteuserpresetsvaluerange);
-                    ds_map_replace(rowdata, ""hidden"", deleteuserpresetsvaluerange == """");
+                    ds_map_replace(global.diff_menudeleteuserpresetrow, ""disabled"", deleteuserpresetsvaluerange == """");
                 }}
 
                 global.diff_saveuserpresetname = ""USER 1"";
             }}
             global.diff_deleteuserpresetname = """";
-            global.diff_deleteuserpreset = function() {{
+            global.diff_deleteuserpreset = function(arg0) {{
+                if (!arg0)
+                    return;
+
                 if (!ds_map_exists(global.diff_userpresets, global.diff_deleteuserpresetname))
                     return;
 
@@ -355,7 +377,7 @@ foreach (string scrName in gamestartLikes)
 
                 ossafe_ini_open(""difficulty.ini"");
                 var newuserpresetnames = ds_map_keys_to_array(global.diff_userpresets);
-                // TODO array_sort(newuserpresetnames, true);
+                newuserpresetnames = global.diff_array_sort(newuserpresetnames, true);
                 var newmetapresetsvalue = """";
                 for (var i = 0; i < array_length(newuserpresetnames); i++) {{
                     if (i != 0)
@@ -415,7 +437,7 @@ foreach (string scrName in gamestartLikes)
                         deleteuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
                     }}
                     ds_map_replace(global.diff_menudeleteuserpresetrow, ""value_range_en"", deleteuserpresetsvaluerange);
-                    ds_map_replace(rowdata, ""hidden"", deleteuserpresetsvaluerange == """");
+                    ds_map_replace(global.diff_menudeleteuserpresetrow, ""disabled"", deleteuserpresetsvaluerange == """");
                 }}
 
                 global.diff_saveuserpresetname = ""USER 1"";
@@ -762,7 +784,7 @@ foreach (string darkcon in darkcons)
         var rowdata = ds_map_create();
         ds_map_add(rowdata, ""title_en"", ""Preset"");
         var newuserpresetnames = ds_map_keys_to_array(global.diff_userpresets);
-        // TODO array_sort(newuserpresetnames, true);
+        newuserpresetnames = global.diff_array_sort(newuserpresetnames, true);
         var userpresetvaluerange = """";
         for (var i = 0; i < array_length(newuserpresetnames); i++) {{
             userpresetvaluerange += "";"" + newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
@@ -969,7 +991,7 @@ foreach (string darkcon in darkcons)
             deleteuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
         }}
         ds_map_add(rowdata, ""value_range_en"", deleteuserpresetsvaluerange);
-        ds_map_add(rowdata, ""hidden"", deleteuserpresetsvaluerange == """");
+        ds_map_add(rowdata, ""disabled"", deleteuserpresetsvaluerange == """");
         ds_map_add(rowdata, ""value_name"", ""diff_deleteuserpresetname"");
         ds_map_add(rowdata, ""func_name"", ""diff_deleteuserpreset"");
         ds_map_add(rowdata, ""force_scroll"", true);

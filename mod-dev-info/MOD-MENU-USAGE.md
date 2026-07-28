@@ -78,6 +78,7 @@ array_push(global.modmenu_data, menudata);
   - func_name (optional) — Name of the global function this control/button should trigger.
     - e.g. Set to `"coolmod_dofunthings"` for function `global.coolmod_dofunthings`.
     - This can also be specified for a control, will trigger immediately after the user confirms the control if so.
+    - First argument (arg0) indicates if the selection was confirmed [Z]/(A) or cancelled [X]/(B); true for confirmed, false for cancelled
 
 ## Value Ranges
 
