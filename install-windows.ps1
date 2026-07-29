@@ -67,9 +67,9 @@ function Get-UtmtCli {
     }
   }
 
-  # Download specific version (v0.8.3.0) to match macOS
-  Log 'Downloading UndertaleModTool CLI (v0.8.3.0)...'
-  $api = 'https://api.github.com/repos/UnderminersTeam/UndertaleModTool/releases/tags/0.8.3.0'
+  # Download specific version (v0.9.1.2) to match macOS
+  Log 'Downloading UndertaleModTool CLI (v0.9.1.2)...'
+  $api = 'https://api.github.com/repos/UnderminersTeam/UndertaleModTool/releases/tags/0.9.1.2'
   try {
     $headers = @{ 'User-Agent' = 'CustomDifficultyModForDeltarune-Installer' }
     $json = Invoke-WebRequest -UseBasicParsing $api -Headers $headers | Select-Object -Expand Content | ConvertFrom-Json
@@ -84,7 +84,7 @@ function Get-UtmtCli {
   } | Select-Object -First 1
   
   if (-not $asset) { 
-    Die 'Could not find a Windows CLI asset in v0.8.3.0 release. Supply -UtmtCli <path>.' 
+    Die 'Could not find a Windows CLI asset in v0.9.1.2 release. Supply -UtmtCli <path>.' 
   }
   
   $tmp = New-Item -ItemType Directory -Path ([IO.Path]::GetTempPath()) -Name ("utmt_" + [guid]::NewGuid())

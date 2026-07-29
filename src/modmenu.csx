@@ -374,12 +374,23 @@ foreach (string darkcon in darkcons)
                             break;
                         }}
 
-                        if (global.modsubmenuselected && global.modsubmenuno == i)
+                        var row_data = form_data[i];
+                        var row_hidden_data = ds_map_find_value(row_data, ""hidden"");
+                        var row_hidden = !is_undefined(row_hidden_data) ? row_hidden_data : false;
+                        if (row_hidden) {{
+                            i++;
+                            continue;
+                        }}
+
+                        var row_disabled_data = ds_map_find_value(row_data, ""disabled"");
+                        var row_disabled = !is_undefined(row_disabled_data) ? row_disabled_data : false;
+                        if (row_disabled)
+                            draw_set_color(c_gray);
+                        else if (global.modsubmenuselected && global.modsubmenuno == i)
                             draw_set_color(c_yellow);
                         else
                             draw_set_color(c_white);
 
-                        var row_data = form_data[i];
                         var value_name = ds_map_find_value(row_data, ""value_name"");
                         var value = !is_undefined(value_name) ? variable_instance_get(global, value_name) : -1;
                         var value_range = {ds_map_find_value_lang("row_data", @"""value_range""")};
@@ -629,6 +640,37 @@ foreach (string darkcon in darkcons)
                 is_undefined({ds_map_find_value_lang("arg1[global.modsubmenuno]", @"""value_range""")}) && is_undefined(ds_map_find_value(arg1[global.modsubmenuno], ""func_name""))
         }}
 
+        function ishidden(arg0, arg1)
+        {{
+            if (global.modsubmenuno >= (arg0 - 1))
+                return false;
+
+            var row_hidden_data = ds_map_find_value(arg1[global.modsubmenuno], ""hidden"");
+            var row_hidden = !is_undefined(row_hidden_data) ? row_hidden_data : false;
+            if  (row_hidden)
+                return true;
+
+            return false;
+        }}
+
+        function isdisabled(arg0, arg1)
+        {{
+            if (global.modsubmenuno >= (arg0 - 1))
+                return false;
+
+            var row_disabled_data = ds_map_find_value(arg1[global.modsubmenuno], ""disabled"");
+            var row_disabled = !is_undefined(row_disabled_data) ? row_disabled_data : false;
+            if  (row_disabled)
+                return true;
+
+            return false;
+        }}
+
+        function shouldskiprow(arg0, arg1)
+        {{
+            return issubmenucategory(arg0, arg1) || ishidden(arg0, arg1);
+        }}
+
         if (global.menuno == 6)
         {{
             var isSubmenu = (global.modsubmenuno >= 0);
@@ -662,13 +704,13 @@ foreach (string darkcon in darkcons)
                         selectnoise = 1;
                         global.modsubmenuno = 0;
 
-                        // make sure category header isn't selected
+                        // make sure category header or hidden/disabled row isn't selected
                         var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
                         var form_length = ds_map_exists(global.modmenu_data[global.modmenuno], ""form"") ? array_length(form_data) : 0;
                         // back button
                         form_length++;
                         var movecount = 0;
-                        while ((movecount < form_length + 1) && issubmenucategory(form_length, form_data)) {{
+                        while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
                             modsubmenu_down(form_length);
                             movecount++;
                         }}
@@ -693,15 +735,22 @@ foreach (string darkcon in darkcons)
                 // back button
                 form_length++;
 
+                // TODO freezes game :/ // state change could leave us stranded on a non-selectable row, so need to check
+                // var movecount = 0;
+                // while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
+                //     modsubmenu_down(form_length);
+                //     movecount++;
+                // }}
+
                 if (up_p())
                 {{
                     movenoise = 1;
 
                     modsubmenu_up(form_length);
 
-                    // make sure category header isn't selected
+                    // make sure category header or hidden/disabled row isn't selected
                     var movecount = 0;
-                    while ((movecount < form_length + 1) && issubmenucategory(form_length, form_data)) {{
+                    while ((movecount < form_length + 1) && (shouldskiprow(form_length, form_data))) {{
                         modsubmenu_up(form_length);
                         movecount++;
                     }}
@@ -712,14 +761,14 @@ foreach (string darkcon in darkcons)
 
                     modsubmenu_down(form_length);
 
-                    // make sure category header isn't selected
+                    // make sure category header or hidden/disabled row isn't selected
                     var movecount = 0;
-                    while ((movecount < form_length + 1) && issubmenucategory(form_length, form_data)) {{
+                    while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
                         modsubmenu_down(form_length);
                         movecount++;
                     }}
                 }}
-                if (button1_p() && onebuffer < 0 && twobuffer < 0)
+                if (button1_p() && onebuffer < 0 && twobuffer < 0 && !isdisabled(form_length, form_data))
                 {{
                     onebuffer = 2;
                     selectnoise = 1;
@@ -732,6 +781,13 @@ foreach (string darkcon in darkcons)
                         {{
                             global.menuno = 0;
                             global.submenu = 0;
+                        }}
+
+                        var on_close = ds_map_find_value(global.modmenu_data[global.modmenuno], ""on_close"");
+                        if (!is_undefined(on_close))
+                        {{
+                            var functocall = variable_instance_get(global, on_close);
+                            functocall();
                         }}
                     }}
                     else
@@ -816,11 +872,14 @@ foreach (string darkcon in darkcons)
                             }}
                         }}
 
-                        var func_name = ds_map_find_value(row_data, ""func_name"");
-                        if (!is_undefined(func_name))
-                        {{
-                            var functocall = variable_instance_get(global, func_name);
-                            functocall();
+
+                        if (doToggle || array_length(ranges) <= 0) {{
+                            var func_name = ds_map_find_value(row_data, ""func_name"");
+                            if (!is_undefined(func_name))
+                            {{
+                                var functocall = variable_instance_get(global, func_name);
+                                functocall(true);
+                            }}
                         }}
                     }}
                 }}
@@ -835,6 +894,13 @@ foreach (string darkcon in darkcons)
                     {{
                         global.menuno = 0;
                         global.submenu = 0;
+                    }}
+
+                    var on_close = ds_map_find_value(global.modmenu_data[global.modmenuno], ""on_close"");
+                    if (!is_undefined(on_close))
+                    {{
+                        var functocall = variable_instance_get(global, on_close);
+                        functocall();
                     }}
                 }}
             }} else {{
@@ -1108,14 +1174,15 @@ foreach (string darkcon in darkcons)
                 }}
 
                 se_select = 0;
+                se_cancel = 0;
 
                 if (button1_p() && onebuffer < 0)
                     se_select = 1;
 
                 if (button2_p() && twobuffer < 0)
-                    se_select = 1;
+                    se_cancel = 1;
 
-                if (se_select == 1)
+                if (se_select == 1 || se_cancel == 1)
                 {{
                     selectnoise = 1;
                     onebuffer = 2;
@@ -1126,7 +1193,7 @@ foreach (string darkcon in darkcons)
                     if (!is_undefined(func_name))
                     {{
                         var functocall = variable_instance_get(global, func_name);
-                        functocall();
+                        functocall(se_select);
                     }}
 
                     modscroller_step = 1; // reset to 1 as first interaction should be instantaneous

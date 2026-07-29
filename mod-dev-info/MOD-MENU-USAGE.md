@@ -63,6 +63,7 @@ array_push(global.modmenu_data, menudata);
 - title_en — English title for the mod's menu.
 - left_margin_en (optional, default: 40) — Adjusts the menu's left side margin. Useful if you're having trouble fitting text in the box.
 - left_value_pos_en (optional, default: 300) — Adjusts the left side position of the values in the menu. Useful if you're having trouble fitting text in the box.
+- on_close (optional) — Name of a global function to call when the mod's menu is closed.
 - form — Array containing rows for controls, buttons, and headers.
   - title_en — English title for the control/button/header.
   - value_range_en (optional) — English value range string for the control.
@@ -70,11 +71,14 @@ array_push(global.modmenu_data, menudata);
     - See [Value Ranges](#Value-Ranges) for a more detailed explaination.
   - value_name (required if value_range_en is set) — Name of the global variable this control should adjust.
     - e.g. Set to `"coolmod_funvalue"` for variable `global.coolmod_funvalue`.
+  - disabled (optional) — Disables the control/button (greyed out & user cannot interact with it).
+  - hidden (optional) — Hides the control/button (won't display & won't take up space in the menu).
   - on_change (optional) — Name of a global function to call for every step that the value is changed.
   - force_scroll (optional) — For value ranges that are entirely labels, force scroll behaviour rather than normal toggle behaviour.
   - func_name (optional) — Name of the global function this control/button should trigger.
     - e.g. Set to `"coolmod_dofunthings"` for function `global.coolmod_dofunthings`.
     - This can also be specified for a control, will trigger immediately after the user confirms the control if so.
+    - First argument (arg0) indicates if the selection was confirmed [Z]/(A) or cancelled [X]/(B); true for confirmed, false for cancelled
 
 ## Value Ranges
 

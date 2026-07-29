@@ -52,14 +52,14 @@ find_utmt_cli() {
     fi
   fi
 
-  # 4) Download specific release (v0.8.3.0) asset that looks like macOS CLI
-  log "Downloading UndertaleModTool CLI (v0.8.3.0) …"
-  API_URL="https://api.github.com/repos/UnderminersTeam/UndertaleModTool/releases/tags/0.8.3.0"
+  # 4) Download specific release (v0.9.1.2) asset that looks like macOS CLI
+  log "Downloading UndertaleModTool CLI (v0.9.1.2) …"
+  API_URL="https://api.github.com/repos/UnderminersTeam/UndertaleModTool/releases/tags/0.9.1.2"
   JSON="$(curl -fsSL "$API_URL")" || err "Failed to contact GitHub API"
   # Try to pick a macOS CLI asset (zip or tar.gz). We look for 'CLI' and 'mac' in the URL.
   DL_URL=$(printf "%s" "$JSON" | grep -oE '"browser_download_url"\s*:\s*"[^"]+"' | cut -d '"' -f 4 | \
            grep -iE 'cli' | grep -iE 'mac|osx|darwin' | head -n1)
-  [[ -n "$DL_URL" ]] || err "Could not find a macOS CLI asset in v0.8.3.0 release. Supply --utmt <path> instead."
+  [[ -n "$DL_URL" ]] || err "Could not find a macOS CLI asset in v0.9.1.2 release. Supply --utmt <path> instead."
 
   TMPD="$(mktemp -d)"
   ARCHIVE="$TMPD/utmt-cli.zip"
