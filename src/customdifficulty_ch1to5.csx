@@ -271,6 +271,33 @@ foreach (string scrName in gamestartLikes)
                 return temparray;
             }}
 
+            {((ch_no != 0) ? "" : @"
+                // WARNING: only works for delimiters 1 char long
+                // WARNING: does not have optional args from GM's impl
+                global.diff_string_split = function(arg0, arg1)
+                {
+                    length = string_length(arg0);
+                    var result = array_create(0);
+                    array_push(result, """");
+
+                    // string_char_at index starts at 1 for some reason
+                    for (i = 1; i <= length; i++)
+                    {
+                        thischar = string_char_at(arg0, i);
+
+                        if (thischar != arg1) {
+                            result[array_length(result) - 1] = result[array_length(result) - 1] + thischar;
+                        }
+                        else
+                        {
+                            array_push(result, """");
+                        }
+                    }
+
+                    return result;
+                }
+            ")}
+
             global.diff_menupresetrow = -1;
             global.diff_menucreateuserpresetrow = -1;
             global.diff_menudeleteuserpresetrow = -1;
@@ -494,7 +521,7 @@ foreach (string scrName in gamestartLikes)
             if (ossafe_file_exists(""difficulty.ini"")) {{
                 ossafe_ini_open(""difficulty.ini"");
                 var metapresetsiniraw = ini_read_string(""META"", ""PRESETS"", """");
-                var userpresetnames = metapresetsiniraw == """" ? [] : string_split(metapresetsiniraw, "";"");
+                var userpresetnames = metapresetsiniraw == """" ? [] : {((ch_no != 0) ? "" : "global.diff_")}string_split(metapresetsiniraw, "";"");
                 for (var i = 0; i < array_length(userpresetnames); i++) {{
                     var presetdata = ds_map_create();
                     ds_map_add(presetdata, ""damagemulti"", ini_read_real(""preset_"" + userpresetnames[i], ""DAMAGE_MULTI"", {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)}));
@@ -1512,70 +1539,111 @@ if (ch_no == 3) {
 
 // Apply Extra Enemies
 {
-    importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Create_0", "global.flag[53] = 0;", @"
-        global.flag[53] = 0;
+    string[] basicenemies = {};
+    if (ch_no == 0) {
+        string[] demobasicenemies = {"obj_diamondenemy_ch1", "obj_heartenemy_ch1", "obj_ponman_enemy_ch1", "obj_rabbick_enemy_ch1", "obj_bloxer_enemy_ch1", "obj_jigsawryenemy_ch1", "obj_rudinnranger_ch1",
+            "obj_headhathy_ch1", "obj_ponman_enemy", "obj_rudinnranger", "obj_omawaroid_enemy", "obj_poppup_enemy", "obj_tasque_enemy", "obj_werewire_enemy", "obj_maus_enemy", "obj_virovirokun_enemy",
+            "obj_swatchling_enemy", "obj_werewerewire_enemy"};
+        basicenemies = basicenemies.Concat(demobasicenemies).ToArray();
+    }
+    if (ch_no == 1) {
+        string[] ch1basicenemies = {"obj_diamondenemy", "obj_heartenemy", "obj_ponman_enemy", "obj_rabbick_enemy", "obj_bloxer_enemy", "obj_jigsawryenemy", "obj_rudinnranger", "obj_headhathy"};
+        basicenemies = basicenemies.Concat(ch1basicenemies).ToArray();
+    }
+    if (ch_no == 2) {
+        string[] ch2basicenemies = {"obj_ponman_enemy", "obj_rudinnranger", "obj_omawaroid_enemy", "obj_poppup_enemy", "obj_tasque_enemy", "obj_werewire_enemy", "obj_maus_enemy", "obj_virovirokun_enemy",
+            "obj_swatchling_enemy", "obj_werewerewire_enemy"};
+        basicenemies = basicenemies.Concat(ch2basicenemies).ToArray();
+    }
+    if (ch_no == 3) {
+        string[] ch3basicenemies = {"obj_ponman_enemy", "obj_rabbick_enemy", "obj_rudinnranger", "obj_shadowman_enemy", "obj_zapper_enemy", "obj_pippins_enemy"};
+        basicenemies = basicenemies.Concat(ch3basicenemies).ToArray();
+    }
+    if (ch_no == 4) {
+        string[] ch4basicenemies = {"obj_ponman_enemy", "obj_rudinnranger", "obj_swatchling_enemy", "obj_guei_enemy", "obj_balthizard_enemy", "obj_bibliox_enemy", "obj_mizzle_enemy", "obj_bell_enemy",
+            "obj_halo_enemy", "obj_organ_enemy", "obj_titan_spawn_enemy", "obj_pippins_enemy", "obj_zapper_enemy", "obj_ribbick_enemy"};
+        basicenemies = basicenemies.Concat(ch4basicenemies).ToArray();
+    }
+    if (ch_no == 5) {
+        string[] ch5basicenemies = {"obj_ponman_enemy", "obj_rudinnranger", "obj_floradinn_enemy", "obj_leafling_enemy", "obj_scarecrow_enemy", "obj_kawkaw_enemy", "obj_shinobeetle_enemy", "obj_sheary_enemy",
+            "obj_netskie_enemy", "obj_terracota_enemy"}; // TODO bit worried netskie and terra might bug out or crash, also would they be considered mini-bosses?
+        basicenemies = basicenemies.Concat(ch5basicenemies).ToArray();
+    }
+    string checkbasicenemyblock = $"(global.monsterinstancetype[i] == {string.Join(" || global.monsterinstancetype[i] == ", basicenemies)})";
 
-        var extratodo = global.diff_extraenemies;
-        var regularenemies = (global.monstertype[0] > 0) + (global.monstertype[1] > 0) + (global.monstertype[2] > 0);
+    string[] scriptstodo = {"gml_Object_obj_battlecontroller_Create_0"};
+    if (ch_no == 0) {
+        string[] demoscriptstodo = {"gml_Object_obj_battlecontroller_ch1_Create_0"};
+        scriptstodo = scriptstodo.Concat(demoscriptstodo).ToArray();
+    }
 
-        if (extratodo > 0 && regularenemies < 3)
-        {
-            xx = __view_get(e__VW.XView, 0);
-            yy = __view_get(e__VW.YView, 0);
-            var basicenemies = [];
-            var totalenemies = regularenemies + extratodo;
+    foreach (string scrName in scriptstodo)
+    {
+        importGroup.QueueFindReplace(scrName, "global.flag[53] = 0;", @$"
+            global.flag[53] = 0;
 
-            for (i = 0; i < 3; i += 1)
-            {
-                if (global.monstertype[i] > 0 && (global.monsterinstancetype[i] == obj_diamondenemy || global.monsterinstancetype[i] == obj_heartenemy || global.monsterinstancetype[i] == obj_ponman_enemy || global.monsterinstancetype[i] == obj_rabbick_enemy || global.monsterinstancetype[i] == obj_bloxer_enemy || global.monsterinstancetype[i] == obj_jigsawryenemy || global.monsterinstancetype[i] == obj_rudinnranger || global.monsterinstancetype[i] == obj_headhathy))
-                    array_insert(basicenemies, 0, i);
-            }
+            var extratodo = global.diff_extraenemies;
+            var regularenemies = (global.monstertype[0] > 0) + (global.monstertype[1] > 0) + (global.monstertype[2] > 0);
 
-            if (array_length(basicenemies) > 0)
-            {
-                global.monstermakex[0] = xx + 480;
-                global.monstermakey[0] = yy + ((totalenemies == 1) ? 140 : ((totalenemies == 2) ? 110 : 20));
-                global.monstermakex[1] = xx + 500;
-                global.monstermakey[1] = yy + ((totalenemies == 2) ? 200 : 120);
-                global.monstermakex[2] = xx + 460;
-                global.monstermakey[2] = yy + 220;
+            if (extratodo > 0 && regularenemies < 3)
+            {{
+                xx = __view_get(e__VW.XView, 0);
+                yy = __view_get(e__VW.YView, 0);
+                var basicenemies = [];
+                var totalenemies = regularenemies + extratodo;
 
                 for (i = 0; i < 3; i += 1)
-                {
-                    if (extratodo > 0 && global.monstertype[i] <= 0)
-                    {
-                        var randompick = irandom(array_length(basicenemies) - 1);
-                        global.monsterinstancetype[i] = global.monsterinstancetype[basicenemies[randompick]];
-                        global.monstertype[i] = global.monstertype[basicenemies[randompick]];
-                        extratodo--;
-                    }
-                }
-            }
-        }
-    ");
-    importGroup.QueueAppend("gml_Object_obj_battlecontroller_Create_0", @"
+                {{
+                    if (global.monstertype[i] > 0 && {checkbasicenemyblock})
+                        array_insert(basicenemies, 0, i);
+                }}
 
-        enum e__VW
-        {
-            XView,
-            YView,
-            WView,
-            HView,
-            Angle,
-            HBorder,
-            VBorder,
-            HSpeed,
-            VSpeed,
-            Object,
-            Visible,
-            XPort,
-            YPort,
-            WPort,
-            HPort,
-            Camera,
-            SurfaceID
-        }
-    ");
+                if (array_length(basicenemies) > 0)
+                {{
+                    global.monstermakex[0] = xx + 480;
+                    global.monstermakey[0] = yy + ((totalenemies == 1) ? 140 : ((totalenemies == 2) ? 110 : 20));
+                    global.monstermakex[1] = xx + 500;
+                    global.monstermakey[1] = yy + ((totalenemies == 2) ? 200 : 120);
+                    global.monstermakex[2] = xx + 460;
+                    global.monstermakey[2] = yy + 220;
+
+                    for (i = 0; i < 3; i += 1)
+                    {{
+                        if (extratodo > 0 && global.monstertype[i] <= 0)
+                        {{
+                            var randompick = irandom(array_length(basicenemies) - 1);
+                            global.monsterinstancetype[i] = global.monsterinstancetype[basicenemies[randompick]];
+                            global.monstertype[i] = global.monstertype[basicenemies[randompick]];
+                            extratodo--;
+                        }}
+                    }}
+                }}
+            }}
+        ");
+        importGroup.QueueAppend(scrName, @"
+
+            enum e__VW
+            {
+                XView,
+                YView,
+                WView,
+                HView,
+                Angle,
+                HBorder,
+                VBorder,
+                HSpeed,
+                VSpeed,
+                Object,
+                Visible,
+                XPort,
+                YPort,
+                WPort,
+                HPort,
+                Camera,
+                SurfaceID
+            }
+        ");
+    }
 }
 
 // Apply TP Gain
@@ -1635,10 +1703,10 @@ if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "global.mercymod[arg0] += arg1;", @"
         var toadd = ceil(global.diff_mercy * arg1);
 
-        global.mercymod[arg0] += arg1;
+        global.mercymod[arg0] += toadd;
     ");
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1;", "toadd;");
     if (ch_no != 1) {
+        importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1;", "toadd;");
         importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "arg1 <", "toadd <");
     }
 }
@@ -1648,7 +1716,6 @@ if (ch_no == 0) {
 
         global.mercymod[arg0] += toadd;
     ");
-    importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd_ch1", "arg1;", "toadd;");
 }
 // Fix crash when sparing lancer in castle town
 if (ch_no == 1) {
@@ -2062,6 +2129,17 @@ if (ch_no == 5) {
     btimerEqualEquals = btimerEqualEquals.Concat(ch5BtimerEqualEquals).ToArray();
 }
 (string A, string B) [] btimerModulos = {};
+if (ch_no == 3) {
+    (string A, string B) [] ch3BtimerModulos = {
+        ("rate1", "rate2"), ("ceil(35)", "5"), ("ceil((3 + (sqrt(ratio) * (5 - special))) - instance_exists(obj_bullet_sun))", "0"), ("ceil((5 * ratio) - special - (special == 2))", "0"),
+        ("4", "0"), ("6", "0")};
+    btimerModulos = btimerModulos.Concat(ch3BtimerModulos).ToArray();
+}
+if (ch_no == 4) {
+    (string A, string B) [] ch4BtimerModulos = {
+        ("_almondamount", "0"), ("_miz_cd", "0"), ("19", "0")};
+    btimerModulos = btimerModulos.Concat(ch4BtimerModulos).ToArray();
+}
 if (ch_no == 5) {
     (string A, string B) [] ch5BtimerModulos = {
         ("ceil(31 * power(ratio, 1.28))", "(25 * sameattacker)"), ("ceil(24 * ratio)", "(4 * sameattacker)"), ("(6 * ceil(ratio))", "0"), ("ceil(27 * ratio)", "(20 * sameattacker)"),
@@ -2088,16 +2166,10 @@ foreach (string con in bulletCons)
     {
         importGroup.QueueFindReplace(con + "_Step_0", $"btimer == {term}", $"btimer == ceil(global.diff_enemycd * ({term}))");
     }
-    if (ch_no != 2)
+    importGroup.QueueRegexFindReplace(con + "_Step_0", "btimer -= ([^;]+)", "btimer -= ceil(global.diff_enemycd * $1)");
+    foreach ((string A, string B) terms in btimerModulos)
     {
-        // TODO -= swatchling & sneo in ch2
-        // TODO % weather duo in ch3
-        // TODO % mizzle/watercoolers in ch4
-        importGroup.QueueRegexFindReplace(con + "_Step_0", "btimer -= ([^;]+)", "btimer -= ceil(global.diff_enemycd * $1)");
-        foreach ((string A, string B) terms in btimerModulos)
-        {
-            importGroup.QueueFindReplace(con + "_Step_0", $"(btimer % {terms.A}) == {terms.B}", $"(btimer % ceil(global.diff_enemycd * ({terms.A}))) == floor(global.diff_enemycd * {terms.B})");
-        }
+        importGroup.QueueFindReplace(con + "_Step_0", $"(btimer % {terms.A}) == {terms.B}", $"(btimer % ceil(global.diff_enemycd * ({terms.A}))) == floor(global.diff_enemycd * {terms.B})");
     }
 }
 if (ch_no == 1 || ch_no == 0) {
@@ -2379,7 +2451,7 @@ if (ch_no == 3) {
     importGroup.QueueRegexFindReplace("gml_Object_obj_tenna_rimshot_star_Step_0", "rimshot_timer == ([0-9|\\.]+)", "rimshot_timer == floor(global.diff_enemycd * ($1))");
     importGroup.QueueFindReplace("gml_Object_obj_tenna_rimshot_star_Step_0", "laugh_timer += 0.25;", $"laugh_timer += {one_over_cd} * 0.25;");
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "rimshot_timer = 74;", "rimshot_timer = ceil(global.diff_enemycd * 74);");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(btimer % rate1) == rate2", "(btimer % ceil(global.diff_enemycd * rate1)) == floor(global.diff_enemycd * rate2)");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(btimer % rate1) == rate2", "(btimer % ceil(global.diff_enemycd * rate1)) == floor(global.diff_enemycd * rate2)");
     importGroup.QueueRegexFindReplace("gml_Object_obj_actor_tenna_Create_0", "(?<=lightemup|bullet_)timer (\\+?-?)= ([^;]+)", "timer $1= floor(global.diff_enemycd * ($2))");
     importGroup.QueueFindReplace("gml_Object_obj_actor_tenna_Draw_0", "bullet_timer > (_rate - _jumpspeed)", "bullet_timer > (global.diff_enemycd * (_rate - _jumpspeed))");
     importGroup.QueueFindReplace("gml_Object_obj_actor_tenna_Draw_0", "(bullet_timer + _movespeed + _waitspeed) > (_rate - _jumpspeed)",
