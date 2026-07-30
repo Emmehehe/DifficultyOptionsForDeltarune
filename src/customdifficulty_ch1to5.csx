@@ -1645,6 +1645,10 @@ if (ch_no == 3) {
         ");
     }
 }
+if (ch_no == 2 || ch_no == 0) {
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "for (var i = 0; i < ((monstercount == 1) ? 2 : 3); i++)", "for (var i = 0; i < (monstercount + 1); i++)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "d.fleetsize = sameattack;", "d.fleetsize = min(sameattack, 2);");
+}
 
 // Apply TP Gain
 string[] tensionHeals = {"gml_Object_obj_grazebox_Collision_obj_collidebullet"};
