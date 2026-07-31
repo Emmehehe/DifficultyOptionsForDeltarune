@@ -2,13 +2,14 @@ deltaruneTargetVersion = "1.04"
 
 [metadata]
 name = "Custom Difficulty"
-version = "1.8.1"
+version = "1.8.5"
 description = "Difficulty options for DELTARUNE. Make the game Easy, Hard, or Nightmare. No-hit options included."
-author = ["Emmahaha"]
-url = "https://gamebanana.com/mods/613308"
-game = "toby.deltarune.demo"
+author = [ "Emmahaha" ]
 packageID = "com.emmahaha.customdiffdemo"
+game = "toby.deltarune.demo"
+url = "https://gamebanana.com/mods/613308"
 mergeSupport = true
+tags = [ "customization", "gameplay" ]
 
 [color]
 r = 255

@@ -230,29 +230,206 @@ foreach (string darkcon in darkcons)
 
         var installed_modmenu = true;
 
-        global.modmenuno = 0;
-        global.modsubmenuno = -1;
-        global.modsubmenuselected = false;
-        global.modsubmenuscroll = 0;
-        global.modmenu_data = array_create(0);
-        surf_modtitles = -1;
+        modmenu = {
+            menu_no: 0,
+            row_no: -1,
+            row_selected: false,
+            row_scroll: 0,
+            menus: [], // array_create(0),
+            active_menu: function () { return menus[menu_no] },
 
-        // Apply acceleration to the scrollers so that they're not too fidly but not too slow
-        modscroller_step = 1; // reset to 1 as first interaction should be instantaneous
-        modscroller_speed_min = 0;
-        modscroller_speed_max = 3;
-        modscroller_speed = modscroller_speed_min;
-        modscroller_accel = 1 / 20;
+            surf_titles: -1,
+            get_surf_titles: function () {
+                if (!surface_exists(surf_titles))
+                {
+                    surf_titles = surface_create(410, 35);
+                }
+                return surf_titles;
+            },
 
-        // some translation mods replace the english translation rather than using DR's built in localisation support, so can't always rely on global.lang and have to override for certain mods
-        global.modmenu_langoverride = """";
+            // Apply acceleration to the scrollers so that they're not too fidly but not too slow
+            slider_step: 1, // reset to 1 as first interaction should be instantaneous
+            slider_speed_min: 0,
+            slider_speed_max: 3,
+            slider_speed: modmenu.slider_speed_min,
+            slider_accel: 1 / 20,
+
+            // some translation mods replace the english translation rather than using DR's built in localisation support, so can't always rely on global.lang and have to override for certain mods
+            lang_override: """",
+            get_lang: function () { return (modmenu.lang_override != """" ? modmenu.lang_override : global.lang) },
+            find_loc: function (arg0, arg1) {
+                if (!is_array(arg0))
+                    return arg0;
+                var lang = is_undefined(arg1) ? get_lang() : arg1;
+                var en = """";
+                var first = """";
+                for (var i = 0; i < array_length(arg0); i++) {
+                    if (arg0[i].lang == lang)
+                        return arg0[i].val;
+                    if (arg0[i].lang == ""en"")
+                        en = arg0[i].val;
+                    if (i == 0)
+                        first = arg0[i].val;
+                }
+                if (en != """") {
+                    array_insert(arg0, 0, {lang: lang, val: en});
+                    return en;
+                }
+                array_insert(arg0, 0, {lang: lang, val: first});
+                return first;
+            },
+
+            // TODO strip global.
+            // TODO support ref()?
+            // save/load
+            save_menu_data: function (arg0) {
+                var category = arg0.get_save_category();
+                if (is_undefined(category))
+                    return;
+                ossafe_ini_open(arg0.get_save_name());
+                for(var i = 0; i < array_length(arg0.form); i++) {
+                    var row = arg0.form[i];
+                    if (row.type != ""Slider"" && row.type != ""Toggle"")
+                        continue;
+
+                    var write_func = (row.value_type == ""String"") ? ini_write_string : ini_write_real;
+                    if (variable_instance_exists(global, row.value_ref))
+                        write_func(category, row.value_ref, variable_instance_get(global, row.value_ref));
+                }
+                ossafe_ini_close();
+            },
+            load_menu_data: function (arg0) {
+                var category = arg0.get_save_category();
+                if (is_undefined(category))
+                    return;
+                ossafe_ini_open(arg0.get_save_name());
+                for(var i = 0; i < array_length(arg0.form); i++) {
+                    var row = arg0.form[i];
+                    if (row.type != ""Slider"" && row.type != ""Toggle"")
+                        continue;
+
+                    var read_func = (row.value_type == ""String"") ? ini_read_string : ini_read_real;
+                    variable_instance_set(global, row.value_ref, read_func(category, row.value_ref, row.default_value));
+                }
+                ossafe_ini_close();
+            },
+            copy_menu_data: function (arg0, arg1, arg2) {
+                var from_cat = arg0.get_save_category(arg1);
+                if (is_undefined(from_cat))
+                    return;
+                var to_cat = arg0.get_save_category(arg2);
+                if (is_undefined(to_cat))
+                    return;
+                ossafe_ini_open(arg0.get_save_name());
+                if (ini_section_exists(from_cat)) {
+                    for(var i = 0; i < array_length(arg0.form); i++) {
+                        var row = arg0.form[i];
+                        if (row.type != ""Slider"" && row.type != ""Toggle"")
+                            continue;
+
+                        var read_func = (row.value_type == ""String"") ? ini_read_string : ini_read_real;
+                        var to_copy = read_func(category, row.value_ref, row.default_value);
+                        var write_func = (row.value_type == ""String"") ? ini_write_string : ini_write_real;
+                        write_func(category, row.value_ref, to_copy);
+                    }
+                }
+                ossafe_ini_close();
+            },
+            delete_menu_data: function (arg0, arg1) {
+                var category = arg0.get_save_category(arg1);
+                if (is_undefined(category))
+                    return;
+                ossafe_ini_open(arg0.get_save_name());
+                if (ini_section_exists(category))
+                    ini_section_delete(category);
+                ossafe_ini_close();
+            },
+
+            create: function (arg0) {
+                // TODO check lang & val
+                // Menu - mandatory
+                try { var check = arg0; if (is_undefined(check)) throw ""menu data is undefined""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but menu data was not supplied.""; }
+                if (!is_struct(arg0)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but menu data is not a struct. "";
+                try { var check = arg0.title; if (is_array(check)) check = check[0]; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu without a title.""; }
+                try { var check = arg0.form[0]; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu without any form element.""; }
+                // Menu - optional
+                try { var check = arg0.left_margin; if (is_array(check)) check = check[0]; } catch (_e) { arg0.left_margin = 40; }
+                try { var check = arg0.left_value_pos; if (is_array(check)) check = check[0]; } catch (_e) { arg0.left_value_pos = 300; }
+                try { var check = arg0.open_func; if (!is_callable(check)) throw ""open_func should be callable.""; } catch (_e) { arg0.open_func = function () {}; }
+                try { var check = arg0.close_func; if (!is_callable(check)) throw ""close_func should be callable.""; } catch (_e) { arg0.close_func = function () {}; }
+                try { var check = arg0.save_type; } catch (_e) { arg0.save_type = ""None""; }
+                if (arg0.save_type != ""None"" && arg0.save_type != ""Single"" && arg0.save_type != ""PerSlot"" && arg0.save_type != ""PerFile"") throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but save_type is not in set: Slider, Toggle, Button, Header."";
+                try { var check = arg0.save_name; } catch (_e) { arg0.save_name = find_loc(arg0.title, ""en""); } // TODO convert this to snake_case
+                try { var check = arg0.apply_func; if (!is_callable(check)) throw ""apply_func should be callable.""; } catch (_e) { arg0.apply_func = function () {}; }
+                try { var check = arg0.apply_type; } catch (_e) { arg0.apply_type = ""OnChange""; }
+                if (arg0.apply_type != ""OnChange"" && arg0.apply_type != ""OnClose"") throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but apply_type is not in set: OnChange, OnClose."";
+                // Helper funcs
+                arg0.get_save_name = function () {
+                    return save_name + "".ini""; // TODO strip .ini
+                }
+                arg0.get_save_category = function (arg0) {
+                    switch (save_type) {
+                        case ""Single""
+                            return ""SETTINGS"";
+                        case ""PerSlot""
+                            return = ""SLOT"" + string(is_undefined(arg0) ? global.filechoice : arg0);
+                        case ""PerFile""
+                            return = ""CH"" + string(global.chapter) + ""_"" + string(is_undefined(arg0) ? global.filechoice : arg0);
+                        case ""None"":
+                        default:
+                            return undefined;
+                    }
+                }
+                for (var i = 0; i < array_length(arg0.form); i++) {
+                    var row = arg0.form[i];
+                    // Form - mandatory
+                    try { var check = row; if (is_undefined(row)) throw ""row data is undefined""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more form rows are undefined. ""; }
+                    if (!is_struct(row)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more form rows are not a struct. "";
+                    try { var check = row.type; if (!is_string(check)) throw ""row type should be a string""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row type is undefined/not a string.""; }
+                    if (row.type != ""Slider"" && row.type != ""Toggle"" && row.type != ""Button"" && row.type != ""Header"") throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row type is not in set: Slider, Toggle, Button, Header."";
+
+                    // Slider/Toggle/Button - mandatory | Header - optional
+                    if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Button"") {
+                        try { var check = row.title; if (is_array(check)) check = check[0]; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle/Button does not have a title.""; }
+                    } else {
+                        try { var check = row.title; if (is_array(check)) check = check[0]; } catch (_e) { row.title = """"; }
+                    }
+
+                    // Button - mandatory | Slider/Toggle/Header - optional
+                    if (row.type == ""Button"") {
+                        try { var check = row.trigger_func; if (!is_callable(check)) throw ""row trigger_func should be a callable""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but Button does not have a trigger_func.""; }
+                    } else {
+                        try { var check = row.trigger_func; if (!is_callable(check)) throw ""row trigger_func should be a callable""; } catch (_e) { row.trigger_func = function() {}; }
+                    }
+
+                    // Slider/Toggle - mandatory | Button/Header - optional
+                    if (row.type == ""Slider"" || row.type == ""Toggle"") {
+                        try { var check = row.value_ref; if (!is_string(check)) throw ""row value_ref should be a string""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a value_ref.""; }
+                        try { var check = row.value_type; if (!is_string(check)) throw ""row value_type should be a string""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a value_type.""; }
+                        if (row.value_type != ""String"" && row.value_type != ""Real"") throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row value_type is not in set: String, Real."";
+                        try { var check = row.value_range; if (is_array(check)) check = check[0]; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a value_range.""; }
+                    } else {
+                        try { var check = row.value_ref; if (!is_string(check)) throw ""row value_ref should be a string""; } catch (_e) { row.value_ref = """"; }
+                        try { var check = row.value_type; } catch (_e) { row.value_type = ""Real""; }
+                        try { var check = row.value_range; if (is_array(check)) check = check[0]; } catch (_e) { row.value_range = """"; }
+                    }
+
+                    // Form - optional
+                    try { var check = row.value_default; } catch (_e) { row.value_default = 0; }
+                    try { var check = row.disabled; if (!is_bool(check) && !is_callable(check)) throw ""row disabled should be a bool or a callable""; } catch (_e) { row.disabled = false; }
+                    try { var check = row.hidden; if (!is_bool(check) && !is_callable(check)) throw ""row hidden should be a bool or a callable""; } catch (_e) { row.hidden = false; }
+                    try { var check = row.change_func; if (!is_callable(check)) throw ""row change_func should be a callable""; } catch (_e) { row.change_func = function() {}; }
+                    try { var check = row.accept_on_cancel; if (!is_bool(check) && !is_callable(check)) throw ""row accept_on_cancel should be a bool or a callable""; } catch (_e) { row.accept_on_cancel = true; }
+                    try { var check = row.cancel_func; if (!is_callable(check)) throw ""row cancel_func should be a callable""; } catch (_e) { row.cancel_func = function() {}; }
+                    try { var check = row.accept_func; if (!is_callable(check)) throw ""row accept_func should be a callable""; } catch (_e) { row.accept_func = function() {}; }
+                }
+
+                array_insert(menus, array_length(menus), arg0);
+                return arg0;
+            }
+        };
     ");
 }
-
-string global_lang = @"(global.modmenu_langoverride != """" ? global.modmenu_langoverride : global.lang)";
-Func<string,string,string> ds_map_find_value_lang =
-    (id, key) => @$"(ds_map_exists({id}, {key} + ""_"" + {global_lang}) ? ds_map_find_value({id}, {key} + ""_"" + {global_lang}) :  ds_map_find_value({id}, {key} + ""_en""))";
-
 
 // Add menu draw code
 foreach (string darkcon in darkcons)
@@ -273,7 +450,7 @@ foreach (string darkcon in darkcons)
         {{
             draw_set_color(c_black);
 
-            if ({global_lang} == ""ja"")
+            if (global.lang == ""ja"")
             {{
                 draw_rectangle(xx + 60, yy + 85, xx + 580, yy + 412, false);
                 scr_darkbox(xx + 50, yy + 75, xx + 590, yy + 422);
@@ -286,24 +463,20 @@ foreach (string darkcon in darkcons)
 
             draw_set_color(c_white);
 
-            if (array_length(global.modmenu_data) > 0)
+            if (array_length(modmenu.menus) > 0)
             {{
                 // top row buttons
-                var isSubmenu = (global.modsubmenuno >= 0);
-                var isMenuLonely = array_length(global.modmenu_data) == 1;
+                var isSubmenu = (modmenu.row_no >= 0);
+                var isMenuLonely = array_length(modmenu.menus) == 1;
 
                 var allmodmenus = """";
 
-                for (var i = global.modmenuno; i < array_length(global.modmenu_data); i++)
+                for (var i = modmenu.menu_no; i < array_length(modmenu.menus); i++)
                 {{
-                    allmodmenus += string_upper({ds_map_find_value_lang("global.modmenu_data[i]", @"""title""")}) + (i + 1 < array_length(global.modmenu_data) ? ""        "" : """");
+                    allmodmenus += string_upper(modmenu.find_loc(modmenu.menus[i].title)) + (i + 1 < array_length(modmenu.menus) ? ""        "" : """");
                 }}
 
-                if (!surface_exists(surf_modtitles))
-                {{
-                    surf_modtitles = surface_create(410, 35);
-                }}
-                surface_set_target(surf_modtitles);
+                surface_set_target(modmenu.get_surf_titles());
                 draw_clear_alpha(c_black, 0);
 
                 if (isMenuLonely || !isSubmenu)
@@ -325,27 +498,27 @@ foreach (string darkcon in darkcons)
                     draw_set_color(c_gray);
                     draw_text(0, 0, allmodmenus);
                     draw_set_color(c_orange);
-                    draw_text(0, 0, string_upper({ds_map_find_value_lang("global.modmenu_data[global.modmenuno]", @"""title""")}));
+                    draw_text(0, 0, string_upper(modmenu.find_loc(modmenu.active_menu().title)));
                 }}
 
                 draw_sprite(spr_darkmodsfade, 0, 410 - 35, 0);
 
                 surface_reset_target();
-                draw_surface(surf_modtitles, xx + 110, yy + 110);
+                draw_surface(modmenu.get_surf_titles(), xx + 110, yy + 110);
 
                 if (!isSubmenu) {{
                     menusiner += 1;
-                    draw_sprite_part(spr_heart_harrows, menusiner / 20, 8 - 8 * (global.modmenuno > 0), 0, 16 + 8 * (global.modmenuno > 0) + 8 * (global.modmenuno < (array_length(global.modmenu_data) - 1)), 16, xx + 85 - 8 * (global.modmenuno > 0), yy + 120);
+                    draw_sprite_part(spr_heart_harrows, menusiner / 20, 8 - 8 * (modmenu.menu_no > 0), 0, 16 + 8 * (modmenu.menu_no > 0) + 8 * (modmenu.menu_no < (array_length(modmenu.menus) - 1)), 16, xx + 85 - 8 * (modmenu.menu_no > 0), yy + 120);
                 }}
 
                 // form buttons
-                var left_margin = {ds_map_find_value_lang("global.modmenu_data[global.modmenuno]", @"""left_margin""")};
+                var left_margin = modmenu.find_loc(modmenu.active_menu().left_margin);
                 if (is_undefined(left_margin))
                     left_margin = 40;
                 var _xPos = xx + 130 + left_margin;
                 var _heartXPos = xx + 105 + left_margin;
 
-                var left_value_pos = {ds_map_find_value_lang("global.modmenu_data[global.modmenuno]", @"""left_value_pos""")};
+                var left_value_pos = modmenu.find_loc(modmenu.active_menu().left_value_pos);
                 if (is_undefined(left_value_pos))
                     left_value_pos = 300;
                 var _selectXPos = xx + 130 + left_value_pos;
@@ -355,12 +528,12 @@ foreach (string darkcon in darkcons)
                 if (!isSubmenu)
                     draw_set_color(c_gray);
 
-                var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
+                var form_data = modmenu.active_menu().form;
 
                 var heartyprogress = 150;
                 if (array_length(form_data) >= 0)
                 {{
-                    var i = global.modsubmenuscroll;
+                    var i = modmenu.row_scroll;
                     var yprogress = 150;
                     while ((yprogress <= 150 + 6 * 35) && (i < array_length(form_data) + 1))
                     {{
@@ -368,37 +541,37 @@ foreach (string darkcon in darkcons)
                         {{
                             draw_set_color(c_white);
                             draw_text(_xPos, yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline({(darkcon.EndsWith("_ch1") ? ch1_back_text : back_text)})); // Back
-                            if (global.modsubmenuno == i)
+                            if (modmenu.row_no == i)
                                 heartyprogress = yprogress;
                             yprogress += 35;
                             break;
                         }}
 
                         var row_data = form_data[i];
-                        var row_hidden_data = ds_map_find_value(row_data, ""hidden"");
+                        var row_hidden_data = row_data.hidden;
                         var row_hidden = !is_undefined(row_hidden_data) ? row_hidden_data : false;
                         if (row_hidden) {{
                             i++;
                             continue;
                         }}
 
-                        var row_disabled_data = ds_map_find_value(row_data, ""disabled"");
+                        var row_disabled_data = row_data.disabled;
                         var row_disabled = !is_undefined(row_disabled_data) ? row_disabled_data : false;
                         if (row_disabled)
                             draw_set_color(c_gray);
-                        else if (global.modsubmenuselected && global.modsubmenuno == i)
+                        else if (modmenu.row_selected && modmenu.row_no == i)
                             draw_set_color(c_yellow);
                         else
                             draw_set_color(c_white);
 
-                        var value_name = ds_map_find_value(row_data, ""value_name"");
-                        var value = !is_undefined(value_name) ? variable_instance_get(global, value_name) : -1;
-                        var value_range = {ds_map_find_value_lang("row_data", @"""value_range""")};
+                        var value_ref = row_data.value_ref;
+                        var value = !is_undefined(value_ref) ? variable_instance_get(global, value_ref) : -1;
+                        var value_range = modmenu.find_loc(row_data.value_range);
                         var ranges = !is_undefined(value_range) ? string_split(value_range, "";"") : [];
                         var valueString = """";
-                        var isCategory = is_undefined(value_range) && is_undefined(ds_map_find_value(row_data, ""func_name""));
+                        var isCategory = is_undefined(value_range) && is_undefined(row_data.trigger_func);
 
-                        draw_text_transformed(_xPos - (isCategory * 28), yy + yprogress - (isCategory * 5){(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline({ds_map_find_value_lang("row_data", @"""title""")}), (isCategory ? 0.5 : 1), (isCategory ? 0.5 : 1), 0);
+                        draw_text_transformed(_xPos - (isCategory * 28), yy + yprogress - (isCategory * 5){(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(modmenu.find_loc(row_data.title)), (isCategory ? 0.5 : 1), (isCategory ? 0.5 : 1), 0);
                         if (isCategory){{
                             draw_line(_xPos - 28 - 3, yy + yprogress + 9, _xPos + 400, yy + yprogress + 9);
                         }}
@@ -444,7 +617,7 @@ foreach (string darkcon in darkcons)
 
                         draw_text(_selectXPos, yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(valueString));
 
-                        if (global.modsubmenuno == i){{
+                        if (modmenu.row_no == i){{
                             heartyprogress = yprogress;
                         }}
                         yprogress += (isCategory ? 12 : 35);
@@ -458,17 +631,17 @@ foreach (string darkcon in darkcons)
                     for (var i = 0; i < array_length(form_data) + 1; i++) {{
                         if (i >= array_length(form_data))
                         {{
-                            if (global.modsubmenuscroll == i){{
+                            if (modmenu.row_scroll == i){{
                                 scrollprogress = totalmenulength;
                             }}
                             totalmenulength += 35;
                             continue;
                         }}
 
-                        if (global.modsubmenuscroll == i){{
+                        if (modmenu.row_scroll == i){{
                             scrollprogress = totalmenulength;
                         }}
-                        var isCategory = is_undefined({ds_map_find_value_lang("form_data[i]", @"""value_range""")}) && is_undefined(ds_map_find_value(form_data[i], ""func_name""));
+                        var isCategory = is_undefined(modmenu.find_loc(form_data[i].value_range)) && is_undefined(form_data[i].trigger_func);
                         totalmenulength += (isCategory ? 12 : 35);
                     }}
 
@@ -482,7 +655,7 @@ foreach (string darkcon in darkcons)
                         }}
                         else
                         {{
-                            var isCategory = is_undefined({ds_map_find_value_lang("form_data[i]", @"""value_range""")}) && is_undefined(ds_map_find_value(form_data[i], ""func_name""));
+                            var isCategory = is_undefined(modmenu.find_loc(form_data[i].value_range)) && is_undefined(form_data[i].trigger_func);
                             newlastscreenlength += (isCategory ? 12 : 35);
                         }}
 
@@ -506,10 +679,10 @@ foreach (string darkcon in darkcons)
                         draw_set_color(c_white);
                         draw_rectangle(xx + 85, yy + modscrollbary + modscrollery, xx + 90, yy + modscrollbary + modscrollerlength + modscrollery, false);
 
-                        if (global.modsubmenuscroll > 0)
+                        if (modmenu.row_scroll > 0)
                             draw_sprite_ext(spr_morearrow, 0, xx + 81, (yy + modscrollbary) - 10 - (sin(cur_jewel / 12) * 3), 1, -1, 0, c_white, 1);
 
-                        if ((global.modsubmenuscroll + 7) < (array_length(form_data) + 1))
+                        if ((modmenu.row_scroll + 7) < (array_length(form_data) + 1))
                             draw_sprite_ext(spr_morearrow, 0, xx + 81, yy + 10 + modscrollbary + modscrollbarlength + (sin(cur_jewel / 12) * 3), 1, 1, 0, c_white, 1);
                     }}
                 }}
@@ -536,18 +709,24 @@ foreach (string darkcon in darkcons)
     importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "if (global.menucoord[0] == 4)", "if (global.menucoord[0] == 5)");
     importGroup.QueueAppend(darkcon + "_Step_0", @$"
         // override for deltaesp's spanish translation
-        if (global.modmenu_langoverride != ""es"" && global.lang == ""en"" && variable_instance_exists(global, ""esp_names""))
+        if (modmenu.lang_override != ""es"" && global.lang == ""en"" && variable_instance_exists(global, ""esp_names""))
         {{
-            global.modmenu_langoverride = ""es"";
+            modmenu.lang_override = ""es"";
+        }}
+        // override for the Korean translation
+        // TODO this doesn't work for chapter 2 as the dubbing feature hasn't been added
+        if (modmenu.lang_override != ""ko"" && global.lang == ""ja"" && variable_instance_exists(global, ""krdub""))
+        {{
+            modmenu.lang_override = ""ko"";
         }}
 
         function scrolldownforcontent()
         {{
-            var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
-            global.modsubmenuscroll = global.modsubmenuno + 1;
+            var form_data = modmenu.active_menu().form;
+            modmenu.row_scroll = modmenu.row_no + 1;
             var menuscreenlength = 7 * 35;
             var lastscreenlength = 0;
-            for (var i = global.modsubmenuno; i >= 0; i--) {{
+            for (var i = modmenu.row_no; i >= 0; i--) {{
                 var newlastscreenlength = lastscreenlength;
                 if (i >= array_length(form_data))
                 {{
@@ -555,7 +734,7 @@ foreach (string darkcon in darkcons)
                 }}
                 else
                 {{
-                    var isCategory = is_undefined({ds_map_find_value_lang("form_data[i]", @"""value_range""")}) && is_undefined(ds_map_find_value(form_data[i], ""func_name""));
+                    var isCategory = is_undefined(modmenu.find_loc(form_data[i].value_range)) && is_undefined(form_data[i].trigger_func);
                     newlastscreenlength += (isCategory ? 12 : 35);
                 }}
 
@@ -564,17 +743,17 @@ foreach (string darkcon in darkcons)
                     break;
                 }}
                 lastscreenlength = newlastscreenlength;
-                global.modsubmenuscroll--;
+                modmenu.row_scroll--;
             }}
         }}
 
         function isneedscrolldown()
         {{
-            var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
+            var form_data = modmenu.active_menu().form;
             var menuscreenlength = 7 * 35;
             var currentscreenlength = 0;
             var foundselected = false;
-            for (var i = global.modsubmenuscroll; i < array_length(form_data) + 1; i++) {{
+            for (var i = modmenu.row_scroll; i < array_length(form_data) + 1; i++) {{
                 var newcurrentscreenlength = currentscreenlength;
                 if (i >= array_length(form_data))
                 {{
@@ -582,7 +761,7 @@ foreach (string darkcon in darkcons)
                 }}
                 else
                 {{
-                    var isCategory = is_undefined({ds_map_find_value_lang("form_data[i]", @"""value_range""")}) && is_undefined(ds_map_find_value(form_data[i], ""func_name""));
+                    var isCategory = is_undefined(modmenu.find_loc(form_data[i].value_range)) && is_undefined(form_data[i].trigger_func);
                     newcurrentscreenlength += (isCategory ? 12 : 35);
                 }}
 
@@ -591,7 +770,7 @@ foreach (string darkcon in darkcons)
                     break;
                 }}
                 currentscreenlength = newcurrentscreenlength;
-                if (i == global.modsubmenuno)
+                if (i == modmenu.row_no)
                 {{
                     foundselected = true;
                 }}
@@ -601,29 +780,29 @@ foreach (string darkcon in darkcons)
 
         function modsubmenu_up(arg0)
         {{
-            global.modsubmenuno--;
+            modmenu.row_no--;
 
-            if (global.modsubmenuno < 0)
+            if (modmenu.row_no < 0)
             {{
-                global.modsubmenuno = arg0 - 1;
+                modmenu.row_no = arg0 - 1;
 
                 scrolldownforcontent();
             }}
             else
             {{
-                if (global.modsubmenuno < global.modsubmenuscroll)
-                    global.modsubmenuscroll = global.modsubmenuno;
+                if (modmenu.row_no < modmenu.row_scroll)
+                    modmenu.row_scroll = modmenu.row_no;
             }}
         }}
 
         function modsubmenu_down(arg0)
         {{
-            global.modsubmenuno++;
+            modmenu.row_no++;
 
-            if (global.modsubmenuno >= arg0)
+            if (modmenu.row_no >= arg0)
             {{
-                global.modsubmenuno = 0;
-                global.modsubmenuscroll = 0;
+                modmenu.row_no = 0;
+                modmenu.row_scroll = 0;
             }}
             else if (isneedscrolldown())
             {{
@@ -633,19 +812,19 @@ foreach (string darkcon in darkcons)
 
         function issubmenucategory(arg0, arg1)
         {{
-            if (global.modsubmenuno >= (arg0 - 1))
+            if (modmenu.row_no >= (arg0 - 1))
                 return false;
 
             return
-                is_undefined({ds_map_find_value_lang("arg1[global.modsubmenuno]", @"""value_range""")}) && is_undefined(ds_map_find_value(arg1[global.modsubmenuno], ""func_name""))
+                is_undefined(modmenu.find_loc(arg1[modmenu.row_no].value_range)) && is_undefined(arg1[modmenu.row_no].trigger_func)
         }}
 
         function ishidden(arg0, arg1)
         {{
-            if (global.modsubmenuno >= (arg0 - 1))
+            if (modmenu.row_no >= (arg0 - 1))
                 return false;
 
-            var row_hidden_data = ds_map_find_value(arg1[global.modsubmenuno], ""hidden"");
+            var row_hidden_data = arg1[modmenu.row_no].hidden;
             var row_hidden = !is_undefined(row_hidden_data) ? row_hidden_data : false;
             if  (row_hidden)
                 return true;
@@ -655,10 +834,10 @@ foreach (string darkcon in darkcons)
 
         function isdisabled(arg0, arg1)
         {{
-            if (global.modsubmenuno >= (arg0 - 1))
+            if (modmenu.row_no >= (arg0 - 1))
                 return false;
 
-            var row_disabled_data = ds_map_find_value(arg1[global.modsubmenuno], ""disabled"");
+            var row_disabled_data = arg1[modmenu.row_no].disabled;
             var row_disabled = !is_undefined(row_disabled_data) ? row_disabled_data : false;
             if  (row_disabled)
                 return true;
@@ -673,40 +852,40 @@ foreach (string darkcon in darkcons)
 
         if (global.menuno == 6)
         {{
-            var isSubmenu = (global.modsubmenuno >= 0);
+            var isSubmenu = (modmenu.row_no >= 0);
 
             if (!isSubmenu) {{
                 // enter submenu right away if there is only one submenu
-                if (array_length(global.modmenu_data) == 1)
-                    global.modsubmenuno = 0;
+                if (array_length(modmenu.menus) == 1)
+                    modmenu.row_no = 0;
 
-                if (array_length(global.modmenu_data) > 0)
+                if (array_length(modmenu.menus) > 0)
                 {{
                     if (left_p())
                     {{
                         movenoise = 1;
 
-                        global.modmenuno--;
-                        if (global.modmenuno < 0)
-                            global.modmenuno = array_length(global.modmenu_data) - 1;
+                        modmenu.menu_no--;
+                        if (modmenu.menu_no < 0)
+                            modmenu.menu_no = array_length(modmenu.menus) - 1;
                     }}
                     if (right_p())
                     {{
                         movenoise = 1;
 
-                        global.modmenuno++;
-                        if (global.modmenuno >= array_length(global.modmenu_data))
-                            global.modmenuno = 0;
+                        modmenu.menu_no++;
+                        if (modmenu.menu_no >= array_length(modmenu.menus))
+                            modmenu.menu_no = 0;
                     }}
                     if (button1_p() && onebuffer < 0 && twobuffer < 0)
                     {{
                         onebuffer = 2;
                         selectnoise = 1;
-                        global.modsubmenuno = 0;
+                        modmenu.row_no = 0;
 
                         // make sure category header or hidden/disabled row isn't selected
-                        var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
-                        var form_length = ds_map_exists(global.modmenu_data[global.modmenuno], ""form"") ? array_length(form_data) : 0;
+                        var form_data = modmenu.active_menu().form;
+                        var form_length = array_length(form_data);
                         // back button
                         form_length++;
                         var movecount = 0;
@@ -723,13 +902,13 @@ foreach (string darkcon in darkcons)
                     global.menuno = 0;
                     global.submenu = 0;
                 }}
-            }} else if (!global.modsubmenuselected) {{
-                var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
-                var form_length = ds_map_exists(global.modmenu_data[global.modmenuno], ""form"") ? array_length(form_data) : 0;
+            }} else if (!modmenu.row_selected) {{
+                var form_data = modmenu.active_menu().form;
+                var form_length = array_length(form_data);
 
                 if (form_length <= 0) {{
-                    global.modsubmenuno = -1;
-                    global.modsubmenuscroll = 0;
+                    modmenu.row_no = -1;
+                    modmenu.row_scroll = 0;
                 }}
 
                 // back button
@@ -773,17 +952,17 @@ foreach (string darkcon in darkcons)
                     onebuffer = 2;
                     selectnoise = 1;
 
-                    if (global.modsubmenuno >= array_length(form_data)) {{
-                        global.modsubmenuno = -1;
-                        global.modsubmenuscroll = 0;
+                    if (modmenu.row_no >= array_length(form_data)) {{
+                        modmenu.row_no = -1;
+                        modmenu.row_scroll = 0;
 
-                        if (array_length(global.modmenu_data) == 1)
+                        if (array_length(modmenu.menus) == 1)
                         {{
                             global.menuno = 0;
                             global.submenu = 0;
                         }}
 
-                        var on_close = ds_map_find_value(global.modmenu_data[global.modmenuno], ""on_close"");
+                        var on_close = modmenu.active_menu().close_func;
                         if (!is_undefined(on_close))
                         {{
                             var functocall = variable_instance_get(global, on_close);
@@ -792,13 +971,13 @@ foreach (string darkcon in darkcons)
                     }}
                     else
                     {{
-                        global.modsubmenuselected = true;
+                        modmenu.row_selected = true;
 
                         // if range is only labels just cycle through them
-                        var row_data = form_data[global.modsubmenuno];
-                        var value_range = {ds_map_find_value_lang("row_data", @"""value_range""")};
+                        var row_data = form_data[modmenu.row_no];
+                        var value_range = modmenu.find_loc(row_data.value_range);
                         var ranges = !is_undefined(value_range) ? string_split(value_range, "";"") : [];
-                        var force_scroll = ds_map_exists(row_data, ""force_scroll"") ? ds_map_find_value(row_data, ""force_scroll"") : false;
+                        var force_scroll = row_data.type == ""Slider"";
                         var doToggle = !force_scroll;
 
                         if (doToggle) {{
@@ -812,11 +991,11 @@ foreach (string darkcon in darkcons)
                         }}
 
                         if (doToggle || array_length(ranges) <= 0) {{
-                            global.modsubmenuselected = false;
+                            modmenu.row_selected = false;
                         }}
 
                         if (doToggle && array_length(ranges) > 0) {{
-                            var value = variable_instance_get(global, ds_map_find_value(row_data, ""value_name""));
+                            var value = variable_instance_get(global, row_data.value_ref);
 
                             var foundOption = false;
                             for (var i = 0; i < array_length(ranges); i++) {{
@@ -862,22 +1041,22 @@ foreach (string darkcon in darkcons)
                                 }}
                             }}
 
-                            variable_instance_set(global, ds_map_find_value(row_data, ""value_name""), value);
+                            variable_instance_set(global, row_data.value_ref, value);
 
-                            var on_change = ds_map_find_value(row_data, ""on_change"");
-                            if (!is_undefined(on_change))
+                            var change_func = row_data.change_func;
+                            if (!is_undefined(change_func))
                             {{
-                                var functocall = variable_instance_get(global, on_change);
+                                var functocall = variable_instance_get(global, change_func);
                                 functocall();
                             }}
                         }}
 
 
                         if (doToggle || array_length(ranges) <= 0) {{
-                            var func_name = ds_map_find_value(row_data, ""func_name"");
-                            if (!is_undefined(func_name))
+                            var trigger_func = row_data.trigger_func;
+                            if (!is_undefined(trigger_func))
                             {{
-                                var functocall = variable_instance_get(global, func_name);
+                                var functocall = variable_instance_get(global, trigger_func);
                                 functocall(true);
                             }}
                         }}
@@ -887,16 +1066,16 @@ foreach (string darkcon in darkcons)
                 {{
                     cancelnoise = 1;
                     twobuffer = 2;
-                    global.modsubmenuno = -1;
-                    global.modsubmenuscroll = 0;
+                    modmenu.row_no = -1;
+                    modmenu.row_scroll = 0;
 
-                    if (array_length(global.modmenu_data) == 1)
+                    if (array_length(modmenu.menus) == 1)
                     {{
                         global.menuno = 0;
                         global.submenu = 0;
                     }}
 
-                    var on_close = ds_map_find_value(global.modmenu_data[global.modmenuno], ""on_close"");
+                    var on_close = modmenu.active_menu().close_func;
                     if (!is_undefined(on_close))
                     {{
                         var functocall = variable_instance_get(global, on_close);
@@ -904,14 +1083,14 @@ foreach (string darkcon in darkcons)
                     }}
                 }}
             }} else {{
-                var form_data = ds_map_find_value(global.modmenu_data[global.modmenuno], ""form"");
-                var row_data = form_data[global.modsubmenuno];
-                var value_range = {ds_map_find_value_lang("row_data", @"""value_range""")};
+                var form_data = modmenu.active_menu().form;
+                var row_data = form_data[modmenu.row_no];
+                var value_range = modmenu.find_loc(row_data.value_range);
                 var ranges = !is_undefined(value_range) ? string_split(value_range, "";"") : [];
-                var value_name = ds_map_find_value(row_data, ""value_name"");
-                var value = !is_undefined(value_name) ? variable_instance_get(global, value_name) : -1;
+                var value_ref = row_data.value_ref;
+                var value = !is_undefined(value_ref) ? variable_instance_get(global, value_ref) : -1;
 
-                var scroll_todo = modscroller_step div 1;
+                var scroll_todo = modmenu.slider_step div 1;
 
                 if (right_h() && scroll_todo > 0)
                 {{
@@ -1025,16 +1204,16 @@ foreach (string darkcon in darkcons)
                         }}
                     }}
 
-                    variable_instance_set(global, ds_map_find_value(row_data, ""value_name""), value);
+                    variable_instance_set(global, row_data.value_ref, value);
 
-                    var on_change = ds_map_find_value(row_data, ""on_change"");
+                    var on_change = row_data.change_func;
                     if (!is_undefined(on_change))
                     {{
                         var functocall = variable_instance_get(global, on_change);
                         functocall();
                     }}
 
-                    modscroller_step = modscroller_step % 1;
+                    modmenu.slider_step = modmenu.slider_step % 1;
                 }}
 
                 if (left_h() && scroll_todo > 0)
@@ -1116,7 +1295,7 @@ foreach (string darkcon in darkcons)
                         else
                             value_adjust = -0.1;
 
-                        var scroll_todo = modscroller_step div 1;
+                        var scroll_todo = modmenu.slider_step div 1;
                         value += value_adjust * scroll_todo;
 
                         for (var i = array_length(ranges) - 1; i >= 0; i--) {{
@@ -1150,27 +1329,27 @@ foreach (string darkcon in darkcons)
                         }}
                     }}
 
-                    variable_instance_set(global, ds_map_find_value(row_data, ""value_name""), value);
+                    variable_instance_set(global, row_data.value_ref, value);
 
-                    var on_change = ds_map_find_value(row_data, ""on_change"");
+                    var on_change = row_data.change_func;
                     if (!is_undefined(on_change))
                     {{
                         var functocall = variable_instance_get(global, on_change);
                         functocall();
                     }}
 
-                    modscroller_step = modscroller_step % 1;
+                    modmenu.slider_step = modmenu.slider_step % 1;
                 }}
 
                 if (right_h() || left_h())
                 {{
-                    modscroller_step += modscroller_speed;
-                    modscroller_speed = clamp(modscroller_speed + modscroller_accel, modscroller_speed_min, modscroller_speed_max);
+                    modmenu.slider_step += modmenu.slider_speed;
+                    modmenu.slider_speed = clamp(modmenu.slider_speed + modmenu.slider_accel, modmenu.slider_speed_min, modmenu.slider_speed_max);
                 }}
                 else
                 {{
-                    modscroller_step = 1; // reset to 1 as first interaction should be instantaneous
-                    modscroller_speed = modscroller_speed_min;
+                    modmenu.slider_step = 1; // reset to 1 as first interaction should be instantaneous
+                    modmenu.slider_speed = modmenu.slider_speed_min;
                 }}
 
                 se_select = 0;
@@ -1187,17 +1366,17 @@ foreach (string darkcon in darkcons)
                     selectnoise = 1;
                     onebuffer = 2;
                     twobuffer = 2;
-                    global.modsubmenuselected = false;
+                    modmenu.row_selected = false;
 
-                    var func_name = ds_map_find_value(row_data, ""func_name"");
-                    if (!is_undefined(func_name))
+                    var trigger_func = row_data.trigger_func;
+                    if (!is_undefined(trigger_func))
                     {{
-                        var functocall = variable_instance_get(global, func_name);
+                        var functocall = variable_instance_get(global, trigger_func);
                         functocall(se_select);
                     }}
 
-                    modscroller_step = 1; // reset to 1 as first interaction should be instantaneous
-                    modscroller_speed = modscroller_speed_min;
+                    modmenu.slider_step = 1; // reset to 1 as first interaction should be instantaneous
+                    modmenu.slider_speed = modmenu.slider_speed_min;
                 }}
             }}
         }}

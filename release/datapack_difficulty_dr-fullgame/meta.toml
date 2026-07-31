@@ -2,13 +2,14 @@ deltaruneTargetVersion = "1.05"
 
 [metadata]
 name = "Custom Difficulty"
-version = "1.8.1"
+version = "1.8.5"
 description = "Difficulty options for DELTARUNE. Make the game Easy, Hard, or Nightmare. No-hit options included."
-author = ["Emmahaha"]
-url = "https://gamebanana.com/mods/613308"
-game = "toby.deltarune"
+author = [ "Emmahaha" ]
 packageID = "com.emmahaha.customdiff"
+game = "toby.deltarune"
+url = "https://gamebanana.com/mods/613308"
 mergeSupport = true
+tags = [ "customization", "gameplay" ]
 
 [color]
 r = 255
@@ -21,16 +22,16 @@ checksum = "82c2bb61b8d78cd287120f6301588fecba34ec5a890bac711b7a8774c760ec70"
 
 [[neededFiles]]
 file = "./chapter2_windows/data.win"
-checksum = "116dcb1dda3517634571417fbe1db862d6381008526a4bf8ebde8ca88b7dc5f1"
+checksum = "047c5ab003e3e017a709c02757e119c81e0327760169512110fd276b19241e68"
 
 [[neededFiles]]
 file = "./chapter3_windows/data.win"
-checksum = "f24458adcd1faf8d8ba432addea03fc265adf831e7fd92c130d92a87bb858dc5"
+checksum = "c1a0925343694ec9b9adcbf2f916a720b02fd1b999286cfe8fe6a52f3320f714"
 
 [[neededFiles]]
 file = "./chapter4_windows/data.win"
-checksum = "8d2396a6a18cfb6c75fa6a1f59ed539ae0d528294d936d025b9231197cb8d798"
+checksum = "ed64789586238b52375e994e1c1cf13694dd2d0dab57d13e639b9c892e37d8f2"
 
 [[neededFiles]]
 file = "./chapter5_windows/data.win"
-checksum = "7e3e9c4a0ef84f0129b6a1c9e9f81091e83abbafbf66eb09893c2082cf5618de"
+checksum = "370dfd141d2955d5a1960122919b16e4092b52ffbb85fda541bc4680c6b3b85c"
