@@ -736,8 +736,8 @@ foreach (string scrName in saveLikes)
 
 // Delete config if file is deleted
 {
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Step_0", @"ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
-        ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Step_0", @"TIME_STRING[MENUCOORD[5]] = ""--:--"";", @"
+        TIME_STRING[MENUCOORD[5]] = ""--:--"";
 
         ossafe_ini_open(""difficulty.ini"");
         if (ini_section_exists(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[5])))
@@ -747,8 +747,8 @@ foreach (string scrName in saveLikes)
 }
 if (ch_no == 0)
 {
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Step_0", @"ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
-        ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Step_0", @"TIME_STRING[MENUCOORD[5]] = ""--:--"";", @"
+        TIME_STRING[MENUCOORD[5]] = ""--:--"";
 
         ossafe_ini_open(""difficulty.ini"");
         if (ini_section_exists(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[5])))
