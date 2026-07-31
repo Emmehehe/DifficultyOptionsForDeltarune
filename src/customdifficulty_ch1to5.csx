@@ -1552,11 +1552,11 @@ if (ch_no == 3) {
     }
     if (ch_no == 2) {
         string[] ch2basicenemies = {"obj_ponman_enemy", "obj_rudinnranger", "obj_omawaroid_enemy", "obj_poppup_enemy", "obj_tasque_enemy", "obj_werewire_enemy", "obj_maus_enemy", "obj_virovirokun_enemy",
-            "obj_swatchling_enemy", "obj_werewerewire_enemy"};
+            "obj_swatchling_enemy", "obj_werewerewire_enemy"/* TODO , "obj_mauswheel_enemy"*/};
         basicenemies = basicenemies.Concat(ch2basicenemies).ToArray();
     }
     if (ch_no == 3) {
-        string[] ch3basicenemies = {"obj_ponman_enemy", "obj_rabbick_enemy", "obj_rudinnranger", "obj_shadowman_enemy", "obj_zapper_enemy", "obj_pippins_enemy"};
+        string[] ch3basicenemies = {"obj_ponman_enemy", "obj_rabbick_enemy", "obj_rudinnranger", "obj_shadowman_enemy", "obj_zapper_enemy", "obj_pippins_enemy", "obj_ribbick_enemy"};
         basicenemies = basicenemies.Concat(ch3basicenemies).ToArray();
     }
     if (ch_no == 4) {
@@ -1571,16 +1571,20 @@ if (ch_no == 3) {
     }
     string checkbasicenemyblock = $"(global.monsterinstancetype[i] == {string.Join(" || global.monsterinstancetype[i] == ", basicenemies)})";
 
-    string[] scriptstodo = {"gml_Object_obj_battlecontroller_Create_0"};
+    (string ScrName, string Replace) [] scriptstodo = {("gml_Object_obj_battlecontroller_Create_0", "global.flag[53] = 0;")};
     if (ch_no == 0) {
-        string[] demoscriptstodo = {"gml_Object_obj_battlecontroller_ch1_Create_0"};
+        (string ScrName, string Replace)[] demoscriptstodo = {("gml_Object_obj_battlecontroller_ch1_Create_0", "global.flag[53] = 0;")};
         scriptstodo = scriptstodo.Concat(demoscriptstodo).ToArray();
     }
+    if (ch_no >= 2 || ch_no == 0) {
+        (string ScrName, string Replace)[] ch2scriptstodo = {("gml_GlobalScript_scr_wincombat", "global.flag[60] = 0;")};
+        scriptstodo = scriptstodo.Concat(ch2scriptstodo).ToArray();
+    }
 
-    foreach (string scrName in scriptstodo)
+    foreach ((string ScrName, string Replace) script in scriptstodo)
     {
-        importGroup.QueueFindReplace(scrName, "global.flag[53] = 0;", @$"
-            global.flag[53] = 0;
+        importGroup.QueueFindReplace(script.ScrName, script.Replace, @$"
+            {script.Replace}
 
             var extratodo = global.diff_extraenemies;
             var regularenemies = (global.monstertype[0] > 0) + (global.monstertype[1] > 0) + (global.monstertype[2] > 0);
@@ -1620,7 +1624,7 @@ if (ch_no == 3) {
                 }}
             }}
         ");
-        importGroup.QueueAppend(scrName, @"
+        importGroup.QueueAppend(script.ScrName, @"
 
             enum e__VW
             {
@@ -1648,6 +1652,12 @@ if (ch_no == 3) {
 if (ch_no == 2 || ch_no == 0) {
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "for (var i = 0; i < ((monstercount == 1) ? 2 : 3); i++)", "for (var i = 0; i < (monstercount + 1); i++)");
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "d.fleetsize = sameattack;", "d.fleetsize = min(sameattack, 2);");
+    // TODO mauswheel
+    // importGroup.QueueFindReplace("gml_Object_obj_mauswheel_enemy_Other_19", "dc.target = mytarget;", "dc.target = mytarget; dc.creator = myself;");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "instance_exists(obj_mauswheel_enemy) && obj_mauswheel_enemy.cursor_count > 1",
+    //     "instance_exists(global.monsterinstance[creator]) && global.monsterinstance[creator].cursor_count > 1");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "d = instance_create(obj_mauswheel_enemy.x + 62, obj_mauswheel_enemy.y + 70, obj_maushwheel_lightning_orb);",
+    //     "d = instance_create(global.monsterinstance[creator].x + 62, global.monsterinstance[creator].y + 70, obj_maushwheel_lightning_orb);");
 }
 
 // Apply TP Gain
@@ -1910,7 +1920,14 @@ if (ch_no == 0) {
 }
 
 // Finish edit
-importGroup.Import();
+try {
+    importGroup.Import();
+} catch (Exception e) {
+    ScriptMessage($"Error occured during script execution: {e.Message}");
+    ScriptMessage($"Attempting script run in no-throw mode, can't guaruntee the script will be completely applied.");
+    importGroup.ThrowOnNoOpFindReplace = false;
+    importGroup.Import();
+}
 
 // No throw code edits
 importGroup = new(Data){
