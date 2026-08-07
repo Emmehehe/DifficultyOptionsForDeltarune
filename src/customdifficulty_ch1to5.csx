@@ -1668,28 +1668,40 @@ if (ch_no == 2 || ch_no == 0) {
 }
 if (ch_no == 4) {
     // balthizard
-    // TODO needs regex to work, cba atm
-    // importGroup.QueueTrimmedLinesFindReplace("obj_balthizard_enemy", @"
-    //     if (scr_monsterpop() == instance_number(object_index))
-    //     {
-    //         with (obj_balthizard_enemy)", @"
-    //     if (scr_monsterpop() == instance_number(object_index))
-    //     {
-    //         with (instance_find(obj_balthizard_enemy, 0))");
-    // importGroup.QueueTrimmedLinesFindReplace("obj_balthizard_enemy", @"
-    //     if (lightup)
-    //     {
-    //         with (obj_balthizard_enemy)", @"
-    //     if (lightup)
-    //     {
-    //         with (instance_find(obj_balthizard_enemy, 0))");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "censer.ratio = ratio;", "censer.ratio = (instance_number(obj_balthizard_enemy) == 3) ? 0.8 : ratio;");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "censer.damage = 65;", "censer.damage = 65; censer.timer = (instance_number(obj_balthizard_enemy) == 3 && creator == 2) * 10 * pi;");
-    // TODO light up only works properly (changes bullet pattern) if its the bottom most balthizard, why??
-        // ok its because the one that is lit up is the one that swings, but these changes force top most enemy to cloud manage
-        // solution is to have lit up guys always swing and add difficulty
-            // but if all are lit up then top most must cloud manage
-                // eugh
+    importGroup.QueueFindReplace("gml_Object_obj_balthizard_enemy_Step_0", "else if (attackselected == 0)", @"
+        else if (scr_monsterpop() == 3 && attackselected == 0) {
+            // Better decision making for balthizard that can handle more than 2 enemies on screen
+            // each balthizard will assign itself to be the cloud maker, if no others have done so yet (so first in order becomes cloud manager)
+            // however, lit up balthizards take priority for the swing attack, so skip making these ones the cloud maker
+            // unless, all balthizards are lit up, then go back to making the first one be the cloud manager
+            var _anyCloudManagers = false;
+            var _LitUpLizards = 0;
+            with (obj_balthizard_enemy) {
+                if (attackselected == 1 && myattackchoice == 1)
+                    _anyCloudManagers = true;
+                if (lightup)
+                    _LitUpLizards++;
+            }
+
+            myattackchoice = 0;
+            if ((!lightup || _LitUpLizards == instance_number(obj_balthizard_enemy)) && !_anyCloudManagers && !sleepymizzle) {
+                myattackchoice = 1;
+            }
+            attackselected = 1;
+        } else if (scr_monsterpop() == 2 && attackselected == 0)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "var censer = instance_create(creatorid.x + 60, creatorid.y + 50, obj_incense_censer);", @"
+        var _censered = instance_exists(obj_incense_censer);
+        var censer = instance_create(creatorid.x + 60, creatorid.y + 50, obj_incense_censer);
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "censer.ratio = ratio;", @"
+        var _swingcount = 0;
+        with (obj_balthizard_enemy) {
+            if (myattackchoice == 0)
+                _swingcount++;
+        }
+        censer.ratio = (_swingcount > 1) ? 0.8 : ratio;
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "censer.damage = 65;", "censer.damage = 65; censer.timer += _censered * 10 * pi;");
     // wicabel
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "var _bat = scr_fire_bullet(_xx, _yy, 255, 0, 0, 525);", @"
         var _selfoverlap = 0;
