@@ -736,8 +736,8 @@ foreach (string scrName in saveLikes)
 
 // Delete config if file is deleted
 {
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Step_0", @"ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
-        ossafe_file_delete(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Step_0", @"TIME_STRING[MENUCOORD[5]] = ""--:--"";", @"
+        TIME_STRING[MENUCOORD[5]] = ""--:--"";
 
         ossafe_ini_open(""difficulty.ini"");
         if (ini_section_exists(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[5])))
@@ -747,8 +747,8 @@ foreach (string scrName in saveLikes)
 }
 if (ch_no == 0)
 {
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Step_0", @"ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");", @"
-        ossafe_file_delete_ch1(""keyconfig_"" + string(MENUCOORD[5]) + "".ini"");
+    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Step_0", @"TIME_STRING[MENUCOORD[5]] = ""--:--"";", @"
+        TIME_STRING[MENUCOORD[5]] = ""--:--"";
 
         ossafe_ini_open(""difficulty.ini"");
         if (ini_section_exists(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[5])))
@@ -1149,6 +1149,7 @@ if (ch_no == 3)
     ");
 }
 if (ch_no == 4) {
+    // hammer of justice
     string[] sandbagLimits = {"tdamage", "hpdiff"};
     foreach (string limit in sandbagLimits)
     {
@@ -1156,6 +1157,11 @@ if (ch_no == 4) {
             $"if (global.chapter == 4 && i_ex(obj_hammer_of_justice_enemy) && {limit} < (5 * global.diff_damagemulti))");
         importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage", $"{limit} = 5;", $"{limit} = 5 * global.diff_damagemulti;");
     }
+    // sound of justice
+    importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage", "if (global.hp[1] > 0 && global.hp[2] < (global.maxhp[2] * 0.4))", "if (global.hp[1] > 0 && global.hp[2] < (global.maxhp[2] * 0.4 * global.diff_damagemulti))");
+    // break in case of emergency - above fix should be sufficient but below will make absolutely sure its fixed (but I like to keep changes as minimal as possible)
+    // importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_spearshot", "if (i_ex(obj_sound_of_justice_enemy) && obj_sound_of_justice_enemy.susiedown == false)",
+    //     "if (i_ex(obj_sound_of_justice_enemy) && (obj_sound_of_justice_enemy.susiedown == false || obj_sound_of_justice_enemy.phase == 2))");
 }
 // Apply damage multiplier (Damage Over Time)
 if (ch_no >= 2 || ch_no == 0)
@@ -1565,11 +1571,11 @@ if (ch_no == 3) {
     }
     if (ch_no == 2) {
         string[] ch2basicenemies = {"obj_ponman_enemy", "obj_rudinnranger", "obj_omawaroid_enemy", "obj_poppup_enemy", "obj_tasque_enemy", "obj_werewire_enemy", "obj_maus_enemy", "obj_virovirokun_enemy",
-            "obj_swatchling_enemy", "obj_werewerewire_enemy"};
+            "obj_swatchling_enemy", "obj_werewerewire_enemy"/* TODO , "obj_mauswheel_enemy"*/};
         basicenemies = basicenemies.Concat(ch2basicenemies).ToArray();
     }
     if (ch_no == 3) {
-        string[] ch3basicenemies = {"obj_ponman_enemy", "obj_rabbick_enemy", "obj_rudinnranger", "obj_shadowman_enemy", "obj_zapper_enemy", "obj_pippins_enemy"};
+        string[] ch3basicenemies = {"obj_ponman_enemy", "obj_rabbick_enemy", "obj_rudinnranger", "obj_shadowman_enemy", "obj_zapper_enemy", "obj_pippins_enemy", "obj_ribbick_enemy"};
         basicenemies = basicenemies.Concat(ch3basicenemies).ToArray();
     }
     if (ch_no == 4) {
@@ -1578,24 +1584,28 @@ if (ch_no == 3) {
         basicenemies = basicenemies.Concat(ch4basicenemies).ToArray();
     }
     if (ch_no == 5) {
-        string[] ch5basicenemies = {"obj_ponman_enemy", "obj_rudinnranger", "obj_floradinn_enemy", "obj_leafling_enemy", "obj_scarecrow_enemy", "obj_kawkaw_enemy", "obj_shinobeetle_enemy", "obj_sheary_enemy",
-            "obj_netskie_enemy", "obj_terracota_enemy"}; // TODO bit worried netskie and terra might bug out or crash, also would they be considered mini-bosses?
+        string[] ch5basicenemies = {"obj_ponman_enemy", "obj_rudinnranger", "obj_floradinn_enemy", "obj_leafling_enemy", "obj_scarecrow_enemy", "obj_kawkaw_enemy", "obj_shinobeetle_enemy", "obj_sheary_enemy"};
         basicenemies = basicenemies.Concat(ch5basicenemies).ToArray();
     }
     string checkbasicenemyblock = $"(global.monsterinstancetype[i] == {string.Join(" || global.monsterinstancetype[i] == ", basicenemies)})";
 
-    string[] scriptstodo = {"gml_Object_obj_battlecontroller_Create_0"};
+    (string ScrName, string Replace) [] scriptstodo = {("gml_Object_obj_battlecontroller_Create_0", "global.flag[53] = 0;")};
     if (ch_no == 0) {
-        string[] demoscriptstodo = {"gml_Object_obj_battlecontroller_ch1_Create_0"};
+        (string ScrName, string Replace)[] demoscriptstodo = {("gml_Object_obj_battlecontroller_ch1_Create_0", "global.flag[53] = 0;")};
         scriptstodo = scriptstodo.Concat(demoscriptstodo).ToArray();
     }
+    if (ch_no >= 2 || ch_no == 0) {
+        (string ScrName, string Replace)[] ch2scriptstodo = {("gml_GlobalScript_scr_wincombat", "global.flag[60] = 0;")};
+        scriptstodo = scriptstodo.Concat(ch2scriptstodo).ToArray();
+    }
 
-    foreach (string scrName in scriptstodo)
+    foreach ((string ScrName, string Replace) script in scriptstodo)
     {
-        importGroup.QueueFindReplace(scrName, "global.flag[53] = 0;", @$"
-            global.flag[53] = 0;
+        importGroup.QueueFindReplace(script.ScrName, script.Replace, @$"
+            {script.Replace}
 
-            var extratodo = global.diff_extraenemies;
+            // fix both flowery sparing floradinn(s) cutscenes
+            var extratodo = {(ch_no == 5 ? "(global.encounterno == 226 || global.encounterno == 230) ? 0 : global.diff_extraenemies" : "global.diff_extraenemies")};
             var regularenemies = (global.monstertype[0] > 0) + (global.monstertype[1] > 0) + (global.monstertype[2] > 0);
 
             if (extratodo > 0 && regularenemies < 3)
@@ -1613,11 +1623,11 @@ if (ch_no == 3) {
 
                 if (array_length(basicenemies) > 0)
                 {{
-                    global.monstermakex[0] = xx + 480;
+                    global.monstermakex[0] = xx + {(ch_no == 5 ? "((global.encounterno == 232) ? 417 : 480)" : "480")};
                     global.monstermakey[0] = yy + ((totalenemies == 1) ? 140 : ((totalenemies == 2) ? 110 : 20));
-                    global.monstermakex[1] = xx + 500;
+                    global.monstermakex[1] = xx + {(ch_no == 5 ? "((global.encounterno == 232) ? 437 : 500)" : "500")};
                     global.monstermakey[1] = yy + ((totalenemies == 2) ? 200 : 120);
-                    global.monstermakex[2] = xx + 460;
+                    global.monstermakex[2] = xx + {(ch_no == 5 ? "((global.encounterno == 232) ? 397 : 460)" : "460")};
                     global.monstermakey[2] = yy + 220;
 
                     for (i = 0; i < 3; i += 1)
@@ -1633,7 +1643,7 @@ if (ch_no == 3) {
                 }}
             }}
         ");
-        importGroup.QueueAppend(scrName, @"
+        importGroup.QueueAppend(script.ScrName, @"
 
             enum e__VW
             {
@@ -1659,8 +1669,193 @@ if (ch_no == 3) {
     }
 }
 if (ch_no == 2 || ch_no == 0) {
+    // virovirokun
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "for (var i = 0; i < ((monstercount == 1) ? 2 : 3); i++)", "for (var i = 0; i < (monstercount + 1); i++)");
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "d.fleetsize = sameattack;", "d.fleetsize = min(sameattack, 2);");
+    // TODO mauswheel
+    // importGroup.QueueFindReplace("gml_Object_obj_mauswheel_enemy_Other_19", "dc.target = mytarget;", "dc.target = mytarget; dc.creator = myself;");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "instance_exists(obj_mauswheel_enemy) && obj_mauswheel_enemy.cursor_count > 1",
+    //     "instance_exists(global.monsterinstance[creator]) && global.monsterinstance[creator].cursor_count > 1");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "d = instance_create(obj_mauswheel_enemy.x + 62, obj_mauswheel_enemy.y + 70, obj_maushwheel_lightning_orb);",
+    //     "d = instance_create(global.monsterinstance[creator].x + 62, global.monsterinstance[creator].y + 70, obj_maushwheel_lightning_orb);");
+}
+if (ch_no == 4) {
+    // balthizard
+    importGroup.QueueFindReplace("gml_Object_obj_balthizard_enemy_Step_0", "else if (attackselected == 0)", @"
+        else if (scr_monsterpop() == 3 && attackselected == 0) {
+            // Better decision making for balthizard that can handle more than 2 enemies on screen
+            // each balthizard will assign itself to be the cloud maker, if no others have done so yet (so first in order becomes cloud manager)
+            // however, lit up balthizards take priority for the swing attack, so skip making these ones the cloud maker
+            // unless, all balthizards are lit up, then go back to making the first one be the cloud manager
+            var _anyCloudManagers = false;
+            var _LitUpLizards = 0;
+            with (obj_balthizard_enemy) {
+                if (attackselected == 1 && myattackchoice == 1)
+                    _anyCloudManagers = true;
+                if (lightup)
+                    _LitUpLizards++;
+            }
+
+            myattackchoice = 0;
+            if ((!lightup || _LitUpLizards == instance_number(obj_balthizard_enemy)) && !_anyCloudManagers && !sleepymizzle) {
+                myattackchoice = 1;
+            }
+            attackselected = 1;
+        } else if (scr_monsterpop() == 2 && attackselected == 0)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "var censer = instance_create(creatorid.x + 60, creatorid.y + 50, obj_incense_censer);", @"
+        var _censered = instance_exists(obj_incense_censer);
+        var censer = instance_create(creatorid.x + 60, creatorid.y + 50, obj_incense_censer);
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "censer.ratio = ratio;", @"
+        var _swingcount = 0;
+        with (obj_balthizard_enemy) {
+            if (myattackchoice == 0)
+                _swingcount++;
+        }
+        censer.ratio = (_swingcount > 1) ? 0.8 : ratio;
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "censer.damage = 65;", @"
+        censer.damage = 65;
+        censer.timer += _censered * 10 * pi;
+    ");
+    // wicabel
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "var _bat = scr_fire_bullet(_xx, _yy, obj_cornerpendulumbullet, 0, 0, spr_pendulum_ball);", @"
+        var _selfoverlap = 0;
+        with (obj_cornerpendulumbullet)
+        {
+            if ((sign(x - scr_get_box(4)) == -_side) && (sign(y - scr_get_box(5)) == -_vmirror))
+                _selfoverlap++;
+        }
+
+        var _bat = scr_fire_bullet(_xx, _yy, obj_cornerpendulumbullet, 0, 0, spr_pendulum_ball);
+        _bat.overlap = _selfoverlap;
+    ");
+    importGroup.QueueAppend("gml_Object_obj_cornerpendulumbullet_Create_0", "overlap = 0;");
+    importGroup.QueueFindReplace("gml_Object_obj_cornerpendulumbullet_Step_0", "var _box = instance_create_depth(x, y, depth, obj_growtanglebellshake);", @"
+        var _box = instance_create_depth(x, y, depth, obj_growtanglebellshake);
+        _box.overlap = other.overlap;
+    ");
+    importGroup.QueueAppend("gml_Object_obj_growtanglebellshake_Create_0", "overlap = 0;");
+    importGroup.QueueFindReplace("gml_Object_obj_growtanglebellshake_Step_0", "if (scr_monsterpop() <= 2)", "if (scr_monsterpop() <= 2 || overlap >= 1)");
+    importGroup.QueueFindReplace("gml_Object_obj_growtanglebellshake_Step_0", "if (scr_monsterpop() <= 1)", "if (scr_monsterpop() <= 1 || overlap >= 2)");
+    // importGroup.QueueFindReplace("gml_Object_obj_growtanglebellshake_Create_0", "bullet_speed = 2.8 - (clamp(scr_monsterpop() - 1, 0, 2) * 0.6);",
+    //     @"bullet_speed = 2.8 - (clamp(scr_monsterpop() - 1, 0, (scr_monsterattacknamecount(""Pendulumattack"") == 3 ? 1.5 : 2)) * 0.6);");
+    importGroup.QueueFindReplace("gml_Object_obj_growtanglebellshake_Step_0", "bullet_speed -= 0.8;", @"bullet_speed -= scr_monsterattacknamecount(""Pendulumattack"") == 3 ? 0.45 : 0.8;");
+    // titan spawn
+    importGroup.QueueFindReplace("gml_Object_obj_titan_spawn_enemy_Step_0", "global.flag[1597] += 2;", "global.flag[1597] += min(3, 2 + global.diff_extraenemies);");
+    importGroup.QueueFindReplace("gml_Object_obj_purify_event_Draw_0", "cameray() + 84", "cameray() + (global.diff_extraenemies > 0 ? 66 : 84)");
+    // side note: I think they meant to put 244 rather than 224 as that's where the encountersetup script puts it
+    importGroup.QueueFindReplace("gml_Object_obj_purify_event_Draw_0", "cameray() + 224", "cameray() + (global.diff_extraenemies > 0 ? 166 : 224)");
+    importGroup.QueueFindReplace("gml_Object_obj_purify_event_Draw_0", "if (global.monsterhp[0] > 0)", @"
+        if (global.diff_extraenemies > 0 && global.monsterhp[2] > 0)
+        {
+            _recruitanim = instance_create(camerax() + 500, cameray() + 266, obj_recruitanim);
+            _recruitanim.image_index = 15;
+        }
+
+        if (global.monsterhp[0] > 0)
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_titan_spawn_enemy_Create_0", "balloonorder = 0;", @"
+        if (global.diff_extraenemies > 0) {
+            with (obj_battlecontroller)
+                cantspare[2] = 1;
+        }
+
+        balloonorder = 0;
+    ");
+}
+if (ch_no == 5) {
+    // Seth + Shinobeetle
+    importGroup.QueueAppend("gml_Object_obj_shinobeetle_enemy_Create_0", "rtimer = 0;"); // fix crash
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", @"global\.monsterattackname\[myself\] = ""SupportFire"";\s*dc = scr_bulletspawner\(x, y, obj_dbulletcontroller\);\s*dc\.type = 313;", @"
+        // make sure there's only one seth support attack
+        var _alreadysethed = false;
+        with (obj_dbulletcontroller) {
+            if (type == 313)
+                _alreadysethed = true;
+        }
+        if (!_alreadysethed) {
+            global.monsterattackname[myself] = ""SupportFire"";
+            dc = scr_bulletspawner(x, y, obj_dbulletcontroller);
+            dc.type = 313;
+        }
+    ");
+    // Make sure other beetles don't talk whilst seth is feeding them milk
+    importGroup.QueueFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0",
+        @"if (scr_isphase(""enemytalk"") && talked == 0 && global.monsterhp[myself] < global.monstermaxhp[myself] && i_ex(obj_seth_shinobeetle_controller) && obj_seth_shinobeetle_controller.scon == 0)",@"
+        var isanyhurt = function() {
+            var _anyhurt = false;
+            with(obj_shinobeetle_enemy) {
+                if (global.monsterhp[myself] < global.monstermaxhp[myself])
+                    _anyhurt = true;
+            }
+            return _anyhurt;
+        }
+        if (scr_isphase(""enemytalk"") && talked == 0 && isanyhurt() && i_ex(obj_seth_shinobeetle_controller) && obj_seth_shinobeetle_controller.scon == 0)
+    ");
+    // prevent beetle talk bubbles conflicting with seth's talk bubbles and then softlocking/cancelling attacks
+    importGroup.QueueFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", "if (i_ex(obj_seth_shinobeetle_controller) && puppydogeyes == 1)",@"
+        var isanypde = function() {
+            var _anypde = false;
+            with(obj_shinobeetle_enemy) {
+                if (puppydogeyes == 1) {
+                    _anypde = true;
+                }
+            }
+            return _anypde;
+        }
+        var isanybadatmercy = function() {
+            var _anymaxmercy = false;
+            var _maxmercycount = 0;
+            with(obj_shinobeetle_enemy) {
+                if (global.mercymod[myself] >= 100) {
+                    _anymaxmercy = true;
+                }
+                _maxmercycount += convince_max_mercy_count;
+            }
+            return _anymaxmercy && _maxmercycount >= 2;
+        }
+        var isanymercy = function() {
+            var _anymercy = false;
+            with(obj_shinobeetle_enemy) {
+                if (global.mercymod[myself] > 0) {
+                    _anymercy = true;
+                }
+            }
+            return _anymercy;
+        }
+        var sethballoonexists = function() {
+            var _sbe = false;
+            with(obj_battleblcon) {
+                if (side == 2) {
+                    _sbe = true;
+                }
+            }
+            return _sbe;
+        }
+        var _sethballoonexists = i_ex(obj_seth_shinobeetle_controller) ? sethballoonexists() : false;
+        if (i_ex(obj_seth_shinobeetle_controller) && !_sethballoonexists && isanypde())
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", "puppydogeyes = 2;", "with(obj_shinobeetle_enemy) { puppydogeyes = 2; }");
+    importGroup.QueueFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", "else if (i_ex(obj_seth_shinobeetle_controller) && global.mercymod[myself] >= 100 && convince_max_mercy_count >= 2)",
+        "else if (i_ex(obj_seth_shinobeetle_controller) && !_sethballoonexists && isanybadatmercy())");
+    importGroup.QueueFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", "else if (i_ex(obj_seth_shinobeetle_controller) && global.mercymod[myself] > 0)",
+        "else if (i_ex(obj_seth_shinobeetle_controller) && !_sethballoonexists && isanymercy())");
+    importGroup.QueueFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", "else if (scr_monsterpop() > 1 || i_ex(obj_seth_shinobeetle_controller))",
+        "else if (!_sethballoonexists && (scr_monsterpop() > 1 || i_ex(obj_seth_shinobeetle_controller)))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", @"else\s*{\s*if \(first_turn_alone == false\)", @"
+        else if (!_sethballoonexists)
+        {
+            if (first_turn_alone == false)
+    ");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", @"talked = 1;\s*if \(_secondballoon == true\)", @"
+        talked = _sethballoonexists ? 0.1 : 1;
+
+        if (_secondballoon == true)
+    ");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", @"scr_enemyblcon\(obj_seth_shinobeetle_controller\.x \+ 29, obj_seth_shinobeetle_controller\.y - 16, 13\);\s*global\.mnfight = 1\.5;", @"
+        scr_enemyblcon(obj_seth_shinobeetle_controller.x + 29, obj_seth_shinobeetle_controller.y - 16, 13);
+    ");
 }
 
 // Apply TP Gain
@@ -1923,7 +2118,14 @@ if (ch_no == 0) {
 }
 
 // Finish edit
-importGroup.Import();
+try {
+    importGroup.Import();
+} catch (Exception e) {
+    ScriptMessage($"Error occured during script execution: {e.Message}");
+    ScriptMessage($"Attempting script run in no-throw mode, can't guaruntee the script will be completely applied.");
+    importGroup.ThrowOnNoOpFindReplace = false;
+    importGroup.Import();
+}
 
 // No throw code edits
 importGroup = new(Data){
@@ -2119,7 +2321,7 @@ if (ch_no == 4) {
     btimerEquals = btimerEquals.Concat(ch4BtimerEquals).ToArray();
 }
 if (ch_no == 5) {
-    string[] ch5BtimerEquals = {"ceil(24 * ratio) - 1", "irandom(1500)", "irandom(150)", "-10", "-180", "32", "-999", "40 - floor(0.5 + (40 * _binterval))", "brate - 1"};
+    string[] ch5BtimerEquals = {"ceil(24 * ratio) - 1", "irandom(1500)", "irandom(150)", "-10", "32", "40 - floor(0.5 + (40 * _binterval))", "brate - 1"};
     btimerEquals = btimerEquals.Concat(ch5BtimerEquals).ToArray();
 }
 string[] btimerEqualEquals = {};
