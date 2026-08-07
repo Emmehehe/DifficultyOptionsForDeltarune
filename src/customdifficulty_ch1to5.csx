@@ -1136,6 +1136,7 @@ if (ch_no == 3)
     ");
 }
 if (ch_no == 4) {
+    // hammer of justice
     string[] sandbagLimits = {"tdamage", "hpdiff"};
     foreach (string limit in sandbagLimits)
     {
@@ -1143,6 +1144,11 @@ if (ch_no == 4) {
             $"if (global.chapter == 4 && i_ex(obj_hammer_of_justice_enemy) && {limit} < (5 * global.diff_damagemulti))");
         importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage", $"{limit} = 5;", $"{limit} = 5 * global.diff_damagemulti;");
     }
+    // sound of justice
+    importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage", "if (global.hp[1] > 0 && global.hp[2] < (global.maxhp[2] * 0.4))", "if (global.hp[1] > 0 && global.hp[2] < (global.maxhp[2] * 0.4 * global.diff_damagemulti))");
+    // break in case of emergency - above fix should be sufficient but below will make absolutely sure its fixed (but I like to keep changes as minimal as possible)
+    // importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_spearshot", "if (i_ex(obj_sound_of_justice_enemy) && obj_sound_of_justice_enemy.susiedown == false)",
+    //     "if (i_ex(obj_sound_of_justice_enemy) && (obj_sound_of_justice_enemy.susiedown == false || obj_sound_of_justice_enemy.phase == 2))");
 }
 // Apply damage multiplier (Damage Over Time)
 if (ch_no >= 2 || ch_no == 0)
@@ -1650,6 +1656,7 @@ if (ch_no == 3) {
     }
 }
 if (ch_no == 2 || ch_no == 0) {
+    // virovirokun
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "for (var i = 0; i < ((monstercount == 1) ? 2 : 3); i++)", "for (var i = 0; i < (monstercount + 1); i++)");
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "d.fleetsize = sameattack;", "d.fleetsize = min(sameattack, 2);");
     // TODO mauswheel
@@ -1658,6 +1665,91 @@ if (ch_no == 2 || ch_no == 0) {
     //     "instance_exists(global.monsterinstance[creator]) && global.monsterinstance[creator].cursor_count > 1");
     // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "d = instance_create(obj_mauswheel_enemy.x + 62, obj_mauswheel_enemy.y + 70, obj_maushwheel_lightning_orb);",
     //     "d = instance_create(global.monsterinstance[creator].x + 62, global.monsterinstance[creator].y + 70, obj_maushwheel_lightning_orb);");
+}
+if (ch_no == 4) {
+    // balthizard
+    importGroup.QueueFindReplace("gml_Object_obj_balthizard_enemy_Step_0", "else if (attackselected == 0)", @"
+        else if (scr_monsterpop() == 3 && attackselected == 0) {
+            // Better decision making for balthizard that can handle more than 2 enemies on screen
+            // each balthizard will assign itself to be the cloud maker, if no others have done so yet (so first in order becomes cloud manager)
+            // however, lit up balthizards take priority for the swing attack, so skip making these ones the cloud maker
+            // unless, all balthizards are lit up, then go back to making the first one be the cloud manager
+            var _anyCloudManagers = false;
+            var _LitUpLizards = 0;
+            with (obj_balthizard_enemy) {
+                if (attackselected == 1 && myattackchoice == 1)
+                    _anyCloudManagers = true;
+                if (lightup)
+                    _LitUpLizards++;
+            }
+
+            myattackchoice = 0;
+            if ((!lightup || _LitUpLizards == instance_number(obj_balthizard_enemy)) && !_anyCloudManagers && !sleepymizzle) {
+                myattackchoice = 1;
+            }
+            attackselected = 1;
+        } else if (scr_monsterpop() == 2 && attackselected == 0)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "var censer = instance_create(creatorid.x + 60, creatorid.y + 50, obj_incense_censer);", @"
+        var _censered = instance_exists(obj_incense_censer);
+        var censer = instance_create(creatorid.x + 60, creatorid.y + 50, obj_incense_censer);
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "censer.ratio = ratio;", @"
+        var _swingcount = 0;
+        with (obj_balthizard_enemy) {
+            if (myattackchoice == 0)
+                _swingcount++;
+        }
+        censer.ratio = (_swingcount > 1) ? 0.8 : ratio;
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "censer.damage = 65;", @"
+        censer.damage = 65;
+        censer.timer += _censered * 10 * pi;
+    ");
+    // wicabel
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "var _bat = scr_fire_bullet(_xx, _yy, obj_cornerpendulumbullet, 0, 0, spr_pendulum_ball);", @"
+        var _selfoverlap = 0;
+        with (obj_cornerpendulumbullet)
+        {
+            if ((sign(x - scr_get_box(4)) == -_side) && (sign(y - scr_get_box(5)) == -_vmirror))
+                _selfoverlap++;
+        }
+
+        var _bat = scr_fire_bullet(_xx, _yy, obj_cornerpendulumbullet, 0, 0, spr_pendulum_ball);
+        _bat.overlap = _selfoverlap;
+    ");
+    importGroup.QueueAppend("gml_Object_obj_cornerpendulumbullet_Create_0", "overlap = 0;");
+    importGroup.QueueFindReplace("gml_Object_obj_cornerpendulumbullet_Step_0", "var _box = instance_create_depth(x, y, depth, obj_growtanglebellshake);", @"
+        var _box = instance_create_depth(x, y, depth, obj_growtanglebellshake);
+        _box.overlap = other.overlap;
+    ");
+    importGroup.QueueAppend("gml_Object_obj_growtanglebellshake_Create_0", "overlap = 0;");
+    importGroup.QueueFindReplace("gml_Object_obj_growtanglebellshake_Step_0", "if (scr_monsterpop() <= 2)", "if (scr_monsterpop() <= 2 || overlap >= 1)");
+    importGroup.QueueFindReplace("gml_Object_obj_growtanglebellshake_Step_0", "if (scr_monsterpop() <= 1)", "if (scr_monsterpop() <= 1 || overlap >= 2)");
+    // importGroup.QueueFindReplace("gml_Object_obj_growtanglebellshake_Create_0", "bullet_speed = 2.8 - (clamp(scr_monsterpop() - 1, 0, 2) * 0.6);",
+    //     @"bullet_speed = 2.8 - (clamp(scr_monsterpop() - 1, 0, (scr_monsterattacknamecount(""Pendulumattack"") == 3 ? 1.5 : 2)) * 0.6);");
+    importGroup.QueueFindReplace("gml_Object_obj_growtanglebellshake_Step_0", "bullet_speed -= 0.8;", @"bullet_speed -= scr_monsterattacknamecount(""Pendulumattack"") == 3 ? 0.45 : 0.8;");
+    // titan spawn
+    importGroup.QueueFindReplace("gml_Object_obj_titan_spawn_enemy_Step_0", "global.flag[1597] += 2;", "global.flag[1597] += min(3, 2 + global.diff_extraenemies);");
+    importGroup.QueueFindReplace("gml_Object_obj_purify_event_Draw_0", "cameray() + 84", "cameray() + (global.diff_extraenemies > 0 ? 66 : 84)");
+    // side note: I think they meant to put 244 rather than 224 as that's where the encountersetup script puts it
+    importGroup.QueueFindReplace("gml_Object_obj_purify_event_Draw_0", "cameray() + 224", "cameray() + (global.diff_extraenemies > 0 ? 166 : 224)");
+    importGroup.QueueFindReplace("gml_Object_obj_purify_event_Draw_0", "if (global.monsterhp[0] > 0)", @"
+        if (global.diff_extraenemies > 0 && global.monsterhp[2] > 0)
+        {
+            _recruitanim = instance_create(camerax() + 500, cameray() + 266, obj_recruitanim);
+            _recruitanim.image_index = 15;
+        }
+
+        if (global.monsterhp[0] > 0)
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_titan_spawn_enemy_Create_0", "balloonorder = 0;", @"
+        if (global.diff_extraenemies > 0) {
+            with (obj_battlecontroller)
+                cantspare[2] = 1;
+        }
+
+        balloonorder = 0;
+    ");
 }
 
 // Apply TP Gain
