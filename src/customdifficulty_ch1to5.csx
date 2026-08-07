@@ -1571,8 +1571,7 @@ if (ch_no == 3) {
         basicenemies = basicenemies.Concat(ch4basicenemies).ToArray();
     }
     if (ch_no == 5) {
-        string[] ch5basicenemies = {"obj_ponman_enemy", "obj_rudinnranger", "obj_floradinn_enemy", "obj_leafling_enemy", "obj_scarecrow_enemy", "obj_kawkaw_enemy", "obj_shinobeetle_enemy", "obj_sheary_enemy",
-            "obj_netskie_enemy", "obj_terracota_enemy"}; // TODO bit worried netskie and terra might bug out or crash, also would they be considered mini-bosses?
+        string[] ch5basicenemies = {"obj_ponman_enemy", "obj_rudinnranger", "obj_floradinn_enemy", "obj_leafling_enemy", "obj_scarecrow_enemy", "obj_kawkaw_enemy", "obj_shinobeetle_enemy", "obj_sheary_enemy"};
         basicenemies = basicenemies.Concat(ch5basicenemies).ToArray();
     }
     string checkbasicenemyblock = $"(global.monsterinstancetype[i] == {string.Join(" || global.monsterinstancetype[i] == ", basicenemies)})";
@@ -1592,7 +1591,8 @@ if (ch_no == 3) {
         importGroup.QueueFindReplace(script.ScrName, script.Replace, @$"
             {script.Replace}
 
-            var extratodo = global.diff_extraenemies;
+            // fix both flowery sparing floradinn(s) cutscenes
+            var extratodo = {(ch_no == 5 ? "(global.encounterno == 226 || global.encounterno == 230) ? 0 : global.diff_extraenemies" : "global.diff_extraenemies")};
             var regularenemies = (global.monstertype[0] > 0) + (global.monstertype[1] > 0) + (global.monstertype[2] > 0);
 
             if (extratodo > 0 && regularenemies < 3)
@@ -1610,11 +1610,11 @@ if (ch_no == 3) {
 
                 if (array_length(basicenemies) > 0)
                 {{
-                    global.monstermakex[0] = xx + 480;
+                    global.monstermakex[0] = xx + {(ch_no == 5 ? "((global.encounterno == 232) ? 417 : 480)" : "480")};
                     global.monstermakey[0] = yy + ((totalenemies == 1) ? 140 : ((totalenemies == 2) ? 110 : 20));
-                    global.monstermakex[1] = xx + 500;
+                    global.monstermakex[1] = xx + {(ch_no == 5 ? "((global.encounterno == 232) ? 437 : 500)" : "500")};
                     global.monstermakey[1] = yy + ((totalenemies == 2) ? 200 : 120);
-                    global.monstermakex[2] = xx + 460;
+                    global.monstermakex[2] = xx + {(ch_no == 5 ? "((global.encounterno == 232) ? 397 : 460)" : "460")};
                     global.monstermakey[2] = yy + 220;
 
                     for (i = 0; i < 3; i += 1)
@@ -1749,6 +1749,99 @@ if (ch_no == 4) {
         }
 
         balloonorder = 0;
+    ");
+}
+if (ch_no == 5) {
+    // Seth + Shinobeetle
+    importGroup.QueueAppend("gml_Object_obj_shinobeetle_enemy_Create_0", "rtimer = 0;"); // fix crash
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", @"global\.monsterattackname\[myself\] = ""SupportFire"";\s*dc = scr_bulletspawner\(x, y, obj_dbulletcontroller\);\s*dc\.type = 313;", @"
+        // make sure there's only one seth support attack
+        var _alreadysethed = false;
+        with (obj_dbulletcontroller) {
+            if (type == 313)
+                _alreadysethed = true;
+        }
+        if (!_alreadysethed) {
+            global.monsterattackname[myself] = ""SupportFire"";
+            dc = scr_bulletspawner(x, y, obj_dbulletcontroller);
+            dc.type = 313;
+        }
+    ");
+    // Make sure other beetles don't talk whilst seth is feeding them milk
+    importGroup.QueueFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0",
+        @"if (scr_isphase(""enemytalk"") && talked == 0 && global.monsterhp[myself] < global.monstermaxhp[myself] && i_ex(obj_seth_shinobeetle_controller) && obj_seth_shinobeetle_controller.scon == 0)",@"
+        var isanyhurt = function() {
+            var _anyhurt = false;
+            with(obj_shinobeetle_enemy) {
+                if (global.monsterhp[myself] < global.monstermaxhp[myself])
+                    _anyhurt = true;
+            }
+            return _anyhurt;
+        }
+        if (scr_isphase(""enemytalk"") && talked == 0 && isanyhurt() && i_ex(obj_seth_shinobeetle_controller) && obj_seth_shinobeetle_controller.scon == 0)
+    ");
+    // prevent beetle talk bubbles conflicting with seth's talk bubbles and then softlocking/cancelling attacks
+    importGroup.QueueFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", "if (i_ex(obj_seth_shinobeetle_controller) && puppydogeyes == 1)",@"
+        var isanypde = function() {
+            var _anypde = false;
+            with(obj_shinobeetle_enemy) {
+                if (puppydogeyes == 1) {
+                    _anypde = true;
+                }
+            }
+            return _anypde;
+        }
+        var isanybadatmercy = function() {
+            var _anymaxmercy = false;
+            var _maxmercycount = 0;
+            with(obj_shinobeetle_enemy) {
+                if (global.mercymod[myself] >= 100) {
+                    _anymaxmercy = true;
+                }
+                _maxmercycount += convince_max_mercy_count;
+            }
+            return _anymaxmercy && _maxmercycount >= 2;
+        }
+        var isanymercy = function() {
+            var _anymercy = false;
+            with(obj_shinobeetle_enemy) {
+                if (global.mercymod[myself] > 0) {
+                    _anymercy = true;
+                }
+            }
+            return _anymercy;
+        }
+        var sethballoonexists = function() {
+            var _sbe = false;
+            with(obj_battleblcon) {
+                if (side == 2) {
+                    _sbe = true;
+                }
+            }
+            return _sbe;
+        }
+        var _sethballoonexists = i_ex(obj_seth_shinobeetle_controller) ? sethballoonexists() : false;
+        if (i_ex(obj_seth_shinobeetle_controller) && !_sethballoonexists && isanypde())
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", "puppydogeyes = 2;", "with(obj_shinobeetle_enemy) { puppydogeyes = 2; }");
+    importGroup.QueueFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", "else if (i_ex(obj_seth_shinobeetle_controller) && global.mercymod[myself] >= 100 && convince_max_mercy_count >= 2)",
+        "else if (i_ex(obj_seth_shinobeetle_controller) && !_sethballoonexists && isanybadatmercy())");
+    importGroup.QueueFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", "else if (i_ex(obj_seth_shinobeetle_controller) && global.mercymod[myself] > 0)",
+        "else if (i_ex(obj_seth_shinobeetle_controller) && !_sethballoonexists && isanymercy())");
+    importGroup.QueueFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", "else if (scr_monsterpop() > 1 || i_ex(obj_seth_shinobeetle_controller))",
+        "else if (!_sethballoonexists && (scr_monsterpop() > 1 || i_ex(obj_seth_shinobeetle_controller)))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", @"else\s*{\s*if \(first_turn_alone == false\)", @"
+        else if (!_sethballoonexists)
+        {
+            if (first_turn_alone == false)
+    ");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", @"talked = 1;\s*if \(_secondballoon == true\)", @"
+        talked = _sethballoonexists ? 0.1 : 1;
+
+        if (_secondballoon == true)
+    ");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", @"scr_enemyblcon\(obj_seth_shinobeetle_controller\.x \+ 29, obj_seth_shinobeetle_controller\.y - 16, 13\);\s*global\.mnfight = 1\.5;", @"
+        scr_enemyblcon(obj_seth_shinobeetle_controller.x + 29, obj_seth_shinobeetle_controller.y - 16, 13);
     ");
 }
 
@@ -2215,7 +2308,7 @@ if (ch_no == 4) {
     btimerEquals = btimerEquals.Concat(ch4BtimerEquals).ToArray();
 }
 if (ch_no == 5) {
-    string[] ch5BtimerEquals = {"ceil(24 * ratio) - 1", "irandom(1500)", "irandom(150)", "-10", "-180", "32", "-999", "40 - floor(0.5 + (40 * _binterval))", "brate - 1"};
+    string[] ch5BtimerEquals = {"ceil(24 * ratio) - 1", "irandom(1500)", "irandom(150)", "-10", "32", "40 - floor(0.5 + (40 * _binterval))", "brate - 1"};
     btimerEquals = btimerEquals.Concat(ch5BtimerEquals).ToArray();
 }
 string[] btimerEqualEquals = {};
