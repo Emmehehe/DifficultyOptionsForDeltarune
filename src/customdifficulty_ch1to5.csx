@@ -1701,17 +1701,20 @@ if (ch_no == 4) {
         }
         censer.ratio = (_swingcount > 1) ? 0.8 : ratio;
     ");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "censer.damage = 65;", "censer.damage = 65; censer.timer += _censered * 10 * pi;");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "censer.damage = 65;", @"
+        censer.damage = 65;
+        censer.timer += _censered * 10 * pi;
+    ");
     // wicabel
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "var _bat = scr_fire_bullet(_xx, _yy, 255, 0, 0, 525);", @"
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "var _bat = scr_fire_bullet(_xx, _yy, obj_cornerpendulumbullet, 0, 0, spr_pendulum_ball);", @"
         var _selfoverlap = 0;
         with (obj_cornerpendulumbullet)
         {
-            if (sign(x - scr_get_box(4)) == -_side && sign(y - scr_get_box(5)) == -_vmirror)
+            if ((sign(x - scr_get_box(4)) == -_side) && (sign(y - scr_get_box(5)) == -_vmirror))
                 _selfoverlap++;
         }
 
-        var _bat = scr_fire_bullet(_xx, _yy, 255, 0, 0, 525);
+        var _bat = scr_fire_bullet(_xx, _yy, obj_cornerpendulumbullet, 0, 0, spr_pendulum_ball);
         _bat.overlap = _selfoverlap;
     ");
     importGroup.QueueAppend("gml_Object_obj_cornerpendulumbullet_Create_0", "overlap = 0;");
