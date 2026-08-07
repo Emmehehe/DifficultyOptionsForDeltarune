@@ -1836,7 +1836,7 @@ if (ch_no == 5) {
             if (first_turn_alone == false)
     ");
     importGroup.QueueRegexFindReplace("gml_Object_obj_shinobeetle_enemy_Step_0", @"talked = 1;\s*if \(_secondballoon == true\)", @"
-        talked = _sethballoonexists ? 0 : 1;
+        talked = _sethballoonexists ? 0.1 : 1;
 
         if (_secondballoon == true)
     ");
