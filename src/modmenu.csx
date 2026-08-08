@@ -245,8 +245,26 @@ foreach (string gamestart in gamestarts)
             row_selected: false,
             row_scroll: 0,
             menus: [], // array_create(0),
+            menus_light: [], // array_create(0),
+            menus_dark: [], // array_create(0),
             menu_count: 0,
-            active_menu: function () {{ return menus[menu_no] }},
+            menu_light_count: 0,
+            menu_dark_count: 0,
+            world_menus: function () {{
+                if (!global.darkzone)
+                    return menus_light;
+                else
+                    return menus_dark;
+            }},
+            world_menu_count: function () {{
+                if (!global.darkzone)
+                    return menu_light_count;
+                else
+                    return menu_dark_count;
+            }},
+            active_menu: function () {{
+                world_menus()[menu_no];
+            }},
 
             surf_titles: -1,
             get_surf_titles: function () {{
@@ -561,6 +579,14 @@ foreach (string gamestart in gamestarts)
 
                 array_insert(menus, array_length(menus), menu);
                 menu_count++;
+                if (menu.world == ""light"" || menu.world == ""both"") {{
+                    array_insert(menus_light, array_length(menus_light), menu);
+                    menu_light_count++;
+                }}
+                if (menu.world == ""dark"" || menu.world == ""both"") {{
+                    array_insert(menus_dark, array_length(menus_dark), menu);
+                    menu_dark_count++;
+                }}
                 return menu;
             }}
         }};
@@ -606,17 +632,17 @@ foreach (string darkcon in darkcons)
 
             draw_set_color(c_white);
 
-            if (modmenu.menu_count > 0)
+            if (modmenu.menu_dark_count > 0)
             {{
                 // top row buttons
                 var isSubmenu = (modmenu.row_no >= 0);
-                var isMenuLonely = modmenu.menu_count == 1;
+                var isMenuLonely = modmenu.menu_dark_count == 1;
 
                 var allmodmenus = """";
 
-                for (var i = modmenu.menu_no; i < modmenu.menu_count; i++)
+                for (var i = modmenu.menu_no; i < modmenu.menu_dark_count; i++)
                 {{
-                    allmodmenus += string_upper(modmenu.menus[i].title_loc()) + (i + 1 < modmenu.menu_count ? ""        "" : """");
+                    allmodmenus += string_upper(modmenu.menus_dark[i].title_loc()) + (i + 1 < modmenu.menu_dark_count ? ""        "" : """");
                 }}
 
                 surface_set_target(modmenu.get_surf_titles());
@@ -651,7 +677,7 @@ foreach (string darkcon in darkcons)
 
                 if (!isSubmenu) {{
                     menusiner += 1;
-                    draw_sprite_part(spr_heart_harrows, menusiner / 20, 8 - 8 * (modmenu.menu_no > 0), 0, 16 + 8 * (modmenu.menu_no > 0) + 8 * (modmenu.menu_no < (modmenu.menu_count - 1)), 16, xx + 85 - 8 * (modmenu.menu_no > 0), yy + 120);
+                    draw_sprite_part(spr_heart_harrows, menusiner / 20, 8 - 8 * (modmenu.menu_no > 0), 0, 16 + 8 * (modmenu.menu_no > 0) + 8 * (modmenu.menu_no < (modmenu.menu_dark_count - 1)), 16, xx + 85 - 8 * (modmenu.menu_no > 0), yy + 120);
                 }}
 
                 // form buttons
@@ -930,10 +956,13 @@ foreach (string darkcon in darkcons)
 
             if (!isSubmenu) {{
                 // enter submenu right away if there is only one submenu
-                if (modmenu.menu_count == 1)
+                if (modmenu.menu_dark_count == 1) {{
                     modmenu.row_no = 0;
 
-                if (modmenu.menu_count > 0)
+                    modmenu.active_menu().open_func();
+                }}
+
+                if (modmenu.menu_dark_count > 0)
                 {{
                     if (left_p())
                     {{
@@ -941,14 +970,14 @@ foreach (string darkcon in darkcons)
 
                         modmenu.menu_no--;
                         if (modmenu.menu_no < 0)
-                            modmenu.menu_no = modmenu.menu_count - 1;
+                            modmenu.menu_no = modmenu.menu_dark_count - 1;
                     }}
                     if (right_p())
                     {{
                         movenoise = 1;
 
                         modmenu.menu_no++;
-                        if (modmenu.menu_no >= modmenu.menu_count)
+                        if (modmenu.menu_no >= modmenu.menu_dark_count)
                             modmenu.menu_no = 0;
                     }}
                     if (button1_p() && onebuffer < 0 && twobuffer < 0)
@@ -967,6 +996,8 @@ foreach (string darkcon in darkcons)
                             modsubmenu_down(form_length);
                             movecount++;
                         }}
+
+                        modmenu.active_menu().open_func();
                     }}
                 }}
                 if (button2_p() && onebuffer < 0 && twobuffer < 0)
@@ -1030,13 +1061,14 @@ foreach (string darkcon in darkcons)
                         modmenu.row_no = -1;
                         modmenu.row_scroll = 0;
 
-                        if (modmenu.menu_count == 1)
+                        if (modmenu.menu_dark_count == 1)
                         {{
                             global.menuno = 0;
                             global.submenu = 0;
                         }}
 
                         modmenu.active_menu().close_func();
+                        if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onclose();
                     }}
                     else
                     {{
@@ -1102,6 +1134,7 @@ foreach (string darkcon in darkcons)
 
                             row_data.data_ref.set(value);
                             row_data.change_func();
+                            if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onchange();
                         }}
 
                         if (row_data.type != ""Header"")
@@ -1115,13 +1148,14 @@ foreach (string darkcon in darkcons)
                     modmenu.row_no = -1;
                     modmenu.row_scroll = 0;
 
-                    if (modmenu.menu_count == 1)
+                    if (modmenu.menu_dark_count == 1)
                     {{
                         global.menuno = 0;
                         global.submenu = 0;
                     }}
 
                     modmenu.active_menu().close_func();
+                    if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onclose();
                 }}
             }} else {{
                 var form_data = modmenu.active_menu().form;
@@ -1247,6 +1281,7 @@ foreach (string darkcon in darkcons)
                     row_data.data_ref.set(value);
 
                     row_data.change_func();
+                    if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onchange();
 
                     modmenu.slider_step = modmenu.slider_step % 1;
                 }}
@@ -1367,6 +1402,7 @@ foreach (string darkcon in darkcons)
                     row_data.data_ref.set(value);
 
                     row_data.change_func();
+                    if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onchange();
 
                     modmenu.slider_step = modmenu.slider_step % 1;
                 }}
@@ -1404,6 +1440,7 @@ foreach (string darkcon in darkcons)
                         if (row_data.revert_on_cancel && row_data.data_ref.get() != modmenu.slider_orig_value) {{
                             row_data.data_ref.set(modmenu.slider_orig_value);
                             row_data.change_func();
+                            if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onchange();
                         }}
                         row_data.cancel_func();
                     }}
