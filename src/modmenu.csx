@@ -300,100 +300,35 @@ foreach (string darkcon in darkcons)
                     return false;
                 return true;
             },
-            save_menu_data: function(arg0) {
-                var category = arg0.save_category();
-                if (is_undefined(category))
-                    return;
-                ossafe_ini_open(arg0.get_save_name());
-                for(var i = 0; i < array_length(arg0.form); i++) {
-                    var row = arg0.form[i];
-                    if (row.type != ""Slider"" && row.type != ""Toggle"")
-                        continue;
-
-                    var write_func = (row.value_type == ""String"") ? ini_write_string : ini_write_real;
-                    if (variable_instance_exists(global, row.value_ref))
-                        write_func(category, row.value_ref, variable_instance_get(global, row.value_ref));
-                }
-                ossafe_ini_close();
-            },
-            load_menu_data: function(arg0) {
-                var category = arg0.save_category();
-                if (is_undefined(category))
-                    return;
-                ossafe_ini_open(arg0.get_save_name());
-                for(var i = 0; i < array_length(arg0.form); i++) {
-                    var row = arg0.form[i];
-                    if (row.type != ""Slider"" && row.type != ""Toggle"")
-                        continue;
-
-                    var read_func = (row.value_type == ""String"") ? ini_read_string : ini_read_real;
-                    variable_instance_set(global, row.value_ref, read_func(category, row.value_ref, row.default_value));
-                }
-                ossafe_ini_close();
-            },
-            copy_menu_data: function (arg0, arg1, arg2) {
-                var from_cat = arg0.save_category(arg1);
-                if (is_undefined(from_cat))
-                    return;
-                var to_cat = arg0.save_category(arg2);
-                if (is_undefined(to_cat))
-                    return;
-                ossafe_ini_open(arg0.get_save_name());
-                if (ini_section_exists(from_cat)) {
-                    for(var i = 0; i < array_length(arg0.form); i++) {
-                        var row = arg0.form[i];
-                        if (row.type != ""Slider"" && row.type != ""Toggle"")
-                            continue;
-
-                        var read_func = (row.value_type == ""String"") ? ini_read_string : ini_read_real;
-                        var to_copy = read_func(category, row.value_ref, row.default_value);
-                        var write_func = (row.value_type == ""String"") ? ini_write_string : ini_write_real;
-                        write_func(category, row.value_ref, to_copy);
-                    }
-                }
-                ossafe_ini_close();
-            },
-            delete_menu_data: function (arg0, arg1) {
-                var category = arg0.save_category(arg1);
-                if (is_undefined(category))
-                    return;
-                ossafe_ini_open(arg0.get_save_name());
-                if (ini_section_exists(category))
-                    ini_section_delete(category);
-                ossafe_ini_close();
-            },
 
             create: function (arg0) {
+                var menu = arg0;
                 // Menu - mandatory
-                try { var check = arg0; if (is_undefined(check)) throw ""menu data is undefined""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but menu data was not supplied.""; }
-                if (!is_struct(arg0)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but menu data is not a struct. "";
-                try { var check = arg0.title; if (!is_string(check)) check = check.default; if (!is_string(check)) throw ""title.default is not a string""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu without a title; or title is not a string.""; }
-                try { var check = arg0.form[0]; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu without any form element.""; }
+                try { var check = menu; if (is_undefined(check)) throw ""menu data is undefined""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but menu data was not supplied.""; }
+                if (!is_struct(menu)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but menu data is not a struct. "";
+                try { var check = menu.title; if (!is_string(check)) check = check[0]; if (!is_string(check)) throw ""title[0] is not a string""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu without a title; or title is not a string.""; }
+                menu.title_loc = function(arg0) { return find_loc(menu.title, arg0); };
+                try { var check = menu.form[0]; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu without any form element.""; }
 
                 // Menu - optional
-                try { var check = arg0.left_margin; if (!is_numeric(check)) check = check.default; } catch (_e) { arg0.left_margin = 40; }
-                try { var check = arg0.left_margin; if (!is_numeric(check)) check = check.default; if (!is_numeric(check)) throw ""left_margin is not numeric""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but left_margin is not numeric.""; }
-                try { var check = arg0.left_value_pos; if (!is_numeric(check)) check = check.default; } catch (_e) { arg0.left_value_pos = 300; }
-                try { var check = arg0.left_value_pos; if (!is_numeric(check)) check = check.default; if (!is_numeric(check)) throw ""left_value_pos is not numeric""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but left_value_pos is not numeric.""; }
-                try { var check = arg0.apply; } catch (_e) { arg0.apply = undefined; }
-                try { var check = arg0.apply; if (!is_undefined(check) && ((check.type != ""OnChange"" && check.type != ""OnClose"") || !is_callable(check.func))) throw ""apply type or func failed validation""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but apply.type is not in set: OnChange, OnClose; or apply.func is not callable.""; }
-                try { var check = arg0.save; } catch (_e) { arg0.save = undefined; }
-                try { var check = arg0.save; if (!is_undefined(check) && ((check.type != ""Single"" && check.type != ""PerSlot"" && check.type != ""PerFile""))) throw ""save type failed validation""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but save.type is not in set: Single, PerSlot, PerFile.""; }
-                try { var check = arg0.save; if (!is_undefined(check)) check = check.name; } catch (_e) { arg0.save.name = string_savename(find_loc(arg0.title)); }
-                try { var check = arg0.save; if (!is_undefined(check)) check = check.name; if (is_string(check) && !is_savenamestring(check)) arg0.save.name = string_savename_addini(arg0.save.name); }
-                try { var check = arg0.save; if (!is_undefined(check)) check = check.name; if (!is_string(check) || !is_savenamestring(check)) throw ""save name isn't a string or contains invalid characters or no .ini"";} catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but save.name is missing; or is not a lower-case alphanumerical string.""; }
-                try { var check = arg0.open_func; } catch (_e) { arg0.open_func = function () {}; }
-                try { var check = arg0.open_func; if (!is_callable(check)) throw ""open_func should be callable.""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but open_func is not callable.""; }
-                try { var check = arg0.close_func; } catch (_e) { arg0.close_func = function () {}; }
-                try { var check = arg0.close_func; if (!is_callable(check)) throw ""close_func should be callable.""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but close_func is not callable.""; }
-                try { var check = arg0.additional_save_data_refs; } catch (_e) { arg0.additional_save_data_refs = []; }
-                try { var check = arg0.additional_save_data_refs; if (!is_array(check)) throw ""additional_save_data_refs should be an array.""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but additional_save_data_refs is not an array.""; }
-
-                // Helper funcs
-                arg0.save_category = function (arg0) {
-                    if (is_undefined(save))
-                        return undefined;
-                    switch (save.type) {
+                try { var check = menu.left_margin; if (!is_numeric(check)) check = check[0]; } catch (_e) { menu.left_margin = 40; }
+                try { var check = menu.left_margin; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""left_margin is not numeric""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but left_margin is not numeric.""; }
+                menu.left_margin_loc = function(arg0) { return find_loc(menu.left_margin, arg0); };
+                try { var check = menu.left_value_pos; if (!is_numeric(check)) check = check[0]; } catch (_e) { menu.left_value_pos = 300; }
+                try { var check = menu.left_value_pos; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""left_value_pos is not numeric""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but left_value_pos is not numeric.""; }
+                menu.left_value_pos_loc = function(arg0) { return find_loc(menu.left_value_pos, arg0); };
+                try { var check = menu.apply; } catch (_e) { menu.apply = undefined; }
+                try { var check = menu.apply; if (!is_undefined(check) && ((check.type != ""OnChange"" && check.type != ""OnClose"") || !is_callable(check.func))) throw ""apply type or func failed validation""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but apply.type is not in set: OnChange, OnClose; or apply.func is not callable.""; }
+                if (!is_undefined(menu.apply)) menu.apply.run_onchange = function() { if (menu.apply.type == ""OnChange"") menu.apply.func(); };
+                if (!is_undefined(menu.apply)) menu.apply.run_onclose = function() { if (menu.apply.type == ""OnClose"") menu.apply.func(); };
+                if (!is_undefined(menu.apply)) menu.apply.run_onload = function() { menu.apply.func(); };
+                try { var check = menu.save; } catch (_e) { menu.save = undefined; }
+                try { var check = menu.save; if (!is_undefined(check) && ((check.type != ""Single"" && check.type != ""PerSlot"" && check.type != ""PerFile""))) throw ""save type failed validation""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but save.type is not in set: Single, PerSlot, PerFile.""; }
+                try { var check = menu.save; if (!is_undefined(check)) check = check.name; } catch (_e) { menu.save.name = string_savename(find_loc(menu.title)); }
+                try { var check = menu.save; if (!is_undefined(check)) check = check.name; if (is_string(check) && !is_savenamestring(check)) menu.save.name = string_savename_addini(menu.save.name); }
+                try { var check = menu.save; if (!is_undefined(check)) check = check.name; if (!is_string(check) || !is_savenamestring(check)) throw ""save name isn't a string or contains invalid characters or no .ini"";} catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but save.name is missing; or is not a lower-case alphanumerical string.""; }
+                if (!is_undefined(menu.save)) menu.save.category = function (arg0) {
+                    switch (menu.save.type) {
                         case ""Single"":
                             return ""SETTINGS"";
                         case ""PerSlot"":
@@ -401,24 +336,116 @@ foreach (string darkcon in darkcons)
                         case ""PerFile"":
                             return ""CH"" + string(global.chapter) + ""_"" + string(is_undefined(arg0) ? global.filechoice : arg0);
                         default:
-                            return undefined;
+                            throw (""Unsupported save type: "" + menu.save.type);
                     }
-                }
+                };
+                try { var check = menu.open_func; } catch (_e) { menu.open_func = function () {}; }
+                try { var check = menu.open_func; if (!is_callable(check)) throw ""open_func should be callable.""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but open_func is not callable.""; }
+                try { var check = menu.close_func; } catch (_e) { menu.close_func = function () {}; }
+                try { var check = menu.close_func; if (!is_callable(check)) throw ""close_func should be callable.""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but close_func is not callable.""; }
+                try { var check = menu.additional_save_data_refs; } catch (_e) { menu.additional_save_data_refs = []; }
+                try { var check = menu.additional_save_data_refs; if (!is_array(check)) throw ""additional_save_data_refs should be an array.""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but additional_save_data_refs is not an array.""; }
+
+                // helper methods
+                menu.load = function(arg0) {
+                    if (is_undefined(menu.save))
+                        return;
+
+                    var section = menu.save.category(arg0);
+                    ossafe_ini_open(menu.save.name);
+                    for (var i = 0; i < array_length(menu.form); i++) {
+                        if (menu.form[i].no_save) {} else if (menu.form[i].type == ""Slider"" || menu.form[i].type == ""Toggle"") {
+                            menu.form[i].data_ref.load(section);
+                        } else if (menu.form[i].type == ""Button"" || menu.form[i].type == ""Header"") {} else throw (""Unsupported row type: "" + menu.form[i].type);
+                    }
+                    for (var i = 0; i < array_length(menu.additional_save_data_refs); i++) {
+                        menu.additional_save_data_refs[i].load(section);
+                    }
+                    ossafe_ini_close();
+
+                    if (!is_undefined(menu.apply))
+                        menu.apply.run_onload()
+                };
+                menu.save = function(arg0) {
+                    if (is_undefined(menu.save))
+                        return;
+
+                    var section = menu.save.category(arg0);
+                    ossafe_ini_open(menu.save.name);
+                    for (var i = 0; i < array_length(menu.form); i++) {
+                        if (menu.form[i].no_save) {} else if (menu.form[i].type == ""Slider"" || menu.form[i].type == ""Toggle"") {
+                            menu.form[i].data_ref.save(section);
+                        } else if (menu.form[i].type == ""Button"" || menu.form[i].type == ""Header"") {} else throw (""Unsupported row type: "" + menu.form[i].type);
+                    }
+                    for (var i = 0; i < array_length(menu.additional_save_data_refs); i++) {
+                        menu.additional_save_data_refs[i].save(section);
+                    }
+                    ossafe_ini_close();
+                };
+                menu.copy = function(arg0, arg1) {
+                    if (is_undefined(menu.save))
+                        return;
+
+                    var from = menu.save.category(arg0);
+                    var to = menu.save.category(arg0);
+                    ossafe_ini_open(menu.save.name);
+                    for (var i = 0; i < array_length(menu.form); i++) {
+                        if (menu.form[i].no_save) {} else if (menu.form[i].type == ""Slider"" || menu.form[i].type == ""Toggle"") {
+                            menu.form[i].data_ref.copy(from, to);
+                        } else if (menu.form[i].type == ""Button"" || menu.form[i].type == ""Header"") {} else throw (""Unsupported row type: "" + menu.form[i].type);
+                    }
+                    for (var i = 0; i < array_length(menu.additional_save_data_refs); i++) {
+                        menu.additional_save_data_refs[i].copy(from, to);
+                    }
+                    ossafe_ini_close();
+                };
+                menu.delete = function(arg0) {
+                    if (is_undefined(menu.save))
+                        return;
+
+                    var section = menu.save.category(arg0);
+                    ossafe_ini_open(menu.save.name);
+                    if (ini_section_exists(section))
+                        ini_section_delete(section);
+                    ossafe_ini_close();
+                };
 
                 var init_data_ref = function(arg0) {
+                    var data_ref = arg0;
                     // data ref - mandatory
-                    try { var check = arg0; if (is_undefined(check)) throw ""data ref is undefined""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more data refs are undefined. ""; }
-                    if (!is_struct(arg0)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more data refs are not a struct. "";
-                    try { var check = arg0.var; if (!is_string(check)) throw ""data ref var should be a string.""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref var is missing; or is not a string.""; }
-                    try { var check = arg0.default; if (!is_string(check) && !is_numeric(check)) throw ""data ref default should be a string or numeric.""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref default is missing; or is not a string/numeric.""; }
+                    try { var check = data_ref; if (is_undefined(check)) throw ""data ref is undefined""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more data refs are undefined. ""; }
+                    if (!is_struct(data_ref)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more data refs are not a struct. "";
+                    try { var check = data_ref.var; if (!is_string(check)) throw ""data ref var should be a string.""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref var is missing; or is not a string.""; }
+                    try { var check = data_ref.default; if (!is_string(check) && !is_numeric(check)) throw ""data ref default should be a string or numeric.""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref default is missing; or is not a string/numeric.""; }
                     // data ref - optional
-                    try { var check = arg0.handle; } catch (_e) { arg0.handle = global; }
-                    try { var check = arg0.handle; if (!is_handle(check)) throw ""data ref handle should be a handle.""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref handle is not a handle.""; }
-                    // strip 'global.' from arg0.var
-                    { var check = arg0.var; if (arg0.handle == global && string_starts_with(check, ""global."")) arg0.var = string_delete(arg0.var, 0, 7); }
+                    try { var check = data_ref.handle; } catch (_e) { data_ref.handle = global; }
+                    try { var check = data_ref.handle; if (!is_handle(check)) throw ""data ref handle should be a handle.""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref handle is not a handle.""; }
+                    // strip 'global.' from data_ref.var
+                    { var check = data_ref.var; if (data_ref.handle == global && string_starts_with(check, ""global."")) data_ref.var = string_delete(data_ref.var, 0, 7); }
+                    // helper methods
+                    data_ref.get = function() { return variable_instance_exists(data_ref.handle, data_ref.name) ? variable_instance_get(data_ref.handle, data_ref.name) : data_ref.default; };
+                    data_ref.set = function(arg0) { variable_instance_set(data_ref.handle, data_ref.name, (!is_undefined(arg0) ? arg0 : data_ref.default)); };
+                    data_ref.read = function(arg0 /* section */) {
+                        if (is_string(data_ref.default)) return ini_read_string(arg0, data_ref.name, data_ref.default);
+                        if (is_numeric(data_ref.default)) return ini_read_real(arg0, data_ref.name, data_ref.default);
+                        return data_ref.default;
+                    };
+                    data_ref.write = function(arg0 /* section */, arg1 /* value */) {
+                        if (is_string(data_ref.default)) ini_write_string(arg0, data_ref.name, arg1);
+                        if (is_numeric(data_ref.default)) ini_write_real(arg0, data_ref.name, arg1);
+                    };
+                    data_ref.load = function(arg0 /* section */) {
+                        data_ref.set(data_ref.read(arg0));
+                    };
+                    data_ref.save = function(arg0 /* section */) {
+                        data_ref.write(arg0, data_ref.get());
+                    };
+                    data_ref.copy = function(arg0 /* from section */, arg1 /* to section */) {
+                        data_ref.write(arg1, data_ref.read(arg0));
+                    };
                 };
-                for (var i = 0; i < array_length(arg0.form); i++) {
-                    var row = arg0.form[i];
+                for (var i = 0; i < array_length(menu.form); i++) {
+                    var row = menu.form[i];
                     // Form - mandatory
                     try { var check = row; if (is_undefined(check)) throw ""row data is undefined""; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more form rows are undefined. ""; }
                     if (!is_struct(row)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more form rows are not a struct. "";
@@ -430,6 +457,7 @@ foreach (string darkcon in darkcons)
                     } else if (row.type == ""Header"") {
                         try { var check = row.title; if (is_array(check)) check = check[0]; } catch (_e) { row.title = """"; }
                     } else throw (""Unsupported row type: "" + row.type);
+                    row.title_loc = function(arg0) { return find_loc(row.title, arg0); };
 
                     // Button - mandatory | Slider/Toggle - optional | Header - invalid
                     if (row.type == ""Button"") {
@@ -445,6 +473,7 @@ foreach (string darkcon in darkcons)
                         init_data_ref(row.data_ref);
                         try { var check = row.value_range; if (!is_string(check) && !is_array(check)) throw ""row value_range must be of type string or array""; if (is_array(check)) check = check[0]; } catch (_e) { throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a value_range.""; }
                     } else if (row.type == ""Button"" || row.type == ""Header"") {} else throw (""Unsupported row type: "" + row.type);
+                    // TODO value_range/change/display helpers?
 
                     // Slider/Toggle - optional | Button/Header - invalid
                     if (row.type == ""Slider"" || row.type == ""Toggle"") {
@@ -464,13 +493,15 @@ foreach (string darkcon in darkcons)
                         try { var check = row.disabled; if (!is_bool(check) && !is_callable(check)) throw ""row disabled should be a bool or a callable""; } catch (_e) { row.disabled = false; }
                         try { var check = row.hidden; if (!is_bool(check) && !is_callable(check)) throw ""row hidden should be a bool or a callable""; } catch (_e) { row.hidden = false; }
                     } else throw (""Unsupported row type: "" + row.type);
+
+                    // TODO size/display/color helpers?
                 }
-                for (var i = 0; i < array_length(arg0.additional_save_data_refs); i++) {
-                    init_data_ref(arg0.additional_save_data_refs[i]);
+                for (var i = 0; i < array_length(menu.additional_save_data_refs); i++) {
+                    init_data_ref(menu.additional_save_data_refs[i]);
                 }
 
-                array_insert(menus, array_length(menus), arg0);
-                return arg0;
+                array_insert(menus, array_length(menus), menu);
+                return menu;
             }
         };
     ");
