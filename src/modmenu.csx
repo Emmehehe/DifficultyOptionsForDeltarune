@@ -373,37 +373,42 @@ foreach (string gamestart in gamestarts)
                 try {{ var check = menu; if (is_undefined(check)) throw ""menu data is undefined""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but menu data was not supplied.""; }}
                 if (!is_struct(menu)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but menu data is not a struct. "";
                 try {{ var check = menu.title; if (!is_string(check)) check = check[0]; if (!is_string(check)) throw ""title[0] is not a string""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu without a title; or title is not a string.""; }}
-                menu.title_loc = function(arg0) {{ return find_loc(title, arg0); }};
                 try {{ var check = menu.form[0]; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu without any form element.""; }}
 
                 // Menu - optional
                 try {{ var check = menu.left_margin; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.left_margin = 40; }}
                 try {{ var check = menu.left_margin; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""left_margin is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but left_margin is not numeric.""; }}
-                menu.left_margin_loc = function(arg0) {{ return find_loc(left_margin, arg0); }};
                 try {{ var check = menu.left_value_pos; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.left_value_pos = 300; }}
                 try {{ var check = menu.left_value_pos; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""left_value_pos is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but left_value_pos is not numeric.""; }}
-                menu.left_value_pos_loc = function(arg0) {{ return find_loc(left_value_pos, arg0); }};
                 try {{ var check = menu.apply; }} catch (_e) {{ menu.apply = undefined; }}
                 try {{ var check = menu.apply; if (!is_undefined(check) && ((check.type != ""OnChange"" && check.type != ""OnClose""))) throw ""apply type failed validation""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but apply.type is not in set: OnChange, OnClose.""; }}
-                if (!is_undefined(menu.apply)) menu.apply.run_onchange = function() {{ if (menu.apply.type == ""OnChange"") menu.apply.func(); }};
-                if (!is_undefined(menu.apply)) menu.apply.run_onclose = function() {{ if (menu.apply.type == ""OnClose"") menu.apply.func(); }};
-                if (!is_undefined(menu.apply)) menu.apply.run_onload = function() {{ menu.apply.func(); }};
+                if (!is_undefined(menu.apply)) menu.apply = {{
+                    type: menu.apply.type,
+                    func: menu.apply.func,
+                    run_onchange: function() {{ if (type == ""OnChange"") func(); }},
+                    run_onclose: function() {{ if (type == ""OnClose"") func(); }},
+                    run_onload: function() {{ func(); }}
+                }};
                 try {{ var check = menu.save_file; }} catch (_e) {{ menu.save_file = undefined; }}
                 try {{ var check = menu.save_file; if (!is_undefined(check) && ((check.type != ""Single"" && check.type != ""PerSlot"" && check.type != ""PerFile""))) throw ""save_file type failed validation""; }} catch (_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but save_file.type is not in set: Single, PerSlot, PerFile.""); }}
                 // TODO auto generation for save_file.name doesn't seem to work; or it could be the validation that doesn't work
                 try {{ var check = menu.save_file; if (!is_undefined(check)) check = check.name; }} catch (_e) {{ menu.save_file.name = string_savename(find_loc(menu.title)); }}
                 {{ var check = menu.save_file; if (!is_undefined(check)) check = check.name; if (is_string(check) && !is_savenamestring(check)) menu.save_file.name = string_savename_addini(menu.save_file.name); }}
                 try {{ var check = menu.save_file; if (!is_undefined(check)) {{check = check.name; if (!is_string(check) || !is_savenamestring(check)) throw ""save_file name isn't a string or contains invalid characters or no .ini"";}} }} catch (_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but save_file.name is missing; or is not a lower-case alphanumerical string. savefile.name = "" + menu.save_file.name); }}
-                if (!is_undefined(menu.save_file)) menu.save_file.category = function (arg0, arg1) {{
-                    switch (type) {{
-                        case ""Single"":
-                            return ""SETTINGS"";
-                        case ""PerSlot"":
-                            return ""SLOT"" + string(is_undefined(arg1) ? global.filechoice : arg1);
-                        case ""PerFile"":
-                            return ""CH"" + string(is_undefined(arg0) ? global.chapter : arg0) + ""_"" + string(is_undefined(arg1) ? global.filechoice : arg1);
-                        default:
-                            throw (""Unsupported save_file type: "" + type);
+                if (!is_undefined(menu.save_file)) menu.save_file = {{
+                    type: menu.save_file.type,
+                    name: menu.save_file.name,
+                    category: function(arg0, arg1) {{
+                        switch (type) {{
+                            case ""Single"":
+                                return ""SETTINGS"";
+                            case ""PerSlot"":
+                                return ""SLOT"" + string(is_undefined(arg1) ? global.filechoice : arg1);
+                            case ""PerFile"":
+                                return ""CH"" + string(is_undefined(arg0) ? global.chapter : arg0) + ""_"" + string(is_undefined(arg1) ? global.filechoice : arg1);
+                            default:
+                                throw (""Unsupported save_file type: "" + type);
+                        }}
                     }}
                 }};
                 try {{ var check = menu.world; }} catch (_e) {{ menu.world = ""Dark""; }}
@@ -414,90 +419,6 @@ foreach (string gamestart in gamestarts)
                 try {{ var check = menu.close_func; if (is_undefined(check)) throw ""close_func should not be undefined.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but close_func is undefined.""; }}
                 try {{ var check = menu.additional_save_data_refs; }} catch (_e) {{ menu.additional_save_data_refs = []; }}
                 try {{ var check = menu.additional_save_data_refs; if (!is_array(check)) throw ""additional_save_data_refs should be an array.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but additional_save_data_refs is not an array.""; }}
-
-                // helper methods
-                menu.load = function(arg0, arg1) {{
-                    if (is_undefined(save_file))
-                        return;
-
-                    var section = save_file.category(arg0, arg1);
-                    ossafe_ini_open(save_file.name);
-                    for (var i = 0; i < array_length(form); i++) {{
-                        if (form[i].no_save) {{}} else if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
-                            form[i].data_ref.load(section);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
-                    }}
-                    for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
-                        additional_save_data_refs[i].load(section);
-                    }}
-                    ossafe_ini_close();
-
-                    if (!is_undefined(apply))
-                        apply.run_onload()
-                }};
-                menu.save = function(arg0) {{
-                    if (is_undefined(save_file))
-                        return;
-
-                    var section = save_file.category(undefined, arg0);
-                    ossafe_ini_open(save_file.name);
-                    for (var i = 0; i < array_length(form); i++) {{
-                        if (form[i].no_save) {{}} else if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
-                            form[i].data_ref.save(section);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
-                    }}
-                    for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
-                        additional_save_data_refs[i].save(section);
-                    }}
-                    ossafe_ini_close();
-                }};
-                menu.copy = function(arg0, arg1) {{
-                    if (is_undefined(save_file))
-                        return;
-
-                    var from = save_file.category(undefined, arg0);
-                    var to = save_file.category(undefined, arg1);
-                    ossafe_ini_open(save_file.name);
-                    for (var i = 0; i < array_length(form); i++) {{
-                        if (form[i].no_save) {{}} else if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
-                            form[i].data_ref.copy(from, to);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
-                    }}
-                    for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
-                        additional_save_data_refs[i].copy(from, to);
-                    }}
-                    ossafe_ini_close();
-                }};
-                menu.del = function(arg0) {{
-                    if (is_undefined(save_file))
-                        return;
-
-                    var section = save_file.category(undefined, arg0);
-                    ossafe_ini_open(save_file.name);
-                    if (ini_section_exists(section))
-                        ini_section_delete(section);
-                    ossafe_ini_close();
-                }};
-                menu.all_data_refs = function() {{
-                    var data_refs = [];
-                    array_copy(data_refs, 0, additional_save_data_refs, 0, array_length(additional_save_data_refs));
-                    for (var i = 0; i < array_length(form); i++) {{
-                        if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
-                            array_insert(data_refs, -1, form[i].data_ref);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
-                    }}
-                    return data_refs;
-                }};
-                menu.save_data_refs = function() {{
-                    var data_refs = [];
-                    array_copy(data_refs, 0, additional_save_data_refs, 0, array_length(additional_save_data_refs));
-                    for (var i = 0; i < array_length(form); i++) {{
-                        if (form[i].no_save) {{}} else if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
-                            array_insert(data_refs, -1, form[i].data_ref);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
-                    }}
-                    return data_refs;
-                }};
 
                 var init_data_ref = function(arg0) {{
                     var data_ref = arg0;
@@ -514,27 +435,28 @@ foreach (string gamestart in gamestarts)
                     try {{ var check = data_ref.ini_key; }} catch (_e) {{ data_ref.ini_key = data_ref.var_name; }}
                     try {{ var check = data_ref.ini_key; if (!is_string(check)) throw ""data ref ini_key should be a string.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref ini_key is not a string.""; }}
                     // helper methods
-                    data_ref.get = function() {{ return variable_instance_exists(handle, var_name) ? variable_instance_get(handle, var_name) : default_value; }};
-                    data_ref.set = function(arg0) {{ variable_instance_set(handle, var_name, (!is_undefined(arg0) ? arg0 : default_value)); }};
-                    data_ref.read = function(arg0 /* section */) {{
-                        if (is_string(default_value)) return ini_read_string(arg0, ini_key, default_value);
-                        if (is_numeric(default_value)) return ini_read_real(arg0, ini_key, default_value);
-                        return default_value;
-                    }};
-                    data_ref.write = function(arg0 /* section */, arg1 /* value */) {{
-                        if (is_string(default_value)) ini_write_string(arg0, ini_key, arg1);
-                        if (is_numeric(default_value)) ini_write_real(arg0, ini_key, arg1);
-                    }};
-                    data_ref.load = function(arg0 /* section */) {{
-                        set(read(arg0));
-                    }};
-                    data_ref.save = function(arg0 /* section */) {{
-                        write(arg0, get());
-                    }};
-                    data_ref.copy = function(arg0 /* from section */, arg1 /* to section */) {{
-                        write(arg1, read(arg0));
+                    return {{
+                        var_name: data_ref.var_name,
+                        default_value: data_ref.default_value,
+                        handle: data_ref.handle,
+                        ini_key: data_ref.ini_key,
+                        get: function() {{ return variable_instance_exists(handle, var_name) ? variable_instance_get(handle, var_name) : default_value; }},
+                        set: function(arg0) {{ variable_instance_set(handle, var_name, (!is_undefined(arg0) ? arg0 : default_value)); }},
+                        read: function(arg0 /* section */) {{
+                            if (is_string(default_value)) return ini_read_string(arg0, ini_key, default_value);
+                            if (is_numeric(default_value)) return ini_read_real(arg0, ini_key, default_value);
+                            return default_value;
+                        }},
+                        write: function(arg0 /* section */, arg1 /* value */) {{
+                            if (is_string(default_value)) ini_write_string(arg0, ini_key, arg1);
+                            if (is_numeric(default_value)) ini_write_real(arg0, ini_key, arg1);
+                        }},
+                        load: function(arg0 /* section */) {{ set(read(arg0)); }},
+                        save: function(arg0 /* section */) {{ write(arg0, get()); }},
+                        copy: function(arg0 /* from section */, arg1 /* to section */) {{ write(arg1, read(arg0)); }}
                     }};
                 }};
+                inited_form = [];
                 for (var i = 0; i < array_length(menu.form); i++) {{
                     var row = menu.form[i];
                     // Form - mandatory
@@ -548,7 +470,6 @@ foreach (string gamestart in gamestarts)
                     }} else if (row.type == ""Header"") {{
                         try {{ var check = row.title; if (is_array(check)) check = check[0]; }} catch (_e) {{ row.title = """"; }}
                     }} else throw (""Unsupported row type: "" + row.type);
-                    row.title_loc = function(arg0) {{ return find_loc(title, arg0); }};
 
                     // Button - mandatory | Slider/Toggle - optional | Header - invalid
                     if (row.type == ""Button"") {{
@@ -561,56 +482,8 @@ foreach (string gamestart in gamestarts)
                     // Slider/Toggle - mandatory | Button/Header - invalid
                     if (row.type == ""Slider"" || row.type == ""Toggle"") {{
                         try {{ var check = row.data_ref; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a data_ref.""; }}
-                        init_data_ref(row.data_ref);
+                        row.data_ref = init_data_ref(row.data_ref);
                         try {{ var check = row.value_range; if (!is_string(check) && !is_array(check)) throw ""row value_range must be of type string or array""; if (is_array(check)) check = check[0]; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a value_range.""; }}
-                        row.value_range_loc = function(arg0) {{ return find_loc(value_range, arg0); }};
-                        row.value_string = function() {{
-                            var value = data_ref.get();
-                            var value_range = value_range_loc();
-                            var ranges = string_split(value_range, "";"");
-                            var valueString = """";
-
-                            for (var j = 0; j < array_length(ranges); j++) {{
-                                var range = ranges[j];
-                                if (string_pos(""~"", range)) {{
-                                    var minMax = string_split(string_replace(range, ""%"", """"), ""~"");
-                                    var isPercent = string_ends_with(range, ""%"");
-                                    var convVal = isPercent ? value * 100 : value;
-                                    if (convVal <= minMax[1] || j+1 == array_length(ranges)) {{
-                                        valueString = string_trim(string_format(convVal, 3, (isPercent && convVal > -20 && convVal < 20) ? 1 : 0) + (isPercent ? ""%"" : """"));
-                                        break;
-                                    }}
-                                }} else if (string_pos(""="", range)) {{
-                                    var labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                    var isString = string_ends_with(range, ""`"");
-                                    var isPercent = !isString && string_ends_with(range, ""%"");
-                                    var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-
-                                    var isMatch = false;
-                                    if (isString)
-                                        isMatch = value == labelValue[1];
-                                    else if (isBool)
-                                        isMatch = value == bool(labelValue[1]);
-                                    else {{ // number
-                                        var convBack = isPercent ? 1 / 100 : 1;
-                                        isMatch = value == real(labelValue[1]) * convBack;
-                                    }}
-
-                                    if (isMatch || j+1 == array_length(ranges)) {{
-                                        valueString = labelValue[0];
-                                        break;
-                                    }}
-                                }} else if (string_ends_with(range, ""%"")) {{
-                                    var minMax = string_split(string_replace(range, ""%"", """"), ""-"");
-                                    if (value * 100 <= minMax[1] || j+1 == array_length(ranges)) {{
-                                        valueString = string_trim(string_format(value * 100, 3, value < 0.2 ? 1 : 0) + ""%"");
-                                        break;
-                                    }}
-                                }}
-                            }}
-
-                            return valueString;
-                        }};
                     }} else if (row.type == ""Button"" || row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
 
                     // Slider/Toggle - optional | Button/Header - invalid
@@ -630,18 +503,275 @@ foreach (string gamestart in gamestarts)
                     if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Button"" || row.type == ""Header"") {{
                         try {{ var check = row.disabled; if (is_undefined(check)) throw ""row disabled should be a bool or a callable""; }} catch (_e) {{ row.disabled = false; }}
                         try {{ var check = row.hidden; if (is_undefined(check)) throw ""row hidden should be a bool or a callable""; }} catch (_e) {{ row.hidden = false; }}
-                        row.is_disabled = function() {{ return !is_bool(disabled) ? disabled() : disabled; }};
-                        row.is_hidden = function() {{ return !is_bool(hidden) ? hidden() : hidden; }};
                         try {{ var check = row.ref; }} catch (_e) {{ row.ref = undefined; }}
                         try {{ var check = row.ref; if (!is_undefined(check) && !is_string(check.var_name)) throw ""row ref var_name should be a string""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row ref does not have a valid value for 'var_name'.""; }}
                         try {{ var check = row.ref; if (!is_undefined(check)) check = check.handle; }} catch (_e) {{ row.ref.handle = global; }}
                         try {{ var check = row.ref; if (!is_undefined(check) && is_undefined(check.handle)) throw ""row ref handle should not be undefined""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row ref does not have a valid value for 'handle'.""; }}
-                        if (!is_undefined(row.ref)) variable_instance_set(row.ref.handle, row.ref.var_name, row);
                     }} else throw (""Unsupported row type: "" + row.type);
+
+                    if (row.type == ""Toggle"")
+                        row = {{
+                            type: row.type,
+                            title: row.title,
+                            data_ref: row.data_ref,
+                            value_range: row.value_range,
+                            no_save: row.no_save,
+                            trigger_func: row.trigger_func,
+                            change_func: row.change_func,
+                            disabled: row.disabled,
+                            hidden: row.hidden,
+                            ref: row.ref,
+                            title_loc: function(arg0) {{ return global.modmenu.find_locfind_loc(title, arg0); }},
+                            value_range_loc: function(arg0) {{ return global.modmenu.find_locfind_loc(value_range, arg0); }},
+                            value_string: function() {{
+                                var value = data_ref.get();
+                                var value_range = value_range_loc();
+                                var ranges = string_split(value_range, "";"");
+                                var valueString = """";
+
+                                for (var j = 0; j < array_length(ranges); j++) {{
+                                    var range = ranges[j];
+                                    if (string_pos(""~"", range)) {{
+                                        var minMax = string_split(string_replace(range, ""%"", """"), ""~"");
+                                        var isPercent = string_ends_with(range, ""%"");
+                                        var convVal = isPercent ? value * 100 : value;
+                                        if (convVal <= minMax[1] || j+1 == array_length(ranges)) {{
+                                            valueString = string_trim(string_format(convVal, 3, (isPercent && convVal > -20 && convVal < 20) ? 1 : 0) + (isPercent ? ""%"" : """"));
+                                            break;
+                                        }}
+                                    }} else if (string_pos(""="", range)) {{
+                                        var labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                        var isString = string_ends_with(range, ""`"");
+                                        var isPercent = !isString && string_ends_with(range, ""%"");
+                                        var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
+
+                                        var isMatch = false;
+                                        if (isString)
+                                            isMatch = value == labelValue[1];
+                                        else if (isBool)
+                                            isMatch = value == bool(labelValue[1]);
+                                        else {{ // number
+                                            var convBack = isPercent ? 1 / 100 : 1;
+                                            isMatch = value == real(labelValue[1]) * convBack;
+                                        }}
+
+                                        if (isMatch || j+1 == array_length(ranges)) {{
+                                            valueString = labelValue[0];
+                                            break;
+                                        }}
+                                    }} else if (string_ends_with(range, ""%"")) {{
+                                        var minMax = string_split(string_replace(range, ""%"", """"), ""-"");
+                                        if (value * 100 <= minMax[1] || j+1 == array_length(ranges)) {{
+                                            valueString = string_trim(string_format(value * 100, 3, value < 0.2 ? 1 : 0) + ""%"");
+                                            break;
+                                        }}
+                                    }}
+                                }}
+
+                                return valueString;
+                            }},
+                            is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
+                            is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
+                        }};
+                    else if (row.type == ""Slider"")
+                        row = {{
+                            type: row.type,
+                            title: row.title,
+                            data_ref: row.data_ref,
+                            value_range: row.value_range,
+                            no_save: row.no_save,
+                            revert_on_cancel: row.revert_on_cancel,
+                            trigger_func: row.trigger_func,
+                            change_func: row.change_func,
+                            cancel_func: row.cancel_func,
+                            accept_func: row.accept_func,
+                            disabled: row.disabled,
+                            hidden: row.hidden,
+                            ref: row.ref,
+                            title_loc: function(arg0) {{ return global.modmenu.find_locfind_loc(title, arg0); }},
+                            value_range_loc: function(arg0) {{ return global.modmenu.find_locfind_loc(value_range, arg0); }},
+                            value_string: function() {{
+                                var value = data_ref.get();
+                                var value_range = value_range_loc();
+                                var ranges = string_split(value_range, "";"");
+                                var valueString = """";
+
+                                for (var j = 0; j < array_length(ranges); j++) {{
+                                    var range = ranges[j];
+                                    if (string_pos(""~"", range)) {{
+                                        var minMax = string_split(string_replace(range, ""%"", """"), ""~"");
+                                        var isPercent = string_ends_with(range, ""%"");
+                                        var convVal = isPercent ? value * 100 : value;
+                                        if (convVal <= minMax[1] || j+1 == array_length(ranges)) {{
+                                            valueString = string_trim(string_format(convVal, 3, (isPercent && convVal > -20 && convVal < 20) ? 1 : 0) + (isPercent ? ""%"" : """"));
+                                            break;
+                                        }}
+                                    }} else if (string_pos(""="", range)) {{
+                                        var labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                        var isString = string_ends_with(range, ""`"");
+                                        var isPercent = !isString && string_ends_with(range, ""%"");
+                                        var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
+
+                                        var isMatch = false;
+                                        if (isString)
+                                            isMatch = value == labelValue[1];
+                                        else if (isBool)
+                                            isMatch = value == bool(labelValue[1]);
+                                        else {{ // number
+                                            var convBack = isPercent ? 1 / 100 : 1;
+                                            isMatch = value == real(labelValue[1]) * convBack;
+                                        }}
+
+                                        if (isMatch || j+1 == array_length(ranges)) {{
+                                            valueString = labelValue[0];
+                                            break;
+                                        }}
+                                    }} else if (string_ends_with(range, ""%"")) {{
+                                        var minMax = string_split(string_replace(range, ""%"", """"), ""-"");
+                                        if (value * 100 <= minMax[1] || j+1 == array_length(ranges)) {{
+                                            valueString = string_trim(string_format(value * 100, 3, value < 0.2 ? 1 : 0) + ""%"");
+                                            break;
+                                        }}
+                                    }}
+                                }}
+
+                                return valueString;
+                            }},
+                            is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
+                            is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
+                        }};
+                    else if (row.type == ""Button"")
+                        row = {{
+                            type: row.type,
+                            title: row.title,
+                            trigger_func: row.trigger_func,
+                            disabled: row.disabled,
+                            hidden: row.hidden,
+                            ref: row.ref,
+                            title_loc: function(arg0) {{ return global.modmenu.find_locfind_loc(title, arg0); }},
+                            is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
+                            is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
+                        }};
+                    else if (row.type == ""Header"")
+                        row = {{
+                            type: row.type,
+                            title: row.title,
+                            disabled: row.disabled,
+                            hidden: row.hidden,
+                            ref: row.ref,
+                            title_loc: function(arg0) {{ return global.modmenu.find_locfind_loc(title, arg0); }},
+                            is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
+                            is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
+                        }};
+                    else throw (""Unsupported row type: "" + row.type);
+
+                    if (!is_undefined(row.ref)) variable_instance_set(row.ref.handle, row.ref.var_name, row);
+                    array_insert(inited_form, array_length(inited_form), row);
                 }}
+                menu.form = inited_form;
+                inited_add_data_refs = [];
                 for (var i = 0; i < array_length(menu.additional_save_data_refs); i++) {{
-                    init_data_ref(menu.additional_save_data_refs[i]);
+                    array_insert(inited_add_data_refs, array_length(inited_add_data_refs), init_data_ref(menu.additional_save_data_refs[i]));
                 }}
+                menu.additional_save_data_refs = inited_add_data_refs;
+
+                menu = {{
+                    title: menu.title,
+                    left_margin: menu.left_margin,
+                    left_value_pos: menu.left_value_pos,
+                    apply: menu.apply,
+                    save_file: menu.save_file,
+                    world: menu.world,
+                    open_func: menu.open_func,
+                    close_func: menu.close_func,
+                    form: menu.form,
+                    additional_save_data_refs: menu.additional_save_data_refs,
+                    title_loc: function(arg0) {{ return global.modmenu.find_loc(title, arg0); }},
+                    left_margin_loc: function(arg0) {{ return global.modmenu.find_loc(left_margin, arg0); }},
+                    left_value_pos_loc: function(arg0) {{ return global.modmenu.find_loc(left_value_pos, arg0); }},
+                    load: function(arg0, arg1) {{
+                        if (is_undefined(save_file))
+                            return;
+
+                        var section = save_file.category(arg0, arg1);
+                        ossafe_ini_open(save_file.name);
+                        for (var i = 0; i < array_length(form); i++) {{
+                            if (form[i].no_save) {{}} else if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                                form[i].data_ref.load(section);
+                            }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }}
+                        for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
+                            additional_save_data_refs[i].load(section);
+                        }}
+                        ossafe_ini_close();
+
+                        if (!is_undefined(apply))
+                            apply.run_onload()
+                    }},
+                    save: function(arg0) {{
+                        if (is_undefined(save_file))
+                            return;
+
+                        var section = save_file.category(undefined, arg0);
+                        ossafe_ini_open(save_file.name);
+                        for (var i = 0; i < array_length(form); i++) {{
+                            if (form[i].no_save) {{}} else if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                                form[i].data_ref.save(section);
+                            }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }}
+                        for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
+                            additional_save_data_refs[i].save(section);
+                        }}
+                        ossafe_ini_close();
+                    }},
+                    copy: function(arg0, arg1) {{
+                        if (is_undefined(save_file))
+                            return;
+
+                        var from = save_file.category(undefined, arg0);
+                        var to = save_file.category(undefined, arg1);
+                        ossafe_ini_open(save_file.name);
+                        for (var i = 0; i < array_length(form); i++) {{
+                            if (form[i].no_save) {{}} else if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                                form[i].data_ref.copy(from, to);
+                            }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }}
+                        for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
+                            additional_save_data_refs[i].copy(from, to);
+                        }}
+                        ossafe_ini_close();
+                    }},
+                    del: function(arg0) {{
+                        if (is_undefined(save_file))
+                            return;
+
+                        var section = save_file.category(undefined, arg0);
+                        ossafe_ini_open(save_file.name);
+                        if (ini_section_exists(section))
+                            ini_section_delete(section);
+                        ossafe_ini_close();
+                    }},
+                    all_data_refs: function() {{
+                        var data_refs = [];
+                        array_copy(data_refs, 0, additional_save_data_refs, 0, array_length(additional_save_data_refs));
+                        for (var i = 0; i < array_length(form); i++) {{
+                            if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                                array_insert(data_refs, -1, form[i].data_ref);
+                            }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }}
+                        return data_refs;
+                    }},
+                    save_data_refs: function() {{
+                        var data_refs = [];
+                        array_copy(data_refs, 0, additional_save_data_refs, 0, array_length(additional_save_data_refs));
+                        for (var i = 0; i < array_length(form); i++) {{
+                            if (form[i].no_save) {{}} else if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                                array_insert(data_refs, -1, form[i].data_ref);
+                            }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }}
+                        return data_refs;
+                    }}
+                }};
 
                 array_insert(menus, array_length(menus), menu);
                 menu_count++;
@@ -992,7 +1122,7 @@ foreach (string darkcon in darkcons)
             if (modmenu.row_no >= (arg0 - 1))
                 return false;
 
-            return (form_data[i].type == ""Header"");
+            return (arg1[modmenu.row_no].type == ""Header"");
         }}
 
         function ishidden(arg0, arg1)
