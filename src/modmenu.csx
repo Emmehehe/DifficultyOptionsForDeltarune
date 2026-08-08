@@ -533,7 +533,6 @@ foreach (string gamestart in gamestarts)
                             return valueString;
                         }};
                     }} else if (row.type == ""Button"" || row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
-                    // TODO value_range/change/display helpers?
 
                     // Slider/Toggle - optional | Button/Header - invalid
                     if (row.type == ""Slider"" || row.type == ""Toggle"") {{
@@ -555,8 +554,6 @@ foreach (string gamestart in gamestarts)
                         row.is_disabled = function() {{ return is_callable(row.disabled) ? row.disabled() : row.disabled; }};
                         row.is_hidden = function() {{ return is_callable(row.hidden) ? row.hidden() : row.hidden; }};
                     }} else throw (""Unsupported row type: "" + row.type);
-
-                    // TODO size/display/color helpers?
                 }}
                 for (var i = 0; i < array_length(menu.additional_save_data_refs); i++) {{
                     init_data_ref(menu.additional_save_data_refs[i]);
@@ -1050,8 +1047,10 @@ foreach (string darkcon in darkcons)
                         var value_range = row_data.value_range_loc();
                         var ranges = string_split(value_range, "";"");
 
-                        if (row_data.type != ""Slider"")
+                        if (row_data.type != ""Slider"") {{
                             modmenu.row_selected = false;
+                            modmenu.slider_orig_value = row_data.data_ref.get();
+                        }}
 
                         if (row_data.type == ""Toggle"") {{
                             // TODO does this handle spread ranges properly?
@@ -1401,11 +1400,17 @@ foreach (string darkcon in darkcons)
 
                     if (se_select == 1)
                         row_data.accept_func();
-                    if (se_cancel == 1)
+                    if (se_cancel == 1) {{
+                        if (row_data.revert_on_cancel && row_data.data_ref.get() != modmenu.slider_orig_value) {{
+                            row_data.data_ref.set(modmenu.slider_orig_value);
+                            row_data.change_func();
+                        }}
                         row_data.cancel_func();
+                    }}
 
                     modmenu.slider_step = 1; // reset to 1 as first interaction should be instantaneous
                     modmenu.slider_speed = modmenu.slider_speed_min;
+                    modmenu.slider_orig_value = undefined;
                 }}
             }}
         }}
