@@ -150,84 +150,101 @@ if (ch_no == 0)
     darkcons = darkcons.Concat(demoDarkcons).ToArray();
 }
 
-// The demo is on an old version of game maker that doesn't have the string_split, string_ends_with, or string_trim functions so add (very) basic implementations
 if (ch_no == 0) {
+    // WARNING: only works for delimiters 1 char long
+    // WARNING: does not have optional args from GM's impl
+    string string_split = @"
+        function string_split(arg0, arg1)
+        {
+            length = string_length(arg0);
+            var result = array_create(0);
+            array_push(result, """");
+
+            // string_char_at index starts at 1 for some reason
+            for (i = 1; i <= length; i++)
+            {
+                thischar = string_char_at(arg0, i);
+
+                if (thischar != arg1) {
+                    result[array_length(result) - 1] = result[array_length(result) - 1] + thischar;
+                }
+                else
+                {
+                    array_push(result, """");
+                }
+            }
+
+            return result;
+        }
+
+    ";
     foreach (string darkcon in darkcons)
     {
-        // WARNING: only works for delimiters 1 char long
-        // WARNING: does not have optional args from GM's impl
-        string string_split = @"
-            function string_split(arg0, arg1)
-            {
-                length = string_length(arg0);
-                var result = array_create(0);
-                array_push(result, """");
-
-                // string_char_at index starts at 1 for some reason
-                for (i = 1; i <= length; i++)
-                {
-                    thischar = string_char_at(arg0, i);
-
-                    if (thischar != arg1) {
-                        result[array_length(result) - 1] = result[array_length(result) - 1] + thischar;
-                    }
-                    else
-                    {
-                        array_push(result, """");
-                    }
-                }
-
-                return result;
-            }
-
-        ";
         importGroup.QueuePrepend(darkcon + "_Step_0", string_split);
         importGroup.QueuePrepend(darkcon + "_Draw_0", string_split);
+    }
+    foreach (string gamestart in gamestarts)
+    {
+        importGroup.QueuePrepend(gamestart, string_split);
+    }
 
-        // WARNING: only works for substr 1 char long
-        string string_ends_with = @"
-            function string_ends_with(arg0, arg1)
-            {
-                length = string_length(arg0);
-                // string_char_at index starts at 1 for some reason
-                lastchar = string_char_at(arg0, length);
+    // WARNING: only works for substr 1 char long
+    string string_ends_with = @"
+        function string_ends_with(arg0, arg1)
+        {
+            length = string_length(arg0);
+            // string_char_at index starts at 1 for some reason
+            lastchar = string_char_at(arg0, length);
 
-                return (lastchar == arg1);
-            }
+            return (lastchar == arg1);
+        }
 
-        ";
+    ";
+    foreach (string darkcon in darkcons)
+    {
         importGroup.QueuePrepend(darkcon + "_Step_0", string_ends_with);
         importGroup.QueuePrepend(darkcon + "_Draw_0", string_ends_with);
+    }
+    foreach (string gamestart in gamestarts)
+    {
+        importGroup.QueuePrepend(gamestart, string_ends_with);
+    }
 
-        // WARNING: only trims spaces, not other types of whitespace
-        // WARNING: only trims whitespace from the start of the string
-        string string_trim = @"
-            function string_trim(arg0)
+    // WARNING: only trims spaces, not other types of whitespace
+    // WARNING: only trims whitespace from the start of the string
+    string string_trim = @"
+        function string_trim(arg0)
+        {
+            length = string_length(arg0);
+            result = """";
+            var foundNonWS = false;
+
+            // string_char_at index starts at 1 for some reason
+            for (i = 1; i <= length; i++)
             {
-                length = string_length(arg0);
-                result = """";
-                var foundNonWS = false;
+                thischar = string_char_at(arg0, i);
 
-                // string_char_at index starts at 1 for some reason
-                for (i = 1; i <= length; i++)
-                {
-                    thischar = string_char_at(arg0, i);
-
-                    if (thischar != "" "") {
-                        foundNonWS = true;
-                    }
-
-                    if (foundNonWS) {
-                        result += thischar;
-                    }
+                if (thischar != "" "") {
+                    foundNonWS = true;
                 }
 
-                return result;
+                if (foundNonWS) {
+                    result += thischar;
+                }
             }
 
-        ";
+            return result;
+        }
+
+    ";
+    foreach (string darkcon in darkcons)
+    {
         importGroup.QueuePrepend(darkcon + "_Step_0", string_trim);
         importGroup.QueuePrepend(darkcon + "_Draw_0", string_trim);
+    }
+    foreach (string gamestart in gamestarts)
+    {
+        importGroup.QueuePrepend(gamestart, string_trim);
     }
 }
 
@@ -285,8 +302,8 @@ foreach (string gamestart in gamestarts)
 
             // some translation mods replace the english translation rather than using DR's built in localisation support, so can't always rely on global.lang and have to override for certain mods
             lang_override: """",
-            get_lang: function () {{ return (modmenu.lang_override != """" ? modmenu.lang_override : global.lang) }},
-            find_loc: function (arg0, arg1) {{
+            get_lang: function() {{ return (modmenu.lang_override != """" ? modmenu.lang_override : global.lang) }},
+            find_loc: function(arg0, arg1) {{
                 if (!is_array(arg0))
                     return arg0;
                 var lang = is_undefined(arg1) ? get_lang() : arg1;
