@@ -245,6 +245,7 @@ foreach (string gamestart in gamestarts)
             row_selected: false,
             row_scroll: 0,
             menus: [], // array_create(0),
+            menu_count: 0,
             active_menu: function () {{ return menus[menu_no] }},
 
             surf_titles: -1,
@@ -483,6 +484,54 @@ foreach (string gamestart in gamestarts)
                         try {{ var check = row.data_ref; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a data_ref.""; }}
                         init_data_ref(row.data_ref);
                         try {{ var check = row.value_range; if (!is_string(check) && !is_array(check)) throw ""row value_range must be of type string or array""; if (is_array(check)) check = check[0]; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a value_range.""; }}
+                        row.value_range_loc = function(arg0) {{ return find_loc(row.value_range, arg0); }};
+                        row.value_string = function() {{
+                            var value = row.data_ref.get();
+                            var value_range = row.value_range_loc();
+                            var ranges = string_split(value_range, "";"");
+                            var valueString = """";
+
+                            for (var j = 0; j < array_length(ranges); j++) {{
+                                var range = ranges[j];
+                                if (string_pos(""~"", range)) {{
+                                    var minMax = string_split(string_replace(range, ""%"", """"), ""~"");
+                                    var isPercent = string_ends_with(range, ""%"");
+                                    var convVal = isPercent ? value * 100 : value;
+                                    if (convVal <= minMax[1] || j+1 == array_length(ranges)) {{
+                                        valueString = string_trim(string_format(convVal, 3, (isPercent && convVal > -20 && convVal < 20) ? 1 : 0) + (isPercent ? ""%"" : """"));
+                                        break;
+                                    }}
+                                }} else if (string_pos(""="", range)) {{
+                                    var labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                    var isString = string_ends_with(range, ""`"");
+                                    var isPercent = !isString && string_ends_with(range, ""%"");
+                                    var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
+
+                                    var isMatch = false;
+                                    if (isString)
+                                        isMatch = value == labelValue[1];
+                                    else if (isBool)
+                                        isMatch = value == bool(labelValue[1]);
+                                    else {{ // number
+                                        var convBack = isPercent ? 1 / 100 : 1;
+                                        isMatch = value == real(labelValue[1]) * convBack;
+                                    }}
+
+                                    if (isMatch || j+1 == array_length(ranges)) {{
+                                        valueString = labelValue[0];
+                                        break;
+                                    }}
+                                }} else if (string_ends_with(range, ""%"")) {{
+                                    var minMax = string_split(string_replace(range, ""%"", """"), ""-"");
+                                    if (value * 100 <= minMax[1] || j+1 == array_length(ranges)) {{
+                                        valueString = string_trim(string_format(value * 100, 3, value < 0.2 ? 1 : 0) + ""%"");
+                                        break;
+                                    }}
+                                }}
+                            }}
+
+                            return valueString;
+                        }};
                     }} else if (row.type == ""Button"" || row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
                     // TODO value_range/change/display helpers?
 
@@ -503,6 +552,8 @@ foreach (string gamestart in gamestarts)
                     if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Button"" || row.type == ""Header"") {{
                         try {{ var check = row.disabled; if (!is_bool(check) && !is_callable(check)) throw ""row disabled should be a bool or a callable""; }} catch (_e) {{ row.disabled = false; }}
                         try {{ var check = row.hidden; if (!is_bool(check) && !is_callable(check)) throw ""row hidden should be a bool or a callable""; }} catch (_e) {{ row.hidden = false; }}
+                        row.is_disabled = function() {{ return is_callable(row.disabled) ? row.disabled() : row.disabled; }};
+                        row.is_hidden = function() {{ return is_callable(row.hidden) ? row.hidden() : row.hidden; }};
                     }} else throw (""Unsupported row type: "" + row.type);
 
                     // TODO size/display/color helpers?
@@ -512,6 +563,7 @@ foreach (string gamestart in gamestarts)
                 }}
 
                 array_insert(menus, array_length(menus), menu);
+                menu_count++;
                 return menu;
             }}
         }};
@@ -557,17 +609,17 @@ foreach (string darkcon in darkcons)
 
             draw_set_color(c_white);
 
-            if (array_length(modmenu.menus) > 0)
+            if (modmenu.menu_count > 0)
             {{
                 // top row buttons
                 var isSubmenu = (modmenu.row_no >= 0);
-                var isMenuLonely = array_length(modmenu.menus) == 1;
+                var isMenuLonely = modmenu.menu_count == 1;
 
                 var allmodmenus = """";
 
-                for (var i = modmenu.menu_no; i < array_length(modmenu.menus); i++)
+                for (var i = modmenu.menu_no; i < modmenu.menu_count; i++)
                 {{
-                    allmodmenus += string_upper(modmenu.find_loc(modmenu.menus[i].title)) + (i + 1 < array_length(modmenu.menus) ? ""        "" : """");
+                    allmodmenus += string_upper(modmenu.menus[i].title_loc()) + (i + 1 < modmenu.menu_count ? ""        "" : """");
                 }}
 
                 surface_set_target(modmenu.get_surf_titles());
@@ -592,7 +644,7 @@ foreach (string darkcon in darkcons)
                     draw_set_color(c_gray);
                     draw_text(0, 0, allmodmenus);
                     draw_set_color(c_orange);
-                    draw_text(0, 0, string_upper(modmenu.find_loc(modmenu.active_menu().title)));
+                    draw_text(0, 0, string_upper(modmenu.active_menu().title_loc()));
                 }}
 
                 draw_sprite(spr_darkmodsfade, 0, 410 - 35, 0);
@@ -602,20 +654,14 @@ foreach (string darkcon in darkcons)
 
                 if (!isSubmenu) {{
                     menusiner += 1;
-                    draw_sprite_part(spr_heart_harrows, menusiner / 20, 8 - 8 * (modmenu.menu_no > 0), 0, 16 + 8 * (modmenu.menu_no > 0) + 8 * (modmenu.menu_no < (array_length(modmenu.menus) - 1)), 16, xx + 85 - 8 * (modmenu.menu_no > 0), yy + 120);
+                    draw_sprite_part(spr_heart_harrows, menusiner / 20, 8 - 8 * (modmenu.menu_no > 0), 0, 16 + 8 * (modmenu.menu_no > 0) + 8 * (modmenu.menu_no < (modmenu.menu_count - 1)), 16, xx + 85 - 8 * (modmenu.menu_no > 0), yy + 120);
                 }}
 
                 // form buttons
-                var left_margin = modmenu.find_loc(modmenu.active_menu().left_margin);
-                if (is_undefined(left_margin))
-                    left_margin = 40;
+                var left_margin = modmenu.active_menu().left_margin_loc();
                 var _xPos = xx + 130 + left_margin;
                 var _heartXPos = xx + 105 + left_margin;
-
-                var left_value_pos = modmenu.find_loc(modmenu.active_menu().left_value_pos);
-                if (is_undefined(left_value_pos))
-                    left_value_pos = 300;
-                var _selectXPos = xx + 130 + left_value_pos;
+                var _selectXPos = xx + 130 + modmenu.active_menu().left_value_pos_loc();
 
                 draw_set_color(c_white);
 
@@ -642,74 +688,26 @@ foreach (string darkcon in darkcons)
                         }}
 
                         var row_data = form_data[i];
-                        var row_hidden_data = row_data.hidden;
-                        var row_hidden = !is_undefined(row_hidden_data) ? row_hidden_data : false;
-                        if (row_hidden) {{
+                        if (row_data.is_hidden()) {{
                             i++;
                             continue;
                         }}
 
-                        var row_disabled_data = row_data.disabled;
-                        var row_disabled = !is_undefined(row_disabled_data) ? row_disabled_data : false;
-                        if (row_disabled)
+                        if (row_data.is_disabled())
                             draw_set_color(c_gray);
                         else if (modmenu.row_selected && modmenu.row_no == i)
                             draw_set_color(c_yellow);
                         else
                             draw_set_color(c_white);
 
-                        var value_ref = row_data.value_ref;
-                        var value = !is_undefined(value_ref) ? variable_instance_get(global, value_ref) : -1;
-                        var value_range = modmenu.find_loc(row_data.value_range);
-                        var ranges = !is_undefined(value_range) ? string_split(value_range, "";"") : [];
-                        var valueString = """";
-                        var isCategory = is_undefined(value_range) && is_undefined(row_data.trigger_func);
-
-                        draw_text_transformed(_xPos - (isCategory * 28), yy + yprogress - (isCategory * 5){(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(modmenu.find_loc(row_data.title)), (isCategory ? 0.5 : 1), (isCategory ? 0.5 : 1), 0);
+                        var isCategory = (row_data.type == ""Header"");
+                        draw_text_transformed(_xPos - (isCategory * 28), yy + yprogress - (isCategory * 5){(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.title_loc()), (isCategory ? 0.5 : 1), (isCategory ? 0.5 : 1), 0);
                         if (isCategory){{
                             draw_line(_xPos - 28 - 3, yy + yprogress + 9, _xPos + 400, yy + yprogress + 9);
                         }}
 
-                        for (var j = 0; j < array_length(ranges); j++) {{
-                            var range = ranges[j];
-                            if (string_pos(""~"", range)) {{
-                                var minMax = string_split(string_replace(range, ""%"", """"), ""~"");
-                                var isPercent = string_ends_with(range, ""%"");
-                                var convVal = isPercent ? value * 100 : value;
-                                if (convVal <= minMax[1] || j+1 == array_length(ranges)) {{
-                                    valueString = string_trim(string_format(convVal, 3, (isPercent && convVal > -20 && convVal < 20) ? 1 : 0) + (isPercent ? ""%"" : """"));
-                                    break;
-                                }}
-                            }} else if (string_pos(""="", range)) {{
-                                var labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                var isString = string_ends_with(range, ""`"");
-                                var isPercent = !isString && string_ends_with(range, ""%"");
-                                var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-
-                                var isMatch = false;
-                                if (isString)
-                                    isMatch = value == labelValue[1];
-                                else if (isBool)
-                                    isMatch = value == bool(labelValue[1]);
-                                else {{ // number
-                                    var convBack = isPercent ? 1 / 100 : 1;
-                                    isMatch = value == real(labelValue[1]) * convBack;
-                                }}
-
-                                if (isMatch || j+1 == array_length(ranges)) {{
-                                    valueString = labelValue[0];
-                                    break;
-                                }}
-                            }} else if (string_ends_with(range, ""%"")) {{
-                                var minMax = string_split(string_replace(range, ""%"", """"), ""-"");
-                                if (value * 100 <= minMax[1] || j+1 == array_length(ranges)) {{
-                                    valueString = string_trim(string_format(value * 100, 3, value < 0.2 ? 1 : 0) + ""%"");
-                                    break;
-                                }}
-                            }}
-                        }}
-
-                        draw_text(_selectXPos, yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(valueString));
+                        if (row_data.type == ""Slider"" || row_data.type == ""Toggle"")
+                            draw_text(_selectXPos, yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.value_string()));
 
                         if (modmenu.row_no == i){{
                             heartyprogress = yprogress;
@@ -735,8 +733,7 @@ foreach (string darkcon in darkcons)
                         if (modmenu.row_scroll == i){{
                             scrollprogress = totalmenulength;
                         }}
-                        var isCategory = is_undefined(modmenu.find_loc(form_data[i].value_range)) && is_undefined(form_data[i].trigger_func);
-                        totalmenulength += (isCategory ? 12 : 35);
+                        totalmenulength += ((form_data[i].type == ""Header"") ? 12 : 35);
                     }}
 
                     // also need to account for empty space at the bottom of the menu
@@ -749,8 +746,7 @@ foreach (string darkcon in darkcons)
                         }}
                         else
                         {{
-                            var isCategory = is_undefined(modmenu.find_loc(form_data[i].value_range)) && is_undefined(form_data[i].trigger_func);
-                            newlastscreenlength += (isCategory ? 12 : 35);
+                            newlastscreenlength += ((form_data[i].type == ""Header"") ? 12 : 35);
                         }}
 
                         if (newlastscreenlength > menuscreenlength)
@@ -828,7 +824,7 @@ foreach (string darkcon in darkcons)
                 }}
                 else
                 {{
-                    var isCategory = is_undefined(modmenu.find_loc(form_data[i].value_range)) && is_undefined(form_data[i].trigger_func);
+                    var isCategory = is_undefined(form_data[i].value_range_loc()) && is_undefined(form_data[i].trigger_func);
                     newlastscreenlength += (isCategory ? 12 : 35);
                 }}
 
@@ -855,7 +851,7 @@ foreach (string darkcon in darkcons)
                 }}
                 else
                 {{
-                    var isCategory = is_undefined(modmenu.find_loc(form_data[i].value_range)) && is_undefined(form_data[i].trigger_func);
+                    var isCategory = is_undefined(form_data[i].value_range_loc()) && is_undefined(form_data[i].trigger_func);
                     newcurrentscreenlength += (isCategory ? 12 : 35);
                 }}
 
@@ -910,7 +906,7 @@ foreach (string darkcon in darkcons)
                 return false;
 
             return
-                is_undefined(modmenu.find_loc(arg1[modmenu.row_no].value_range)) && is_undefined(arg1[modmenu.row_no].trigger_func)
+                is_undefined(arg1[modmenu.row_no].value_range_loc()) && is_undefined(arg1[modmenu.row_no].trigger_func)
         }}
 
         function ishidden(arg0, arg1)
@@ -950,10 +946,10 @@ foreach (string darkcon in darkcons)
 
             if (!isSubmenu) {{
                 // enter submenu right away if there is only one submenu
-                if (array_length(modmenu.menus) == 1)
+                if (modmenu.menu_count == 1)
                     modmenu.row_no = 0;
 
-                if (array_length(modmenu.menus) > 0)
+                if (modmenu.menu_count > 0)
                 {{
                     if (left_p())
                     {{
@@ -961,14 +957,14 @@ foreach (string darkcon in darkcons)
 
                         modmenu.menu_no--;
                         if (modmenu.menu_no < 0)
-                            modmenu.menu_no = array_length(modmenu.menus) - 1;
+                            modmenu.menu_no = modmenu.menu_count - 1;
                     }}
                     if (right_p())
                     {{
                         movenoise = 1;
 
                         modmenu.menu_no++;
-                        if (modmenu.menu_no >= array_length(modmenu.menus))
+                        if (modmenu.menu_no >= modmenu.menu_count)
                             modmenu.menu_no = 0;
                     }}
                     if (button1_p() && onebuffer < 0 && twobuffer < 0)
@@ -1050,7 +1046,7 @@ foreach (string darkcon in darkcons)
                         modmenu.row_no = -1;
                         modmenu.row_scroll = 0;
 
-                        if (array_length(modmenu.menus) == 1)
+                        if (modmenu.menu_count == 1)
                         {{
                             global.menuno = 0;
                             global.submenu = 0;
@@ -1069,7 +1065,7 @@ foreach (string darkcon in darkcons)
 
                         // if range is only labels just cycle through them
                         var row_data = form_data[modmenu.row_no];
-                        var value_range = modmenu.find_loc(row_data.value_range);
+                        var value_range = row_data.value_range_loc();
                         var ranges = !is_undefined(value_range) ? string_split(value_range, "";"") : [];
                         var force_scroll = row_data.type == ""Slider"";
                         var doToggle = !force_scroll;
@@ -1163,7 +1159,7 @@ foreach (string darkcon in darkcons)
                     modmenu.row_no = -1;
                     modmenu.row_scroll = 0;
 
-                    if (array_length(modmenu.menus) == 1)
+                    if (modmenu.menu_count == 1)
                     {{
                         global.menuno = 0;
                         global.submenu = 0;
@@ -1179,7 +1175,7 @@ foreach (string darkcon in darkcons)
             }} else {{
                 var form_data = modmenu.active_menu().form;
                 var row_data = form_data[modmenu.row_no];
-                var value_range = modmenu.find_loc(row_data.value_range);
+                var value_range = row_data.value_range_loc();
                 var ranges = !is_undefined(value_range) ? string_split(value_range, "";"") : [];
                 var value_ref = row_data.value_ref;
                 var value = !is_undefined(value_ref) ? variable_instance_get(global, value_ref) : -1;
