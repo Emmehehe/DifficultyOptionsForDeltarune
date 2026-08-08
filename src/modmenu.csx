@@ -235,7 +235,7 @@ if (ch_no == 0) {
 foreach (string gamestart in gamestarts)
 {
     importGroup.QueueRegexFindReplace(gamestart, "function scr_gamestart(?:_ch1)?\\(\\)\\s*{", @$"
-        function scr_gamestart{(gamestart.EndsWith("_ch1") ? "_ch1" : "")}()
+        function scr_gamestart{(gamestart.EndsWith("_ch1") ? "_ch1" : "")}(){{
 
         var installed_modmenu = true;
 
@@ -263,7 +263,8 @@ foreach (string gamestart in gamestarts)
                     return menu_dark_count;
             }},
             active_menu: function () {{
-                world_menus()[menu_no];
+                var arr = world_menus();
+                return arr[menu_no];
             }},
 
             surf_titles: -1,
@@ -343,9 +344,9 @@ foreach (string gamestart in gamestarts)
                     menus[i].copy(arg0, arg1);
                 }}
             }},
-            delete: function(arg0) {{
+            del: function(arg0) {{
                 for (var i = 0; i < menu_count; i++) {{
-                    menus[i].delete(arg0);
+                    menus[i].del(arg0);
                 }}
             }},
 
@@ -359,21 +360,21 @@ foreach (string gamestart in gamestarts)
                 try {{ var check = menu.form[0]; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu without any form element.""; }}
 
                 // Menu - optional
-                try {{ var check = menu.left_margin; if (!is_numeric(check)) check = check[0]; } catch (_e) {{ menu.left_margin = 40; }}
+                try {{ var check = menu.left_margin; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.left_margin = 40; }}
                 try {{ var check = menu.left_margin; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""left_margin is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but left_margin is not numeric.""; }}
-                menu.left_margin_loc = function(arg0) {{ return find_loc(menu.left_margin, arg0); };
-                try {{ var check = menu.left_value_pos; if (!is_numeric(check)) check = check[0]; } catch (_e) {{ menu.left_value_pos = 300; }}
+                menu.left_margin_loc = function(arg0) {{ return find_loc(menu.left_margin, arg0); }};
+                try {{ var check = menu.left_value_pos; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.left_value_pos = 300; }}
                 try {{ var check = menu.left_value_pos; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""left_value_pos is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but left_value_pos is not numeric.""; }}
                 menu.left_value_pos_loc = function(arg0) {{ return find_loc(menu.left_value_pos, arg0); }};
-                try {{ var check = menu.apply; } catch (_e) {{ menu.apply = undefined; }}
+                try {{ var check = menu.apply; }} catch (_e) {{ menu.apply = undefined; }}
                 try {{ var check = menu.apply; if (!is_undefined(check) && ((check.type != ""OnChange"" && check.type != ""OnClose"") || !is_callable(check.func))) throw ""apply type or func failed validation""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but apply.type is not in set: OnChange, OnClose; or apply.func is not callable.""; }}
                 if (!is_undefined(menu.apply)) menu.apply.run_onchange = function() {{ if (menu.apply.type == ""OnChange"") menu.apply.func(); }};
                 if (!is_undefined(menu.apply)) menu.apply.run_onclose = function() {{ if (menu.apply.type == ""OnClose"") menu.apply.func(); }};
                 if (!is_undefined(menu.apply)) menu.apply.run_onload = function() {{ menu.apply.func(); }};
-                try {{ var check = menu.save_file_file; } catch (_e) {{ menu.save_file = undefined; }}
+                try {{ var check = menu.save_file_file; }} catch (_e) {{ menu.save_file = undefined; }}
                 try {{ var check = menu.save_file; if (!is_undefined(check) && ((check.type != ""Single"" && check.type != ""PerSlot"" && check.type != ""PerFile""))) throw ""save_file type failed validation""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but save_file.type is not in set: Single, PerSlot, PerFile.""; }}
-                try {{ var check = menu.save_file; if (!is_undefined(check)) check = check.name; } catch (_e) {{ menu.save_file.name = string_savename(find_loc(menu.title)); }}
-                try {{ var check = menu.save_file; if (!is_undefined(check)) check = check.name; if (is_string(check) && !is_savenamestring(check)) menu.save_file.name = string_savename_addini(menu.save_file.name); }}
+                try {{ var check = menu.save_file; if (!is_undefined(check)) check = check.name; }} catch (_e) {{ menu.save_file.name = string_savename(find_loc(menu.title)); }}
+                {{ var check = menu.save_file; if (!is_undefined(check)) check = check.name; if (is_string(check) && !is_savenamestring(check)) menu.save_file.name = string_savename_addini(menu.save_file.name); }}
                 try {{ var check = menu.save_file; if (!is_undefined(check)) check = check.name; if (!is_string(check) || !is_savenamestring(check)) throw ""save_file name isn't a string or contains invalid characters or no .ini"";}} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but save_file.name is missing; or is not a lower-case alphanumerical string.""; }}
                 if (!is_undefined(menu.save_file)) menu.save_file.category = function (arg0, arg1) {{
                     switch (menu.save_file.type) {{
@@ -449,7 +450,7 @@ foreach (string gamestart in gamestarts)
                     }}
                     ossafe_ini_close();
                 }};
-                menu.delete = function(arg0) {{
+                menu.del = function(arg0) {{
                     if (is_undefined(menu.save_file))
                         return;
 
@@ -483,26 +484,26 @@ foreach (string gamestart in gamestarts)
                     // data ref - mandatory
                     try {{ var check = data_ref; if (is_undefined(check)) throw ""data ref is undefined""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more data refs are undefined. ""; }}
                     if (!is_struct(data_ref)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more data refs are not a struct. "";
-                    try {{ var check = data_ref.var; if (!is_string(check)) throw ""data ref var should be a string.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref var is missing; or is not a string.""; }}
-                    try {{ var check = data_ref.default; if (!is_string(check) && !is_numeric(check)) throw ""data ref default should be a string or numeric.""; } catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref default is missing; or is not a string/numeric.""; }}
+                    try {{ var check = data_ref.var_name; if (!is_string(check)) throw ""data ref var_name should be a string.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref var_name is missing; or is not a string.""; }}
+                    try {{ var check = data_ref.default_value; if (!is_string(check) && !is_numeric(check)) throw ""data ref default_value should be a string or numeric.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref default_value is missing; or is not a string/numeric.""; }}
                     // data ref - optional
                     try {{ var check = data_ref.handle; }} catch (_e) {{ data_ref.handle = global; }}
                     try {{ var check = data_ref.handle; if (!is_handle(check)) throw ""data ref handle should be a handle.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref handle is not a handle.""; }}
-                    try {{ var check = data_ref.ini_key; }} catch (_e) {{ data_ref.ini_key = data_ref.var; }}
+                    try {{ var check = data_ref.ini_key; }} catch (_e) {{ data_ref.ini_key = data_ref.var_name; }}
                     try {{ var check = data_ref.ini_key; if (!is_string(ini_key)) throw ""data ref ini_key should be a string.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref ini_key is not a string.""; }}
-                    // strip 'global.' from data_ref.var
-                    {{ var check = data_ref.var; if (data_ref.handle == global && string_starts_with(check, ""global."")) data_ref.var = string_delete(data_ref.var, 0, 7); }}
+                    // strip 'global.' from data_ref.var_name
+                    {{ var check = data_ref.var_name; if (data_ref.handle == global && string_starts_with(check, ""global."")) data_ref.var_name = string_delete(data_ref.var_name, 0, 7); }}
                     // helper methods
-                    data_ref.get = function() {{ return variable_instance_exists(data_ref.handle, data_ref.var) ? variable_instance_get(data_ref.handle, data_ref.var) : data_ref.default; }};
-                    data_ref.set = function(arg0) {{ variable_instance_set(data_ref.handle, data_ref.var, (!is_undefined(arg0) ? arg0 : data_ref.default)); }};
+                    data_ref.get = function() {{ return variable_instance_exists(data_ref.handle, data_ref.var_name) ? variable_instance_get(data_ref.handle, data_ref.var_name) : data_ref.default_value; }};
+                    data_ref.set = function(arg0) {{ variable_instance_set(data_ref.handle, data_ref.var_name, (!is_undefined(arg0) ? arg0 : data_ref.default_value)); }};
                     data_ref.read = function(arg0 /* section */) {{
-                        if (is_string(data_ref.default)) return ini_read_string(arg0, data_ref.ini_key, data_ref.default);
-                        if (is_numeric(data_ref.default)) return ini_read_real(arg0, data_ref.ini_key, data_ref.default);
-                        return data_ref.default;
+                        if (is_string(data_ref.default_value)) return ini_read_string(arg0, data_ref.ini_key, data_ref.default_value);
+                        if (is_numeric(data_ref.default_value)) return ini_read_real(arg0, data_ref.ini_key, data_ref.default_value);
+                        return data_ref.default_value;
                     }};
                     data_ref.write = function(arg0 /* section */, arg1 /* value */) {{
-                        if (is_string(data_ref.default)) ini_write_string(arg0, data_ref.ini_key, arg1);
-                        if (is_numeric(data_ref.default)) ini_write_real(arg0, data_ref.ini_key, arg1);
+                        if (is_string(data_ref.default_value)) ini_write_string(arg0, data_ref.ini_key, arg1);
+                        if (is_numeric(data_ref.default_value)) ini_write_real(arg0, data_ref.ini_key, arg1);
                     }};
                     data_ref.load = function(arg0 /* section */) {{
                         data_ref.set(data_ref.read(arg0));
@@ -612,10 +613,10 @@ foreach (string gamestart in gamestarts)
                         row.is_disabled = function() {{ return is_callable(row.disabled) ? row.disabled() : row.disabled; }};
                         row.is_hidden = function() {{ return is_callable(row.hidden) ? row.hidden() : row.hidden; }};
                         try {{ var check = row.ref; }} catch (_e) {{ row.ref = undefined; }}
-                        try {{ var check = row.ref; if (!is_undefined(check) && !is_string(check.string)) throw ""row ref var should be a string""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row ref does not have a valid value for 'var'.""; }}
-                        try {{ var check = row.ref; if (!is_undefined(check) check = check.handle; }} catch (_e) {{ row.ref.handle = global; }}
+                        try {{ var check = row.ref; if (!is_undefined(check) && !is_string(check.var_name)) throw ""row ref var_name should be a string""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row ref does not have a valid value for 'var_name'.""; }}
+                        try {{ var check = row.ref; if (!is_undefined(check)) check = check.handle; }} catch (_e) {{ row.ref.handle = global; }}
                         try {{ var check = row.ref; if (!is_undefined(check) && !is_handle(check.handle)) throw ""row ref handle should be a handle""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row ref does not have a valid value for 'handle'.""; }}
-                        if (!is_undefined(row.ref)) variable_instance_set(row.ref.handle, row.ref.var, row);
+                        if (!is_undefined(row.ref)) variable_instance_set(row.ref.handle, row.ref.var_name, row);
                     }} else throw (""Unsupported row type: "" + row.type);
                 }}
                 for (var i = 0; i < array_length(menu.additional_save_data_refs); i++) {{
@@ -1592,7 +1593,7 @@ foreach (string scrName in deleteLikes)
     importGroup.QueueTrimmedLinesFindReplace(scrName, @"TIME_STRING[MENUCOORD[5]] = ""--:--"";", @"
         TIME_STRING[MENUCOORD[5]] = ""--:--"";
 
-        global.modmenu.delete(MENUCOORD[5]);
+        global.modmenu.del(MENUCOORD[5]);
     ");
 }
 
