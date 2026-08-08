@@ -328,6 +328,26 @@ foreach (string gamestart in gamestarts)
                     return false;
                 return true;
             }},
+            load: function(arg0, arg1) {{
+                for (var i = 0; i < menu_count; i++) {{
+                    menus[i].load(arg0, arg1);
+                }}
+            }},
+            save: function(arg0) {{
+                for (var i = 0; i < menu_count; i++) {{
+                    menus[i].save(arg0);
+                }}
+            }},
+            copy: function(arg0, arg1) {{
+                for (var i = 0; i < menu_count; i++) {{
+                    menus[i].copy(arg0, arg1);
+                }}
+            }},
+            delete: function(arg0) {{
+                for (var i = 0; i < menu_count; i++) {{
+                    menus[i].delete(arg0);
+                }}
+            }},
 
             create: function (arg0) {{
                 var menu = arg0;
@@ -350,21 +370,21 @@ foreach (string gamestart in gamestarts)
                 if (!is_undefined(menu.apply)) menu.apply.run_onchange = function() {{ if (menu.apply.type == ""OnChange"") menu.apply.func(); }};
                 if (!is_undefined(menu.apply)) menu.apply.run_onclose = function() {{ if (menu.apply.type == ""OnClose"") menu.apply.func(); }};
                 if (!is_undefined(menu.apply)) menu.apply.run_onload = function() {{ menu.apply.func(); }};
-                try {{ var check = menu.save; } catch (_e) {{ menu.save = undefined; }}
-                try {{ var check = menu.save; if (!is_undefined(check) && ((check.type != ""Single"" && check.type != ""PerSlot"" && check.type != ""PerFile""))) throw ""save type failed validation""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but save.type is not in set: Single, PerSlot, PerFile.""; }}
-                try {{ var check = menu.save; if (!is_undefined(check)) check = check.name; } catch (_e) {{ menu.save.name = string_savename(find_loc(menu.title)); }}
-                try {{ var check = menu.save; if (!is_undefined(check)) check = check.name; if (is_string(check) && !is_savenamestring(check)) menu.save.name = string_savename_addini(menu.save.name); }}
-                try {{ var check = menu.save; if (!is_undefined(check)) check = check.name; if (!is_string(check) || !is_savenamestring(check)) throw ""save name isn't a string or contains invalid characters or no .ini"";}} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but save.name is missing; or is not a lower-case alphanumerical string.""; }}
-                if (!is_undefined(menu.save)) menu.save.category = function (arg0) {{
-                    switch (menu.save.type) {{
+                try {{ var check = menu.save_file_file; } catch (_e) {{ menu.save_file = undefined; }}
+                try {{ var check = menu.save_file; if (!is_undefined(check) && ((check.type != ""Single"" && check.type != ""PerSlot"" && check.type != ""PerFile""))) throw ""save_file type failed validation""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but save_file.type is not in set: Single, PerSlot, PerFile.""; }}
+                try {{ var check = menu.save_file; if (!is_undefined(check)) check = check.name; } catch (_e) {{ menu.save_file.name = string_savename(find_loc(menu.title)); }}
+                try {{ var check = menu.save_file; if (!is_undefined(check)) check = check.name; if (is_string(check) && !is_savenamestring(check)) menu.save_file.name = string_savename_addini(menu.save_file.name); }}
+                try {{ var check = menu.save_file; if (!is_undefined(check)) check = check.name; if (!is_string(check) || !is_savenamestring(check)) throw ""save_file name isn't a string or contains invalid characters or no .ini"";}} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but save_file.name is missing; or is not a lower-case alphanumerical string.""; }}
+                if (!is_undefined(menu.save_file)) menu.save_file.category = function (arg0, arg1) {{
+                    switch (menu.save_file.type) {{
                         case ""Single"":
                             return ""SETTINGS"";
                         case ""PerSlot"":
-                            return ""SLOT"" + string(is_undefined(arg0) ? global.filechoice : arg0);
+                            return ""SLOT"" + string(is_undefined(arg1) ? global.filechoice : arg1);
                         case ""PerFile"":
-                            return ""CH"" + string(global.chapter) + ""_"" + string(is_undefined(arg0) ? global.filechoice : arg0);
+                            return ""CH"" + string(is_undefined(arg0) ? global.chapter : arg0) + ""_"" + string(is_undefined(arg1) ? global.filechoice : arg1);
                         default:
-                            throw (""Unsupported save type: "" + menu.save.type);
+                            throw (""Unsupported save_file type: "" + menu.save_file.type);
                     }}
                 }};
                 try {{ var check = menu.world; }} catch (_e) {{ menu.world = ""Dark""; }}
@@ -377,12 +397,12 @@ foreach (string gamestart in gamestarts)
                 try {{ var check = menu.additional_save_data_refs; if (!is_array(check)) throw ""additional_save_data_refs should be an array.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but additional_save_data_refs is not an array.""; }}
 
                 // helper methods
-                menu.load = function(arg0) {{
-                    if (is_undefined(menu.save))
+                menu.load = function(arg0, arg1) {{
+                    if (is_undefined(menu.save_file))
                         return;
 
-                    var section = menu.save.category(arg0);
-                    ossafe_ini_open(menu.save.name);
+                    var section = menu.save_file.category(arg0, arg1);
+                    ossafe_ini_open(menu.save_file.name);
                     for (var i = 0; i < array_length(menu.form); i++) {{
                         if (menu.form[i].no_save) {{}} else if (menu.form[i].type == ""Slider"" || menu.form[i].type == ""Toggle"") {{
                             menu.form[i].data_ref.load(section);
@@ -397,11 +417,11 @@ foreach (string gamestart in gamestarts)
                         menu.apply.run_onload()
                 }};
                 menu.save = function(arg0) {{
-                    if (is_undefined(menu.save))
+                    if (is_undefined(menu.save_file))
                         return;
 
-                    var section = menu.save.category(arg0);
-                    ossafe_ini_open(menu.save.name);
+                    var section = menu.save_file.category(undefined, arg0);
+                    ossafe_ini_open(menu.save_file.name);
                     for (var i = 0; i < array_length(menu.form); i++) {{
                         if (menu.form[i].no_save) {{}} else if (menu.form[i].type == ""Slider"" || menu.form[i].type == ""Toggle"") {{
                             menu.form[i].data_ref.save(section);
@@ -413,12 +433,12 @@ foreach (string gamestart in gamestarts)
                     ossafe_ini_close();
                 }};
                 menu.copy = function(arg0, arg1) {{
-                    if (is_undefined(menu.save))
+                    if (is_undefined(menu.save_file))
                         return;
 
-                    var from = menu.save.category(arg0);
-                    var to = menu.save.category(arg0);
-                    ossafe_ini_open(menu.save.name);
+                    var from = menu.save_file.category(undefined, arg0);
+                    var to = menu.save_file.category(undefined, arg1);
+                    ossafe_ini_open(menu.save_file.name);
                     for (var i = 0; i < array_length(menu.form); i++) {{
                         if (menu.form[i].no_save) {{}} else if (menu.form[i].type == ""Slider"" || menu.form[i].type == ""Toggle"") {{
                             menu.form[i].data_ref.copy(from, to);
@@ -430,11 +450,11 @@ foreach (string gamestart in gamestarts)
                     ossafe_ini_close();
                 }};
                 menu.delete = function(arg0) {{
-                    if (is_undefined(menu.save))
+                    if (is_undefined(menu.save_file))
                         return;
 
-                    var section = menu.save.category(arg0);
-                    ossafe_ini_open(menu.save.name);
+                    var section = menu.save_file.category(undefined, arg0);
+                    ossafe_ini_open(menu.save_file.name);
                     if (ini_section_exists(section))
                         ini_section_delete(section);
                     ossafe_ini_close();
@@ -1069,6 +1089,7 @@ foreach (string darkcon in darkcons)
 
                         modmenu.active_menu().close_func();
                         if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onclose();
+                        if (!is_undefined(modmenu.active_menu().save_file)) modmenu.active_menu().save();
                     }}
                     else
                     {{
@@ -1156,6 +1177,7 @@ foreach (string darkcon in darkcons)
 
                     modmenu.active_menu().close_func();
                     if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onclose();
+                    if (!is_undefined(modmenu.active_menu().save_file)) modmenu.active_menu().save();
                 }}
             }} else {{
                 var form_data = modmenu.active_menu().form;
@@ -1451,6 +1473,101 @@ foreach (string darkcon in darkcons)
                 }}
             }}
         }}
+    ");
+}
+
+// Save menu data
+string[] saveLikes = {"gml_GlobalScript_scr_saveprocess"};
+if (ch_no == 0)
+{
+    string[] demoSaveLikes = {"gml_GlobalScript_scr_saveprocess_ch1"};
+    saveLikes = saveLikes.Concat(demoSaveLikes).ToArray();
+}
+foreach (string scrName in saveLikes)
+{
+    importGroup.QueueTrimmedLinesFindReplace(scrName, $"{(ch_no == 0 ? "var is_valid = " : "")}ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
+        {(ch_no == 0 ? "var is_valid = " : "")}ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);
+
+        global.modmenu.save();
+        ");
+}
+
+// Load menu data
+(string script, string chapter) [] loadLikes = {("gml_GlobalScript_scr_load", "global.chapter")};
+if (ch_no == 0)
+{
+    (string script, string chapter) [] loadCh1 = {("gml_GlobalScript_scr_load_ch1", "global.chapter")};
+    loadLikes = loadLikes.Concat(loadCh1).ToArray();
+}
+if (ch_no > 1 || ch_no == 0)
+{
+    (string script, string chapter) [] loadCh1 = {("gml_GlobalScript_scr_load_chapter1", "1")};
+    loadLikes = loadLikes.Concat(loadCh1).ToArray();
+}
+if (ch_no > 2)
+{
+    (string script, string chapter) [] loadCh2 = {("gml_GlobalScript_scr_load_chapter2", "2")};
+    loadLikes = loadLikes.Concat(loadCh2).ToArray();
+}
+if (ch_no > 3)
+{
+    (string script, string chapter) [] loadCh3 = {("gml_GlobalScript_scr_load_chapter3", "3")};
+    loadLikes = loadLikes.Concat(loadCh3).ToArray();
+}
+if (ch_no > 4)
+{
+    (string script, string chapter) [] loadCh4 = {("gml_GlobalScript_scr_load_chapter4", "4")};
+    loadLikes = loadLikes.Concat(loadCh4).ToArray();
+}
+// if (ch_no > 5)
+// {
+//     (string script, string chapter) [] loadCh5 = {("gml_GlobalScript_scr_load_chapter5", "5")};
+//     loadLikes = loadLikes.Concat(loadCh5).ToArray();
+// }
+// if (ch_no > 6)
+// {
+//     (string script, string chapter) [] loadCh6 = {("gml_GlobalScript_scr_load_chapter6", "6")};
+//     loadLikes = loadLikes.Concat(loadCh6).ToArray();
+// }
+
+foreach ((string script, string chapter) loadLike in loadLikes)
+{
+    importGroup.QueueTrimmedLinesFindReplace(loadLike.script, $"ossafe_file_text_close{(loadLike.script.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
+        ossafe_file_text_close{(loadLike.script.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);
+
+        global.modmenu.load({loadLike.chapter});
+        ");
+}
+
+// Copy menu data
+string[] copyLikes = {"gml_Object_DEVICE_MENU_Other_15"};
+if (ch_no == 0)
+{
+    string[] demoCopyLikes = {"gml_Object_DEVICE_MENU_ch1_Other_15"};
+    copyLikes = copyLikes.Concat(demoCopyLikes).ToArray();
+}
+foreach (string scrName in copyLikes)
+{
+    importGroup.QueueTrimmedLinesFindReplace(scrName, @"file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");", @$"
+        file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");
+
+        global.modmenu.copy(MENUCOORD[2], MENUCOORD[3]);
+    ");
+}
+
+// Delete menu data
+string[] deleteLikes = {"gml_Object_DEVICE_MENU_Step_0"};
+if (ch_no == 0)
+{
+    string[] demoDeleteLikes = {"gml_Object_DEVICE_MENU_ch1_Step_0"};
+    copyLikes = deleteLikes.Concat(demoDeleteLikes).ToArray();
+}
+foreach (string scrName in deleteLikes)
+{
+    importGroup.QueueTrimmedLinesFindReplace(scrName, @"TIME_STRING[MENUCOORD[5]] = ""--:--"";", @"
+        TIME_STRING[MENUCOORD[5]] = ""--:--"";
+
+        global.modmenu.delete(MENUCOORD[5]);
     ");
 }
 
