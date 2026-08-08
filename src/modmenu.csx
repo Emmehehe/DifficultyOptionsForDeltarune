@@ -824,8 +824,7 @@ foreach (string darkcon in darkcons)
                 }}
                 else
                 {{
-                    var isCategory = is_undefined(form_data[i].value_range_loc()) && is_undefined(form_data[i].trigger_func);
-                    newlastscreenlength += (isCategory ? 12 : 35);
+                    newlastscreenlength += ((form_data[i].type == ""Header"") ? 12 : 35);
                 }}
 
                 if (newlastscreenlength > menuscreenlength)
@@ -851,8 +850,7 @@ foreach (string darkcon in darkcons)
                 }}
                 else
                 {{
-                    var isCategory = is_undefined(form_data[i].value_range_loc()) && is_undefined(form_data[i].trigger_func);
-                    newcurrentscreenlength += (isCategory ? 12 : 35);
+                    newcurrentscreenlength += ((form_data[i].type == ""Header"") ? 12 : 35);
                 }}
 
                 if (newcurrentscreenlength > menuscreenlength)
@@ -905,8 +903,7 @@ foreach (string darkcon in darkcons)
             if (modmenu.row_no >= (arg0 - 1))
                 return false;
 
-            return
-                is_undefined(arg1[modmenu.row_no].value_range_loc()) && is_undefined(arg1[modmenu.row_no].trigger_func)
+            return (form_data[i].type == ""Header"");
         }}
 
         function ishidden(arg0, arg1)
@@ -914,12 +911,7 @@ foreach (string darkcon in darkcons)
             if (modmenu.row_no >= (arg0 - 1))
                 return false;
 
-            var row_hidden_data = arg1[modmenu.row_no].hidden;
-            var row_hidden = !is_undefined(row_hidden_data) ? row_hidden_data : false;
-            if  (row_hidden)
-                return true;
-
-            return false;
+            return arg1[modmenu.row_no].is_hidden();
         }}
 
         function isdisabled(arg0, arg1)
@@ -927,12 +919,7 @@ foreach (string darkcon in darkcons)
             if (modmenu.row_no >= (arg0 - 1))
                 return false;
 
-            var row_disabled_data = arg1[modmenu.row_no].disabled;
-            var row_disabled = !is_undefined(row_disabled_data) ? row_disabled_data : false;
-            if  (row_disabled)
-                return true;
-
-            return false;
+            return arg1[modmenu.row_no].is_disabled();
         }}
 
         function shouldskiprow(arg0, arg1)
@@ -1066,7 +1053,7 @@ foreach (string darkcon in darkcons)
                         // if range is only labels just cycle through them
                         var row_data = form_data[modmenu.row_no];
                         var value_range = row_data.value_range_loc();
-                        var ranges = !is_undefined(value_range) ? string_split(value_range, "";"") : [];
+                        var ranges = string_split(value_range, "";"");
                         var force_scroll = row_data.type == ""Slider"";
                         var doToggle = !force_scroll;
 
@@ -1085,7 +1072,7 @@ foreach (string darkcon in darkcons)
                         }}
 
                         if (doToggle && array_length(ranges) > 0) {{
-                            var value = variable_instance_get(global, row_data.value_ref);
+                            var value = row_data.data_ref.get();
 
                             var foundOption = false;
                             for (var i = 0; i < array_length(ranges); i++) {{
@@ -1131,24 +1118,13 @@ foreach (string darkcon in darkcons)
                                 }}
                             }}
 
-                            variable_instance_set(global, row_data.value_ref, value);
-
-                            var change_func = row_data.change_func;
-                            if (!is_undefined(change_func))
-                            {{
-                                var functocall = variable_instance_get(global, change_func);
-                                functocall();
-                            }}
+                            row_data.data_ref.set(value);
+                            row_data.change_func();
                         }}
 
 
                         if (doToggle || array_length(ranges) <= 0) {{
-                            var trigger_func = row_data.trigger_func;
-                            if (!is_undefined(trigger_func))
-                            {{
-                                var functocall = variable_instance_get(global, trigger_func);
-                                functocall(true);
-                            }}
+                            row_data.trigger_func();
                         }}
                     }}
                 }}
@@ -1176,9 +1152,8 @@ foreach (string darkcon in darkcons)
                 var form_data = modmenu.active_menu().form;
                 var row_data = form_data[modmenu.row_no];
                 var value_range = row_data.value_range_loc();
-                var ranges = !is_undefined(value_range) ? string_split(value_range, "";"") : [];
-                var value_ref = row_data.value_ref;
-                var value = !is_undefined(value_ref) ? variable_instance_get(global, value_ref) : -1;
+                var ranges = string_split(value_range, "";"");
+                var value = row_data.data_ref.get();
 
                 var scroll_todo = modmenu.slider_step div 1;
 
@@ -1294,14 +1269,9 @@ foreach (string darkcon in darkcons)
                         }}
                     }}
 
-                    variable_instance_set(global, row_data.value_ref, value);
+                    row_data.data_ref.set(value);
 
-                    var on_change = row_data.change_func;
-                    if (!is_undefined(on_change))
-                    {{
-                        var functocall = variable_instance_get(global, on_change);
-                        functocall();
-                    }}
+                    row_data.change_func();
 
                     modmenu.slider_step = modmenu.slider_step % 1;
                 }}
@@ -1419,14 +1389,9 @@ foreach (string darkcon in darkcons)
                         }}
                     }}
 
-                    variable_instance_set(global, row_data.value_ref, value);
+                    row_data.data_ref.set(value);
 
-                    var on_change = row_data.change_func;
-                    if (!is_undefined(on_change))
-                    {{
-                        var functocall = variable_instance_get(global, on_change);
-                        functocall();
-                    }}
+                    row_data.change_func();
 
                     modmenu.slider_step = modmenu.slider_step % 1;
                 }}
@@ -1458,12 +1423,7 @@ foreach (string darkcon in darkcons)
                     twobuffer = 2;
                     modmenu.row_selected = false;
 
-                    var trigger_func = row_data.trigger_func;
-                    if (!is_undefined(trigger_func))
-                    {{
-                        var functocall = variable_instance_get(global, trigger_func);
-                        functocall(se_select);
-                    }}
+                    var trigger_func = row_data.trigger_func();
 
                     modmenu.slider_step = 1; // reset to 1 as first interaction should be instantaneous
                     modmenu.slider_speed = modmenu.slider_speed_min;
