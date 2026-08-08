@@ -1039,12 +1039,7 @@ foreach (string darkcon in darkcons)
                             global.submenu = 0;
                         }}
 
-                        var on_close = modmenu.active_menu().close_func;
-                        if (!is_undefined(on_close))
-                        {{
-                            var functocall = variable_instance_get(global, on_close);
-                            functocall();
-                        }}
+                        modmenu.active_menu().close_func();
                     }}
                     else
                     {{
@@ -1054,24 +1049,12 @@ foreach (string darkcon in darkcons)
                         var row_data = form_data[modmenu.row_no];
                         var value_range = row_data.value_range_loc();
                         var ranges = string_split(value_range, "";"");
-                        var force_scroll = row_data.type == ""Slider"";
-                        var doToggle = !force_scroll;
 
-                        if (doToggle) {{
-                            for (var i = 0; i < array_length(ranges); i++) {{
-                                var range = ranges[i];
-                                if (!string_pos(""="", range)) {{
-                                    doToggle = false;
-                                    break;
-                                }}
-                            }}
-                        }}
-
-                        if (doToggle || array_length(ranges) <= 0) {{
+                        if (row_data.type != ""Slider"")
                             modmenu.row_selected = false;
-                        }}
 
-                        if (doToggle && array_length(ranges) > 0) {{
+                        if (row_data.type == ""Toggle"") {{
+                            // TODO does this handle spread ranges properly?
                             var value = row_data.data_ref.get();
 
                             var foundOption = false;
@@ -1122,10 +1105,8 @@ foreach (string darkcon in darkcons)
                             row_data.change_func();
                         }}
 
-
-                        if (doToggle || array_length(ranges) <= 0) {{
+                        if (row_data.type != ""Header"")
                             row_data.trigger_func();
-                        }}
                     }}
                 }}
                 if (button2_p() && onebuffer < 0 && twobuffer < 0)
@@ -1141,12 +1122,7 @@ foreach (string darkcon in darkcons)
                         global.submenu = 0;
                     }}
 
-                    var on_close = modmenu.active_menu().close_func;
-                    if (!is_undefined(on_close))
-                    {{
-                        var functocall = variable_instance_get(global, on_close);
-                        functocall();
-                    }}
+                    modmenu.active_menu().close_func();
                 }}
             }} else {{
                 var form_data = modmenu.active_menu().form;
@@ -1423,7 +1399,10 @@ foreach (string darkcon in darkcons)
                     twobuffer = 2;
                     modmenu.row_selected = false;
 
-                    var trigger_func = row_data.trigger_func();
+                    if (se_select == 1)
+                        row_data.accept_func();
+                    if (se_cancel == 1)
+                        row_data.cancel_func();
 
                     modmenu.slider_step = 1; // reset to 1 as first interaction should be instantaneous
                     modmenu.slider_speed = modmenu.slider_speed_min;
