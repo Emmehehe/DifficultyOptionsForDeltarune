@@ -119,830 +119,600 @@ presets.Add(
         hitall        = true
     });
 
-string loadsettingsblock(string chapter, string filechoice)
-{
-    string saveslot = @$" ""ch"" + string({chapter}) + ""_"" + string({filechoice})";
-    return @$"
-        ossafe_ini_open(""difficulty.ini"");
-
-        global.diff_damagemulti = ini_read_real({saveslot}, ""DAMAGE_MULTI"", {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_gameboarddmgx = ini_read_real({saveslot}, ""GAMEBOARD_DMG_X"", {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_hitall = ini_read_real({saveslot}, ""HIT_ALL"", {presets[preset_default].hitall.ToString().ToLower()});
-        global.diff_iframes = ini_read_real({saveslot}, ""I_FRAMES"", {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_enemycd = ini_read_real({saveslot}, ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_gmbrdenemycd = ini_read_real({saveslot}, ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_tpgain = ini_read_real({saveslot}, ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_extraenemies = ini_read_real({saveslot}, ""EXTRA_ENEMIES"", {presets[preset_default].extraenemies.ToString()});
-        global.diff_battlerewards = ini_read_real({saveslot}, ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_rewardranking = ini_read_real({saveslot}, ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()});
-        global.diff_downdeficit = ini_read_real({saveslot}, ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_downedregen = ini_read_real({saveslot}, ""DOWNED_REGEN"", {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_victoryres = ini_read_real({saveslot}, ""VICTORY_RES"", {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_plrdmg = ini_read_real({saveslot}, ""PLR_DMG"", {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_gmbrdplrdmg = ini_read_real({saveslot}, ""GMBRD_PLR_DMG"", {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_plrheal = ini_read_real({saveslot}, ""PLR_HEAL"", {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_gmbrdplrheal = ini_read_real({saveslot}, ""GMBRD_PLR_HEAL"", {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_mercy = ini_read_real({saveslot}, ""MERCY"", {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)});
-        global.diff_saveheal = ini_read_real({saveslot}, ""SAVE_POINT_HEAL"", {presets[preset_default].saveheal.ToString().ToLower()});
-        ossafe_ini_close();
-
-        // Determine preset
-        {string.Join(" else ", presets.Select(pair => @$"
-            if (global.diff_damagemulti == {pair.Value.damagemulti.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_gameboarddmgx == {pair.Value.gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_hitall == {pair.Value.hitall.ToString().ToLower()}
-                && global.diff_iframes == {pair.Value.iframes.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_enemycd == {pair.Value.enemycd.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_gmbrdenemycd == {pair.Value.gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_tpgain == {pair.Value.tpgain.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_extraenemies == {pair.Value.extraenemies.ToString()}
-                && global.diff_battlerewards == {pair.Value.battlerewards.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_rewardranking == {pair.Value.rewardranking.ToString().ToLower()}
-                && global.diff_downdeficit == {pair.Value.downdeficit.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_downedregen == {pair.Value.downedregen.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_victoryres == {pair.Value.victoryres.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_plrdmg == {pair.Value.plrdmg.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_gmbrdplrdmg == {pair.Value.gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_plrheal == {pair.Value.plrheal.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_gmbrdplrheal == {pair.Value.gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_mercy == {pair.Value.mercy.ToString("F10", CultureInfo.InvariantCulture)}
-                && global.diff_saveheal == {pair.Value.saveheal.ToString().ToLower()}) {{
-                    global.diff_preset = ""{pair.Key}"";
-            }}
-        "))}
-        else {{
-            var userpresetnames = ds_map_keys_to_array(global.diff_userpresets);
-            var foundPreset = false;
-            for (var i = 0; i < array_length(userpresetnames); i++) {{
-                var presetdata = ds_map_find_value(global.diff_userpresets, userpresetnames[i]);
-                if (global.diff_damagemulti == ds_map_find_value(presetdata, ""damagemulti"")
-                    && global.diff_gameboarddmgx == ds_map_find_value(presetdata, ""gameboarddmgx"")
-                    && global.diff_hitall == ds_map_find_value(presetdata, ""hitall"")
-                    && global.diff_iframes == ds_map_find_value(presetdata, ""iframes"")
-                    && global.diff_enemycd == ds_map_find_value(presetdata, ""enemycd"")
-                    && global.diff_gmbrdenemycd == ds_map_find_value(presetdata, ""gmbrdenemycd"")
-                    && global.diff_tpgain == ds_map_find_value(presetdata, ""tpgain"")
-                    && global.diff_extraenemies == ds_map_find_value(presetdata, ""extraenemies"")
-                    && global.diff_battlerewards == ds_map_find_value(presetdata, ""battlerewards"")
-                    && global.diff_rewardranking == ds_map_find_value(presetdata, ""rewardranking"")
-                    && global.diff_downdeficit == ds_map_find_value(presetdata, ""downdeficit"")
-                    && global.diff_downedregen == ds_map_find_value(presetdata, ""downedregen"")
-                    && global.diff_victoryres == ds_map_find_value(presetdata, ""victoryres"")
-                    && global.diff_plrdmg == ds_map_find_value(presetdata, ""plrdmg"")
-                    && global.diff_gmbrdplrdmg == ds_map_find_value(presetdata, ""gmbrdplrdmg"")
-                    && global.diff_plrheal == ds_map_find_value(presetdata, ""plrheal"")
-                    && global.diff_gmbrdplrheal == ds_map_find_value(presetdata, ""gmbrdplrheal"")
-                    && global.diff_mercy == ds_map_find_value(presetdata, ""mercy"")
-                    && global.diff_saveheal == ds_map_find_value(presetdata, ""saveheal"")) {{
-                        global.diff_preset = userpresetnames[i];
-                        foundPreset = true;
-                        break;
-                }}
-            }}
-            if (!foundPreset)
-                global.diff_preset = ""Custom"";
-        }}
-    ";
-}
-
-string savesettingsblock(string savename)
-{
-    return @$"
-        ossafe_ini_open(""difficulty.ini"");
-        ini_write_real({savename}, ""DAMAGE_MULTI"", global.diff_damagemulti);
-        ini_write_real({savename}, ""GAMEBOARD_DMG_X"", global.diff_gameboarddmgx);
-        ini_write_real({savename}, ""HIT_ALL"", global.diff_hitall);
-        ini_write_real({savename}, ""I_FRAMES"", global.diff_iframes);
-        ini_write_real({savename}, ""ENEMY_COOLDOWNS"", global.diff_enemycd);
-        ini_write_real({savename}, ""GMBRD_ENEMY_CDS"", global.diff_gmbrdenemycd);
-        ini_write_real({savename}, ""TP_GAIN"", global.diff_tpgain);
-        ini_write_real({savename}, ""EXTRA_ENEMIES"", global.diff_extraenemies);
-        ini_write_real({savename}, ""BATTLE_REWARDS"", global.diff_battlerewards);
-        ini_write_real({savename}, ""REWARD_RANKING"", global.diff_rewardranking);
-        ini_write_real({savename}, ""DOWN_DEFICIT"", global.diff_downdeficit);
-        ini_write_real({savename}, ""DOWNED_REGEN"", global.diff_downedregen);
-        ini_write_real({savename}, ""VICTORY_RES"", global.diff_victoryres);
-        ini_write_real({savename}, ""PLR_DMG"", global.diff_plrdmg);
-        ini_write_real({savename}, ""GMBRD_PLR_DMG"", global.diff_gmbrdplrdmg);
-        ini_write_real({savename}, ""PLR_HEAL"", global.diff_plrheal);
-        ini_write_real({savename}, ""GMBRD_PLR_HEAL"", global.diff_gmbrdplrheal);
-        ini_write_real({savename}, ""MERCY"", global.diff_mercy);
-        ini_write_real({savename}, ""SAVE_POINT_HEAL"", global.diff_saveheal);
-        ossafe_ini_close();
-    ";
-}
-
-// Add globals
+// Add globals & menu
 string[] gamestartLikes = {"gml_GlobalScript_scr_gamestart"};
 if (ch_no == 0)
 {
     string[] demoGamestartLikes = {"gml_GlobalScript_scr_gamestart_ch1"};
     gamestartLikes = gamestartLikes.Concat(demoGamestartLikes).ToArray();
 }
-
 foreach (string scrName in gamestartLikes)
 {
-    importGroup.QueueRegexFindReplace(scrName, "function scr_gamestart(?:_ch1)?\\(\\)\\s*{", @$"
-        function scr_gamestart{(scrName.EndsWith("_ch1") ? "_ch1" : "")}()
-        {{
-            var installed_customdifficulty = true;
+    importGroup.QueueFindReplace(scrName, "global.chapter = ", @$"
+        var installed_customdifficulty = true;
 
-            global.diff_array_contains = function(arg0, arg1) {{
-                for (var i = 0; i < array_length(arg0); i++) {{
-                    if (arg0[i] == arg1)
-                        return true;
-                }}
-                return false;
+        global.diff_array_contains = function(arg0, arg1) {{
+            for (var i = 0; i < array_length(arg0); i++) {{
+                if (arg0[i] == arg1)
+                    return true;
             }}
+            return false;
+        }}
 
-            global.diff_array_sort = function(arg0, arg1) {{
-                // TODO implement a proper sorting algo, cba atm - only runs once on load, save, or delete; so not too worried about it
-                var temparray = [];
-                for (var i = 0; i < array_length(arg0); i++) {{
-                    var insertat = array_length(temparray);
-                    for (var j = 0; j < array_length(temparray); j++) {{
-                        if (arg0[i] < temparray[j]) {{
-                            insertat = j;
-                            break;
-                        }}
+        global.diff_array_sort = function(arg0, arg1) {{
+            // TODO implement a proper sorting algo, cba atm - only runs once on load, save, or delete; so not too worried about it
+            var temparray = [];
+            for (var i = 0; i < array_length(arg0); i++) {{
+                var insertat = array_length(temparray);
+                for (var j = 0; j < array_length(temparray); j++) {{
+                    if (arg0[i] < temparray[j]) {{
+                        insertat = j;
+                        break;
                     }}
-                    array_insert(temparray, insertat, arg0[i]);
                 }}
-                return temparray;
+                array_insert(temparray, insertat, arg0[i]);
             }}
+            return temparray;
+        }}
 
-            {((ch_no != 0) ? "" : @"
-                // WARNING: only works for delimiters 1 char long
-                // WARNING: does not have optional args from GM's impl
-                global.diff_string_split = function(arg0, arg1)
+        {((ch_no != 0) ? "" : @"
+            // WARNING: only works for delimiters 1 char long
+            // WARNING: does not have optional args from GM's impl
+            global.diff_string_split = function(arg0, arg1)
+            {
+                length = string_length(arg0);
+                var result = array_create(0);
+                array_push(result, """");
+
+                // string_char_at index starts at 1 for some reason
+                for (i = 1; i <= length; i++)
                 {
-                    length = string_length(arg0);
-                    var result = array_create(0);
-                    array_push(result, """");
+                    thischar = string_char_at(arg0, i);
 
-                    // string_char_at index starts at 1 for some reason
-                    for (i = 1; i <= length; i++)
-                    {
-                        thischar = string_char_at(arg0, i);
-
-                        if (thischar != arg1) {
-                            result[array_length(result) - 1] = result[array_length(result) - 1] + thischar;
-                        }
-                        else
-                        {
-                            array_push(result, """");
-                        }
+                    if (thischar != arg1) {
+                        result[array_length(result) - 1] = result[array_length(result) - 1] + thischar;
                     }
-
-                    return result;
+                    else
+                    {
+                        array_push(result, """");
+                    }
                 }
-            ")}
 
-            global.diff_menupresetrow = -1;
-            global.diff_menucreateuserpresetrow = -1;
-            global.diff_menudeleteuserpresetrow = -1;
+                return result;
+            }
+        ")}
 
-            global.diff_saveuserpresetname = ""USER 1"";
-            global.diff_saveuserpreset = function(arg0) {{
-                if (!arg0)
-                    return;
+        global.diff_menupresetrow = undefined;
+        global.diff_menucreateuserpresetrow = undefined;
+        global.diff_menudeleteuserpresetrow = undefined;
 
-                global.diff_preset = global.diff_saveuserpresetname;
+        global.diff_saveuserpresetname = ""USER 1"";
+        global.diff_saveuserpreset = function() {{
+            global.diff_preset = global.diff_saveuserpresetname;
 
-                var presetdata = ds_map_create();
-                ds_map_add(presetdata, ""damagemulti"", global.diff_damagemulti);
-                ds_map_add(presetdata, ""gameboarddmgx"", global.diff_gameboarddmgx);
-                ds_map_add(presetdata, ""hitall"", global.diff_hitall);
-                ds_map_add(presetdata, ""iframes"", global.diff_iframes);
-                ds_map_add(presetdata, ""enemycd"", global.diff_enemycd);
-                ds_map_add(presetdata, ""gmbrdenemycd"", global.diff_gmbrdenemycd);
-                ds_map_add(presetdata, ""tpgain"", global.diff_tpgain);
-                ds_map_add(presetdata, ""extraenemies"", global.diff_extraenemies);
-                ds_map_add(presetdata, ""battlerewards"", global.diff_battlerewards);
-                ds_map_add(presetdata, ""rewardranking"", global.diff_rewardranking);
-                ds_map_add(presetdata, ""downdeficit"", global.diff_downdeficit);
-                ds_map_add(presetdata, ""downedregen"", global.diff_downedregen);
-                ds_map_add(presetdata, ""victoryres"", global.diff_victoryres);
-                ds_map_add(presetdata, ""plrdmg"", global.diff_plrdmg);
-                ds_map_add(presetdata, ""gmbrdplrdmg"", global.diff_gmbrdplrdmg);
-                ds_map_add(presetdata, ""plrheal"", global.diff_plrheal);
-                ds_map_add(presetdata, ""gmbrdplrheal"", global.diff_gmbrdplrheal);
-                ds_map_add(presetdata, ""mercy"", global.diff_mercy);
-                ds_map_add(presetdata, ""saveheal"", global.diff_saveheal);
-                ds_map_set(global.diff_userpresets, global.diff_saveuserpresetname, presetdata);
+            var presetdata = ds_map_create();
+            ds_map_add(presetdata, ""damagemulti"", global.diff_damagemulti);
+            ds_map_add(presetdata, ""gameboarddmgx"", global.diff_gameboarddmgx);
+            ds_map_add(presetdata, ""hitall"", global.diff_hitall);
+            ds_map_add(presetdata, ""iframes"", global.diff_iframes);
+            ds_map_add(presetdata, ""enemycd"", global.diff_enemycd);
+            ds_map_add(presetdata, ""gmbrdenemycd"", global.diff_gmbrdenemycd);
+            ds_map_add(presetdata, ""tpgain"", global.diff_tpgain);
+            ds_map_add(presetdata, ""extraenemies"", global.diff_extraenemies);
+            ds_map_add(presetdata, ""battlerewards"", global.diff_battlerewards);
+            ds_map_add(presetdata, ""rewardranking"", global.diff_rewardranking);
+            ds_map_add(presetdata, ""downdeficit"", global.diff_downdeficit);
+            ds_map_add(presetdata, ""downedregen"", global.diff_downedregen);
+            ds_map_add(presetdata, ""victoryres"", global.diff_victoryres);
+            ds_map_add(presetdata, ""plrdmg"", global.diff_plrdmg);
+            ds_map_add(presetdata, ""gmbrdplrdmg"", global.diff_gmbrdplrdmg);
+            ds_map_add(presetdata, ""plrheal"", global.diff_plrheal);
+            ds_map_add(presetdata, ""gmbrdplrheal"", global.diff_gmbrdplrheal);
+            ds_map_add(presetdata, ""mercy"", global.diff_mercy);
+            ds_map_add(presetdata, ""saveheal"", global.diff_saveheal);
+            ds_map_set(global.diff_userpresets, global.diff_saveuserpresetname, presetdata);
 
-                ossafe_ini_open(""difficulty.ini"");
-                var newuserpresetnames = ds_map_keys_to_array(global.diff_userpresets);
-                newuserpresetnames = global.diff_array_sort(newuserpresetnames, true);
-                var newmetapresetsvalue = """";
-                for (var i = 0; i < array_length(newuserpresetnames); i++) {{
-                    if (i != 0)
-                        newmetapresetsvalue += "";"";
-                    newmetapresetsvalue += newuserpresetnames[i];
-                }}
-                ini_write_string(""META"", ""PRESETS"", newmetapresetsvalue);
-                ossafe_ini_close();
-
-                {savesettingsblock(@"""preset_"" + global.diff_saveuserpresetname")}
-
-                if (global.diff_menupresetrow != -1) {{
-                    var userpresetvaluerange = """";
-                    for (var i = 0; i < array_length(newuserpresetnames); i++) {{
-                        userpresetvaluerange += "";"" + newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
-                    }}
-                    ds_map_replace(global.diff_menupresetrow, ""value_range_en"", ""{string.Join(";", presets.Select(pair => @$"{pair.Key.ToUpper()}={pair.Key}`"))};CUSTOM=Custom`"" + userpresetvaluerange);
-                }}
-
-                if (global.diff_menucreateuserpresetrow != -1) {{
-                    var createuserpresetsvaluerange = """";
-                    var hasaddednew = false;
-                    for (var i = 1; i < 10; i++) {{
-                        var thispresetname = ""USER "" + string(i);
-                        if (global.diff_array_contains(newuserpresetnames, thispresetname)) {{
-                            if (i != 1)
-                                createuserpresetsvaluerange += "";"";
-                            createuserpresetsvaluerange += thispresetname + ""="" + thispresetname + ""`"";
-                        }} else if (!hasaddednew) {{
-                            if (i != 1)
-                                createuserpresetsvaluerange += "";"";
-                            createuserpresetsvaluerange += thispresetname + ""="" + thispresetname + ""`"";
-                            hasaddednew = true;
-                        }}
-                    }}
-                    var possibleuserpresetnames = [""USER 1"", ""USER 2"", ""USER 3"", ""USER 4"", ""USER 5"", ""USER 6"", ""USER 7"", ""USER 8"", ""USER 9""];
-                    for (var i = 0; i < array_length(newuserpresetnames); i++) {{
-                        if (!global.diff_array_contains(possibleuserpresetnames, newuserpresetnames[i])) {{
-                            createuserpresetsvaluerange += "";"";
-                            createuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
-                        }}
-                    }}
-                    ds_map_replace(global.diff_menucreateuserpresetrow, ""value_range_en"", createuserpresetsvaluerange);
-                }}
-
-                global.diff_deleteuserpresetname = """"
-                if (global.diff_menudeleteuserpresetrow != -1) {{
-                    var deleteuserpresetsvaluerange = """";
-                    for (var i = 0; i < array_length(newuserpresetnames); i++) {{
-                        if (i != 0)
-                            deleteuserpresetsvaluerange += "";"";
-                        else
-                            global.diff_deleteuserpresetname = newuserpresetnames[i];
-                        deleteuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
-                    }}
-                    ds_map_replace(global.diff_menudeleteuserpresetrow, ""value_range_en"", deleteuserpresetsvaluerange);
-                    ds_map_replace(global.diff_menudeleteuserpresetrow, ""disabled"", deleteuserpresetsvaluerange == """");
-                }}
-
-                global.diff_saveuserpresetname = ""USER 1"";
+            ossafe_ini_open(""difficulty.ini"");
+            var newuserpresetnames = ds_map_keys_to_array(global.diff_userpresets);
+            newuserpresetnames = global.diff_array_sort(newuserpresetnames, true);
+            var newmetapresetsvalue = """";
+            for (var i = 0; i < array_length(newuserpresetnames); i++) {{
+                if (i != 0)
+                    newmetapresetsvalue += "";"";
+                newmetapresetsvalue += newuserpresetnames[i];
             }}
+            ini_write_string(""META"", ""PRESETS"", newmetapresetsvalue);
+            ossafe_ini_close();
+
+            var savedatarefs = global.diff_menu.save_data_refs();
+            ossafe_ini_open(""difficulty.ini"");
+            for (var i = 0; i < array_length(savedatarefs); i++) {{
+                ini_write_real(""preset_"" + global.diff_saveuserpresetname, savedatarefs[i].ini_key, savedatarefs[i].get());
+            }}
+            ossafe_ini_close();
+
+            if (!is_undefined(global.diff_menupresetrow)) {{
+                var userpresetvaluerange = """";
+                for (var i = 0; i < array_length(newuserpresetnames); i++) {{
+                    userpresetvaluerange += "";"" + newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
+                }}
+                global.diff_menupresetrow.value_range = ""{string.Join(";", presets.Select(pair => @$"{pair.Key.ToUpper()}={pair.Key}`"))};CUSTOM=Custom`"" + userpresetvaluerange;
+            }}
+
+            if (!is_undefined(global.diff_menucreateuserpresetrow)) {{
+                var createuserpresetsvaluerange = """";
+                var hasaddednew = false;
+                for (var i = 1; i < 10; i++) {{
+                    var thispresetname = ""USER "" + string(i);
+                    if (global.diff_array_contains(newuserpresetnames, thispresetname)) {{
+                        if (i != 1)
+                            createuserpresetsvaluerange += "";"";
+                        createuserpresetsvaluerange += thispresetname + ""="" + thispresetname + ""`"";
+                    }} else if (!hasaddednew) {{
+                        if (i != 1)
+                            createuserpresetsvaluerange += "";"";
+                        createuserpresetsvaluerange += thispresetname + ""="" + thispresetname + ""`"";
+                        hasaddednew = true;
+                    }}
+                }}
+                var possibleuserpresetnames = [""USER 1"", ""USER 2"", ""USER 3"", ""USER 4"", ""USER 5"", ""USER 6"", ""USER 7"", ""USER 8"", ""USER 9""];
+                for (var i = 0; i < array_length(newuserpresetnames); i++) {{
+                    if (!global.diff_array_contains(possibleuserpresetnames, newuserpresetnames[i])) {{
+                        createuserpresetsvaluerange += "";"";
+                        createuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
+                    }}
+                }}
+                global.diff_menucreateuserpresetrow.value_range = createuserpresetsvaluerange;
+            }}
+
             global.diff_deleteuserpresetname = """";
-            global.diff_deleteuserpreset = function(arg0) {{
-                if (!arg0)
-                    return;
-
-                if (!ds_map_exists(global.diff_userpresets, global.diff_deleteuserpresetname))
-                    return;
-
-                if (global.diff_deleteuserpresetname == global.diff_preset)
-                    global.diff_preset = ""Custom"";
-
-                ds_map_delete(global.diff_userpresets, global.diff_deleteuserpresetname);
-
-                ossafe_ini_open(""difficulty.ini"");
-                var newuserpresetnames = ds_map_keys_to_array(global.diff_userpresets);
-                newuserpresetnames = global.diff_array_sort(newuserpresetnames, true);
-                var newmetapresetsvalue = """";
+            if (!is_undefined(global.diff_menudeleteuserpresetrow)) {{
+                var deleteuserpresetsvaluerange = """";
                 for (var i = 0; i < array_length(newuserpresetnames); i++) {{
                     if (i != 0)
-                        newmetapresetsvalue += "";"";
-                    newmetapresetsvalue += newuserpresetnames[i];
+                        deleteuserpresetsvaluerange += "";"";
+                    else
+                        global.diff_deleteuserpresetname = newuserpresetnames[i];
+                    deleteuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
                 }}
-                ini_write_string(""META"", ""PRESETS"", newmetapresetsvalue);
-                ossafe_ini_close();
-
-                ossafe_ini_open(""difficulty.ini"");
-                if (ini_section_exists(""preset_"" + global.diff_deleteuserpresetname))
-                    ini_section_delete(""preset_"" + global.diff_deleteuserpresetname);
-                ossafe_ini_close();
-
-                if (global.diff_menupresetrow != -1) {{
-                    var userpresetvaluerange = """";
-                    for (var i = 0; i < array_length(newuserpresetnames); i++) {{
-                        userpresetvaluerange += "";"" + newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
-                    }}
-                    ds_map_replace(global.diff_menupresetrow, ""value_range_en"", ""{string.Join(";", presets.Select(pair => @$"{pair.Key.ToUpper()}={pair.Key}`"))};CUSTOM=Custom`"" + userpresetvaluerange);
-                }}
-
-                if (global.diff_menucreateuserpresetrow != -1) {{
-                    var createuserpresetsvaluerange = """";
-                    var hasaddednew = false;
-                    for (var i = 1; i < 10; i++) {{
-                        var thispresetname = ""USER "" + string(i);
-                        if (global.diff_array_contains(newuserpresetnames, thispresetname)) {{
-                            if (i != 1)
-                                createuserpresetsvaluerange += "";"";
-                            createuserpresetsvaluerange += thispresetname + ""="" + thispresetname + ""`"";
-                        }} else if (!hasaddednew) {{
-                            if (i != 1)
-                                createuserpresetsvaluerange += "";"";
-                            createuserpresetsvaluerange += thispresetname + ""="" + thispresetname + ""`"";
-                            hasaddednew = true;
-                        }}
-                    }}
-                    var possibleuserpresetnames = [""USER 1"", ""USER 2"", ""USER 3"", ""USER 4"", ""USER 5"", ""USER 6"", ""USER 7"", ""USER 8"", ""USER 9""];
-                    for (var i = 0; i < array_length(newuserpresetnames); i++) {{
-                        if (!global.diff_array_contains(possibleuserpresetnames, newuserpresetnames[i])) {{
-                            createuserpresetsvaluerange += "";"";
-                            createuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
-                        }}
-                    }}
-                    ds_map_replace(global.diff_menucreateuserpresetrow, ""value_range_en"", createuserpresetsvaluerange);
-                }}
-
-                global.diff_deleteuserpresetname = """"
-                if (global.diff_menudeleteuserpresetrow != -1) {{
-                    var deleteuserpresetsvaluerange = """";
-                    for (var i = 0; i < array_length(newuserpresetnames); i++) {{
-                        if (i != 0)
-                            deleteuserpresetsvaluerange += "";"";
-                        else
-                            global.diff_deleteuserpresetname = newuserpresetnames[i];
-                        deleteuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
-                    }}
-                    ds_map_replace(global.diff_menudeleteuserpresetrow, ""value_range_en"", deleteuserpresetsvaluerange);
-                    ds_map_replace(global.diff_menudeleteuserpresetrow, ""disabled"", deleteuserpresetsvaluerange == """");
-                }}
-
-                global.diff_saveuserpresetname = ""USER 1"";
+                global.diff_menudeleteuserpresetrow.value_range = deleteuserpresetsvaluerange;
             }}
 
-            global.diff_userpresets = ds_map_create();
-
-            // migrate old data as presets: difficulty_[0-2].ini -> USER [1-3]
-            for (var i = 0; i < 3; i++) {{
-                if (ossafe_file_exists(""difficulty_"" + string(i) + "".ini"")) {{
-                    ossafe_ini_open(""difficulty_"" + string(i) + "".ini"");
-                    global.diff_damagemulti = ini_read_real(""DIFFICULTY"", ""DAMAGE_MULTI"", {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_gameboarddmgx = ini_read_real(""DIFFICULTY"", ""GAMEBOARD_DMG_X"", {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_hitall = ini_read_real(""DIFFICULTY"", ""HIT_ALL"", {presets[preset_default].hitall.ToString().ToLower()});
-                    global.diff_iframes = ini_read_real(""DIFFICULTY"", ""I_FRAMES"", {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_enemycd = ini_read_real(""DIFFICULTY"", ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_gmbrdenemycd = ini_read_real(""DIFFICULTY"", ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_tpgain = ini_read_real(""DIFFICULTY"", ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_extraenemies = ini_read_real(""DIFFICULTY"", ""EXTRA_ENEMIES"", {presets[preset_default].extraenemies.ToString()});
-                    global.diff_battlerewards = ini_read_real(""DIFFICULTY"", ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_rewardranking = ini_read_real(""DIFFICULTY"", ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()});
-                    global.diff_downdeficit = ini_read_real(""DIFFICULTY"", ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_downedregen = ini_read_real(""DIFFICULTY"", ""DOWNED_REGEN"", {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_victoryres = ini_read_real(""DIFFICULTY"", ""VICTORY_RES"", {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_plrdmg = ini_read_real(""DIFFICULTY"", ""PLR_DMG"", {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_gmbrdplrdmg = ini_read_real(""DIFFICULTY"", ""GMBRD_PLR_DMG"", {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_plrheal = ini_read_real(""DIFFICULTY"", ""PLR_HEAL"", {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_gmbrdplrheal = ini_read_real(""DIFFICULTY"", ""GMBRD_PLR_HEAL"", {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_mercy = ini_read_real(""DIFFICULTY"", ""MERCY"", {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)});
-                    global.diff_saveheal = ini_read_real(""DIFFICULTY"", ""SAVE_POINT_HEAL"", {presets[preset_default].saveheal.ToString().ToLower()});
-                    ossafe_ini_close();
-
-                    global.diff_saveuserpresetname = ""USER "" + string(i+1);
-                    global.diff_saveuserpreset();
-
-                    ossafe_file_delete(""difficulty_"" + string(i) + "".ini"");
-                }}
-            }}
             global.diff_saveuserpresetname = ""USER 1"";
-            // clean up some of the junk
-            for (var i = 3; i < 10; i++) {{
-                if (ossafe_file_exists(""difficulty_"" + string(i) + "".ini"")) {{
-                    ossafe_file_delete(""difficulty_"" + string(i) + "".ini"");
-                }}
-            }}
-
-            // load all user presets
-            if (ossafe_file_exists(""difficulty.ini"")) {{
-                ossafe_ini_open(""difficulty.ini"");
-                var metapresetsiniraw = ini_read_string(""META"", ""PRESETS"", """");
-                var userpresetnames = metapresetsiniraw == """" ? [] : {((ch_no != 0) ? "" : "global.diff_")}string_split(metapresetsiniraw, "";"");
-                for (var i = 0; i < array_length(userpresetnames); i++) {{
-                    var presetdata = ds_map_create();
-                    ds_map_add(presetdata, ""damagemulti"", ini_read_real(""preset_"" + userpresetnames[i], ""DAMAGE_MULTI"", {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""gameboarddmgx"", ini_read_real(""preset_"" + userpresetnames[i], ""GAMEBOARD_DMG_X"", {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""hitall"", ini_read_real(""preset_"" + userpresetnames[i], ""HIT_ALL"", {presets[preset_default].hitall.ToString().ToLower()}));
-                    ds_map_add(presetdata, ""iframes"", ini_read_real(""preset_"" + userpresetnames[i], ""I_FRAMES"", {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""enemycd"", ini_read_real(""preset_"" + userpresetnames[i], ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""gmbrdenemycd"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""tpgain"", ini_read_real(""preset_"" + userpresetnames[i], ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""extraenemies"", ini_read_real(""preset_"" + userpresetnames[i], ""EXTRA_ENEMIES"", {presets[preset_default].extraenemies.ToString()}));
-                    ds_map_add(presetdata, ""battlerewards"", ini_read_real(""preset_"" + userpresetnames[i], ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""rewardranking"", ini_read_real(""preset_"" + userpresetnames[i], ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()}));
-                    ds_map_add(presetdata, ""downdeficit"", ini_read_real(""preset_"" + userpresetnames[i], ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""downedregen"", ini_read_real(""preset_"" + userpresetnames[i], ""DOWNED_REGEN"", {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""victoryres"", ini_read_real(""preset_"" + userpresetnames[i], ""VICTORY_RES"", {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""plrdmg"", ini_read_real(""preset_"" + userpresetnames[i], ""PLR_DMG"", {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""gmbrdplrdmg"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_PLR_DMG"", {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""plrheal"", ini_read_real(""preset_"" + userpresetnames[i], ""PLR_HEAL"", {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""gmbrdplrheal"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_PLR_HEAL"", {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""mercy"", ini_read_real(""preset_"" + userpresetnames[i], ""MERCY"", {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)}));
-                    ds_map_add(presetdata, ""saveheal"", ini_read_real(""preset_"" + userpresetnames[i], ""SAVE_POINT_HEAL"", {presets[preset_default].saveheal.ToString().ToLower()}));
-                    ds_map_add(global.diff_userpresets, userpresetnames[i], presetdata);
-                }}
-                ossafe_ini_close();
-            }}
-
-            global.diff_usepreset = function()
-            {{
-                switch (global.diff_preset) {{
-                    {string.Join("\n", presets.Select(pair => @$"
-                        case ""{pair.Key}"":
-                            global.diff_damagemulti = {pair.Value.damagemulti.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_gameboarddmgx = {pair.Value.gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_hitall = {pair.Value.hitall.ToString().ToLower()};
-                            global.diff_iframes = {pair.Value.iframes.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_enemycd = {pair.Value.enemycd.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_gmbrdenemycd = {pair.Value.gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_tpgain = {pair.Value.tpgain.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_extraenemies = {pair.Value.extraenemies.ToString()};
-                            global.diff_battlerewards = {pair.Value.battlerewards.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_rewardranking = {pair.Value.rewardranking.ToString().ToLower()};
-                            global.diff_downdeficit = {pair.Value.downdeficit.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_downedregen = {pair.Value.downedregen.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_victoryres = {pair.Value.victoryres.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_plrdmg = {pair.Value.plrdmg.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_gmbrdplrdmg = {pair.Value.gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_plrheal = {pair.Value.plrheal.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_gmbrdplrheal = {pair.Value.gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_mercy = {pair.Value.mercy.ToString("F10", CultureInfo.InvariantCulture)};
-                            global.diff_saveheal = {pair.Value.saveheal.ToString().ToLower()};
-                            break;
-                    "))}
-                    case ""Custom"":
-                        // Nothing to do
-                        break;
-                    default:
-                        if (ds_map_exists(global.diff_userpresets, global.diff_preset)) {{
-                            var presetdata = ds_map_find_value(global.diff_userpresets, global.diff_preset);
-                            global.diff_damagemulti = ds_map_find_value(presetdata, ""damagemulti"");
-                            global.diff_gameboarddmgx = ds_map_find_value(presetdata, ""gameboarddmgx"");
-                            global.diff_hitall = ds_map_find_value(presetdata, ""hitall"");
-                            global.diff_iframes = ds_map_find_value(presetdata, ""iframes"");
-                            global.diff_enemycd = ds_map_find_value(presetdata, ""enemycd"");
-                            global.diff_gmbrdenemycd = ds_map_find_value(presetdata, ""gmbrdenemycd"");
-                            global.diff_tpgain = ds_map_find_value(presetdata, ""tpgain"");
-                            global.diff_extraenemies = ds_map_find_value(presetdata, ""extraenemies"");
-                            global.diff_battlerewards = ds_map_find_value(presetdata, ""battlerewards"");
-                            global.diff_rewardranking = ds_map_find_value(presetdata, ""rewardranking"");
-                            global.diff_downdeficit = ds_map_find_value(presetdata, ""downdeficit"");
-                            global.diff_downedregen = ds_map_find_value(presetdata, ""downedregen"");
-                            global.diff_victoryres = ds_map_find_value(presetdata, ""victoryres"");
-                            global.diff_plrdmg = ds_map_find_value(presetdata, ""plrdmg"");
-                            global.diff_gmbrdplrdmg = ds_map_find_value(presetdata, ""gmbrdplrdmg"");
-                            global.diff_plrheal = ds_map_find_value(presetdata, ""plrheal"");
-                            global.diff_gmbrdplrheal = ds_map_find_value(presetdata, ""gmbrdplrheal"");
-                            global.diff_mercy = ds_map_find_value(presetdata, ""mercy"");
-                            global.diff_saveheal = ds_map_find_value(presetdata, ""saveheal"");
-                        }}
-                        break;
-                }}
-            }}
-
-            global.diff_usepreset_custom = function()
-            {{
-                global.diff_preset = ""Custom"";
-                global.diff_usepreset();
-            }}
-
-            global.diff_usepreset_default = function()
-            {{
-                global.diff_preset = ""{preset_default}"";
-                global.diff_usepreset();
-            }}
-
-            global.diff_usepreset_default();
-
-            // Provide support for mod devs to add compatibility
-            global.diff_apply = function(arg0, arg1, arg2) {{
-                switch (arg0) {{
-                    case ""DIFFOP_DAMAGE"":
-                    return ceil(global.diff_damagemulti * arg1);
-                    case ""DIFFOP_DAMAGE_GB"":
-                    return (global.diff_gameboarddmgx < 0 ? global.diff_damagemulti : global.diff_gameboarddmgx) * arg1;
-                    case ""DIFFOP_HITALL"":
-                    return global.diff_hitall || arg1;
-                    case ""DIFFOP_IFRAMES"":
-                    return ceil(global.diff_iframes * arg1);
-                    case ""DIFFOP_ENEMYCD"":
-                    return round(global.diff_enemycd * arg1);
-                    case ""DIFFOP_ENEMYCD_GB"":
-                    return ceil((global.diff_gmbrdenemycd < 0 ? global.diff_enemycd : global.diff_gmbrdenemycd) * arg1);
-                    case ""DIFFOP_TPGAIN"":
-                    return ceil(global.diff_tpgain * arg1);
-                    case ""DIFFOP_EXTRAENEMIES"":
-                    return global.diff_extraenemies;
-                    case ""DIFFOP_REWARDS"":
-                    return ceil(global.diff_battlerewards * arg1);
-                    case ""DIFFOP_REWARDRANK_GB"":
-                    return global.diff_rewardranking || arg1;
-                    case ""DIFFOP_DOWNDEF"":
-                    return max(-999, floor(global.diff_downdeficit * arg1));
-                    case ""DIFFOP_DOWNREGEN"":
-                    return ceil(global.diff_downedregen * arg1);
-                    case ""DIFFOP_VICRES"":
-                    return ceil(global.diff_victoryres >= 0 ? max(1, arg1 * global.diff_victoryres) : arg2);
-                    case ""DIFFOP_PLRDMG"":
-                    return ceil(global.diff_plrdmg * arg1);
-                    case ""DIFFOP_PLRDMG_GB"":
-                    return ceil(global.diff_gmbrdplrdmg * arg1);
-                    case ""DIFFOP_PLRHEAL"":
-                    return ceil(global.diff_plrheal * arg1);
-                    case ""DIFFOP_PLRHEAL_GB"":
-                    return ceil(global.diff_gmbrdplrheal * arg1);
-                    case ""DIFFOP_MERCY"":
-                    return ceil(global.diff_mercy * arg1);
-                    case ""DIFFOP_SAVEHEAL"":
-                    return global.diff_saveheal || arg1;
-                }}
-            }}
-
-            global.diff_savesettings = function() {{
-                {savesettingsblock(@"""ch"" + string(global.chapter) + ""_"" + string(global.filechoice)")}
-            }}
-
-        ");
-}
-
-// Load globals from config
-(string script, string chapter) [] loadLikes = {("gml_GlobalScript_scr_load", "global.chapter")};
-if (ch_no == 0)
-{
-    (string script, string chapter) [] loadCh1 = {("gml_GlobalScript_scr_load_ch1", "global.chapter")};
-    loadLikes = loadLikes.Concat(loadCh1).ToArray();
-}
-if (ch_no > 1 || ch_no == 0)
-{
-    (string script, string chapter) [] loadCh1 = {("gml_GlobalScript_scr_load_chapter1", "1")};
-    loadLikes = loadLikes.Concat(loadCh1).ToArray();
-}
-if (ch_no > 2)
-{
-    (string script, string chapter) [] loadCh2 = {("gml_GlobalScript_scr_load_chapter2", "2")};
-    loadLikes = loadLikes.Concat(loadCh2).ToArray();
-}
-if (ch_no > 3)
-{
-    (string script, string chapter) [] loadCh3 = {("gml_GlobalScript_scr_load_chapter3", "3")};
-    loadLikes = loadLikes.Concat(loadCh3).ToArray();
-}
-if (ch_no > 4)
-{
-    (string script, string chapter) [] loadCh4 = {("gml_GlobalScript_scr_load_chapter4", "4")};
-    loadLikes = loadLikes.Concat(loadCh4).ToArray();
-}
-// if (ch_no > 5)
-// {
-//     (string script, string chapter) [] loadCh5 = {("gml_GlobalScript_scr_load_chapter5", "5")};
-//     loadLikes = loadLikes.Concat(loadCh5).ToArray();
-// }
-// if (ch_no > 6)
-// {
-//     (string script, string chapter) [] loadCh6 = {("gml_GlobalScript_scr_load_chapter6", "6")};
-//     loadLikes = loadLikes.Concat(loadCh6).ToArray();
-// }
-
-foreach ((string script, string chapter) loadLike in loadLikes)
-{
-    importGroup.QueueTrimmedLinesFindReplace(loadLike.script, $"ossafe_file_text_close{(loadLike.script.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
-        ossafe_file_text_close{(loadLike.script.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);
-
-        {loadsettingsblock(loadLike.chapter, "global.filechoice")}
-
-        ");
-}
-
-// Save globals to config
-string[] saveLikes = {"gml_GlobalScript_scr_saveprocess"};
-if (ch_no == 0)
-{
-    string[] demoSaveLikes = {"gml_GlobalScript_scr_saveprocess_ch1"};
-    saveLikes = saveLikes.Concat(demoSaveLikes).ToArray();
-}
-foreach (string scrName in saveLikes)
-{
-    string saveslot = @" ""ch"" + string(global.chapter) + ""_"" + string(global.filechoice)";
-    importGroup.QueueTrimmedLinesFindReplace(scrName, $"{(ch_no == 0 ? "var is_valid = " : "")}ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
-        {(ch_no == 0 ? "var is_valid = " : "")}ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);
-
-        {savesettingsblock(@"""ch"" + string(global.chapter) + ""_"" + string(global.filechoice)")}
-        ");
-}
-
-// Delete config if file is deleted
-{
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Step_0", @"TIME_STRING[MENUCOORD[5]] = ""--:--"";", @"
-        TIME_STRING[MENUCOORD[5]] = ""--:--"";
-
-        ossafe_ini_open(""difficulty.ini"");
-        if (ini_section_exists(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[5])))
-            ini_section_delete(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[5]));
-        ossafe_ini_close();
-    ");
-}
-if (ch_no == 0)
-{
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Step_0", @"TIME_STRING[MENUCOORD[5]] = ""--:--"";", @"
-        TIME_STRING[MENUCOORD[5]] = ""--:--"";
-
-        ossafe_ini_open(""difficulty.ini"");
-        if (ini_section_exists(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[5])))
-            ini_section_delete(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[5]));
-        ossafe_ini_close();
-    ");
-}
-
-// copy config if file is copied
-string copysettingsblock = @$"
-    ossafe_ini_open(""difficulty.ini"");
-    if (ini_section_exists(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]))){{
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""DAMAGE_MULTI"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""DAMAGE_MULTI"", {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""GAMEBOARD_DMG_X"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""GAMEBOARD_DMG_X"", {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""HIT_ALL"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""HIT_ALL"", {presets[preset_default].hitall.ToString().ToLower()}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""I_FRAMES"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""I_FRAMES"", {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""ENEMY_COOLDOWNS"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""GMBRD_ENEMY_CDS"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""TP_GAIN"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""EXTRA_ENEMIES"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""EXTRA_ENEMIES"", {presets[preset_default].extraenemies.ToString()}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""BATTLE_REWARDS"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""REWARD_RANKING"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""DOWN_DEFICIT"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""DOWNED_REGEN"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""DOWNED_REGEN"", {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""VICTORY_RES"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""VICTORY_RES"", {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""PLR_DMG"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""PLR_DMG"", {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""GMBRD_PLR_DMG"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""GMBRD_PLR_DMG"", {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""PLR_HEAL"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""PLR_HEAL"", {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""GMBRD_PLR_HEAL"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""GMBRD_PLR_HEAL"", {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""MERCY"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""MERCY"", {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)}));
-        ini_write_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[3]), ""SAVE_POINT_HEAL"", ini_read_real(""ch"" + string(global.chapter) + ""_"" + string(MENUCOORD[2]), ""SAVE_POINT_HEAL"", {presets[preset_default].saveheal.ToString().ToLower()}));
-    }}
-    ossafe_ini_close();
-";
-{
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_Other_15", @"file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");", @$"
-        file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");
-
-        {copysettingsblock}
-    ");
-}
-if (ch_no == 0)
-{
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_DEVICE_MENU_ch1_Other_15", @"file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");", @$"
-        file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");
-
-        {copysettingsblock}
-    ");
-}
-
-// Add mod menu
-string[] darkcons = {"gml_Object_obj_darkcontroller"};
-if (ch_no == 0)
-{
-    string[] demoDarkcons = {"gml_Object_obj_darkcontroller_ch1"};
-    darkcons = darkcons.Concat(demoDarkcons).ToArray();
-}
-foreach (string darkcon in darkcons)
-{
-    importGroup.QueueAppend(darkcon + "_Create_0", @$"
-
-        var newuserpresetnames = ds_map_keys_to_array(global.diff_userpresets);
-        newuserpresetnames = global.diff_array_sort(newuserpresetnames, true);
-        var userpresetvaluerange = """";
-        for (var i = 0; i < array_length(newuserpresetnames); i++) {{
-            userpresetvaluerange += "";"" + newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
         }}
-
-        var createuserpresetsvaluerange = """";
-        var hasaddednew = false;
-        for (var i = 1; i < 10; i++) {{
-            var thispresetname = ""USER "" + string(i);
-            if (global.diff_array_contains(newuserpresetnames, thispresetname)) {{
-                if (i != 1)
-                    createuserpresetsvaluerange += "";"";
-                createuserpresetsvaluerange += thispresetname + ""="" + thispresetname + ""`"";
-            }} else if (!hasaddednew) {{
-                if (i != 1)
-                    createuserpresetsvaluerange += "";"";
-                createuserpresetsvaluerange += thispresetname + ""="" + thispresetname + ""`"";
-                hasaddednew = true;
-            }}
-        }}
-        var possibleuserpresetnames = [""USER 1"", ""USER 2"", ""USER 3"", ""USER 4"", ""USER 5"", ""USER 6"", ""USER 7"", ""USER 8"", ""USER 9""];
-        for (var i = 0; i < array_length(newuserpresetnames); i++) {{
-            if (!global.diff_array_contains(possibleuserpresetnames, newuserpresetnames[i])) {{
-                createuserpresetsvaluerange += "";"";
-                createuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
-            }}
-        }}
-
         global.diff_deleteuserpresetname = """";
-        var deleteuserpresetsvaluerange = """";
-        for (var i = 0; i < array_length(newuserpresetnames); i++) {{
-            if (i != 0)
-                deleteuserpresetsvaluerange += "";"";
-            else
-                global.diff_deleteuserpresetname = newuserpresetnames[i];
-            deleteuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
+        global.diff_deleteuserpreset = function() {{
+            if (!ds_map_exists(global.diff_userpresets, global.diff_deleteuserpresetname))
+                return;
+
+            if (global.diff_deleteuserpresetname == global.diff_preset)
+                global.diff_preset = ""Custom"";
+
+            ds_map_delete(global.diff_userpresets, global.diff_deleteuserpresetname);
+
+            ossafe_ini_open(""difficulty.ini"");
+            var newuserpresetnames = ds_map_keys_to_array(global.diff_userpresets);
+            newuserpresetnames = global.diff_array_sort(newuserpresetnames, true);
+            var newmetapresetsvalue = """";
+            for (var i = 0; i < array_length(newuserpresetnames); i++) {{
+                if (i != 0)
+                    newmetapresetsvalue += "";"";
+                newmetapresetsvalue += newuserpresetnames[i];
+            }}
+            ini_write_string(""META"", ""PRESETS"", newmetapresetsvalue);
+            ossafe_ini_close();
+
+            ossafe_ini_open(""difficulty.ini"");
+            if (ini_section_exists(""preset_"" + global.diff_deleteuserpresetname))
+                ini_section_delete(""preset_"" + global.diff_deleteuserpresetname);
+            ossafe_ini_close();
+
+            if (!is_undefined(global.diff_menupresetrow)) {{
+                var userpresetvaluerange = """";
+                for (var i = 0; i < array_length(newuserpresetnames); i++) {{
+                    userpresetvaluerange += "";"" + newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
+                }}
+                global.diff_menupresetrow.value_range = ""{string.Join(";", presets.Select(pair => @$"{pair.Key.ToUpper()}={pair.Key}`"))};CUSTOM=Custom`"" + userpresetvaluerange;
+            }}
+
+            if (!is_undefined(global.diff_menucreateuserpresetrow)) {{
+                var createuserpresetsvaluerange = """";
+                var hasaddednew = false;
+                for (var i = 1; i < 10; i++) {{
+                    var thispresetname = ""USER "" + string(i);
+                    if (global.diff_array_contains(newuserpresetnames, thispresetname)) {{
+                        if (i != 1)
+                            createuserpresetsvaluerange += "";"";
+                        createuserpresetsvaluerange += thispresetname + ""="" + thispresetname + ""`"";
+                    }} else if (!hasaddednew) {{
+                        if (i != 1)
+                            createuserpresetsvaluerange += "";"";
+                        createuserpresetsvaluerange += thispresetname + ""="" + thispresetname + ""`"";
+                        hasaddednew = true;
+                    }}
+                }}
+                var possibleuserpresetnames = [""USER 1"", ""USER 2"", ""USER 3"", ""USER 4"", ""USER 5"", ""USER 6"", ""USER 7"", ""USER 8"", ""USER 9""];
+                for (var i = 0; i < array_length(newuserpresetnames); i++) {{
+                    if (!global.diff_array_contains(possibleuserpresetnames, newuserpresetnames[i])) {{
+                        createuserpresetsvaluerange += "";"";
+                        createuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
+                    }}
+                }}
+                global.diff_menucreateuserpresetrow.value_range = createuserpresetsvaluerange;
+            }}
+
+            global.diff_deleteuserpresetname = """"
+            if (!is_undefined(global.diff_menudeleteuserpresetrow)) {{
+                var deleteuserpresetsvaluerange = """";
+                for (var i = 0; i < array_length(newuserpresetnames); i++) {{
+                    if (i != 0)
+                        deleteuserpresetsvaluerange += "";"";
+                    else
+                        global.diff_deleteuserpresetname = newuserpresetnames[i];
+                    deleteuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
+                }}
+                global.diff_menudeleteuserpresetrow.value_range = deleteuserpresetsvaluerange;
+            }}
+
+            global.diff_saveuserpresetname = ""USER 1"";
         }}
 
-        if (variable_instance_exists(id, ""modmenu""))
+        global.diff_userpresets = ds_map_create();
+
+        // migrate old data as presets: difficulty_[0-2].ini -> USER [1-3]
+        for (var i = 0; i < 3; i++) {{
+            if (ossafe_file_exists(""difficulty_"" + string(i) + "".ini"")) {{
+                ossafe_ini_open(""difficulty_"" + string(i) + "".ini"");
+                global.diff_damagemulti = ini_read_real(""DIFFICULTY"", ""DAMAGE_MULTI"", {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_gameboarddmgx = ini_read_real(""DIFFICULTY"", ""GAMEBOARD_DMG_X"", {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_hitall = ini_read_real(""DIFFICULTY"", ""HIT_ALL"", {presets[preset_default].hitall.ToString().ToLower()});
+                global.diff_iframes = ini_read_real(""DIFFICULTY"", ""I_FRAMES"", {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_enemycd = ini_read_real(""DIFFICULTY"", ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_gmbrdenemycd = ini_read_real(""DIFFICULTY"", ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_tpgain = ini_read_real(""DIFFICULTY"", ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_extraenemies = ini_read_real(""DIFFICULTY"", ""EXTRA_ENEMIES"", {presets[preset_default].extraenemies.ToString()});
+                global.diff_battlerewards = ini_read_real(""DIFFICULTY"", ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_rewardranking = ini_read_real(""DIFFICULTY"", ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()});
+                global.diff_downdeficit = ini_read_real(""DIFFICULTY"", ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_downedregen = ini_read_real(""DIFFICULTY"", ""DOWNED_REGEN"", {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_victoryres = ini_read_real(""DIFFICULTY"", ""VICTORY_RES"", {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_plrdmg = ini_read_real(""DIFFICULTY"", ""PLR_DMG"", {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_gmbrdplrdmg = ini_read_real(""DIFFICULTY"", ""GMBRD_PLR_DMG"", {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_plrheal = ini_read_real(""DIFFICULTY"", ""PLR_HEAL"", {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_gmbrdplrheal = ini_read_real(""DIFFICULTY"", ""GMBRD_PLR_HEAL"", {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_mercy = ini_read_real(""DIFFICULTY"", ""MERCY"", {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)});
+                global.diff_saveheal = ini_read_real(""DIFFICULTY"", ""SAVE_POINT_HEAL"", {presets[preset_default].saveheal.ToString().ToLower()});
+                ossafe_ini_close();
+
+                global.diff_saveuserpresetname = ""USER "" + string(i+1);
+                global.diff_saveuserpreset();
+
+                ossafe_file_delete(""difficulty_"" + string(i) + "".ini"");
+            }}
+        }}
+        global.diff_saveuserpresetname = ""USER 1"";
+        // clean up some of the junk
+        for (var i = 3; i < 10; i++) {{
+            if (ossafe_file_exists(""difficulty_"" + string(i) + "".ini"")) {{
+                ossafe_file_delete(""difficulty_"" + string(i) + "".ini"");
+            }}
+        }}
+
+        // load all user presets
+        if (ossafe_file_exists(""difficulty.ini"")) {{
+            ossafe_ini_open(""difficulty.ini"");
+            var metapresetsiniraw = ini_read_string(""META"", ""PRESETS"", """");
+            var userpresetnames = metapresetsiniraw == """" ? [] : {((ch_no != 0) ? "" : "global.diff_")}string_split(metapresetsiniraw, "";"");
+            for (var i = 0; i < array_length(userpresetnames); i++) {{
+                var presetdata = ds_map_create();
+                ds_map_add(presetdata, ""damagemulti"", ini_read_real(""preset_"" + userpresetnames[i], ""DAMAGE_MULTI"", {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""gameboarddmgx"", ini_read_real(""preset_"" + userpresetnames[i], ""GAMEBOARD_DMG_X"", {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""hitall"", ini_read_real(""preset_"" + userpresetnames[i], ""HIT_ALL"", {presets[preset_default].hitall.ToString().ToLower()}));
+                ds_map_add(presetdata, ""iframes"", ini_read_real(""preset_"" + userpresetnames[i], ""I_FRAMES"", {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""enemycd"", ini_read_real(""preset_"" + userpresetnames[i], ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""gmbrdenemycd"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""tpgain"", ini_read_real(""preset_"" + userpresetnames[i], ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""extraenemies"", ini_read_real(""preset_"" + userpresetnames[i], ""EXTRA_ENEMIES"", {presets[preset_default].extraenemies.ToString()}));
+                ds_map_add(presetdata, ""battlerewards"", ini_read_real(""preset_"" + userpresetnames[i], ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""rewardranking"", ini_read_real(""preset_"" + userpresetnames[i], ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()}));
+                ds_map_add(presetdata, ""downdeficit"", ini_read_real(""preset_"" + userpresetnames[i], ""DOWN_DEFICIT"", {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""downedregen"", ini_read_real(""preset_"" + userpresetnames[i], ""DOWNED_REGEN"", {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""victoryres"", ini_read_real(""preset_"" + userpresetnames[i], ""VICTORY_RES"", {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""plrdmg"", ini_read_real(""preset_"" + userpresetnames[i], ""PLR_DMG"", {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""gmbrdplrdmg"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_PLR_DMG"", {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""plrheal"", ini_read_real(""preset_"" + userpresetnames[i], ""PLR_HEAL"", {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""gmbrdplrheal"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_PLR_HEAL"", {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""mercy"", ini_read_real(""preset_"" + userpresetnames[i], ""MERCY"", {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""saveheal"", ini_read_real(""preset_"" + userpresetnames[i], ""SAVE_POINT_HEAL"", {presets[preset_default].saveheal.ToString().ToLower()}));
+                ds_map_add(global.diff_userpresets, userpresetnames[i], presetdata);
+            }}
+            ossafe_ini_close();
+        }}
+
+        global.diff_usepreset = function()
+        {{
+            switch (global.diff_preset) {{
+                {string.Join("\n", presets.Select(pair => @$"
+                    case ""{pair.Key}"":
+                        global.diff_damagemulti = {pair.Value.damagemulti.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_gameboarddmgx = {pair.Value.gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_hitall = {pair.Value.hitall.ToString().ToLower()};
+                        global.diff_iframes = {pair.Value.iframes.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_enemycd = {pair.Value.enemycd.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_gmbrdenemycd = {pair.Value.gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_tpgain = {pair.Value.tpgain.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_extraenemies = {pair.Value.extraenemies.ToString()};
+                        global.diff_battlerewards = {pair.Value.battlerewards.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_rewardranking = {pair.Value.rewardranking.ToString().ToLower()};
+                        global.diff_downdeficit = {pair.Value.downdeficit.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_downedregen = {pair.Value.downedregen.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_victoryres = {pair.Value.victoryres.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_plrdmg = {pair.Value.plrdmg.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_gmbrdplrdmg = {pair.Value.gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_plrheal = {pair.Value.plrheal.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_gmbrdplrheal = {pair.Value.gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_mercy = {pair.Value.mercy.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_saveheal = {pair.Value.saveheal.ToString().ToLower()};
+                        break;
+                "))}
+                case ""Custom"":
+                    // Nothing to do
+                    break;
+                default:
+                    if (ds_map_exists(global.diff_userpresets, global.diff_preset)) {{
+                        var presetdata = ds_map_find_value(global.diff_userpresets, global.diff_preset);
+                        global.diff_damagemulti = ds_map_find_value(presetdata, ""damagemulti"");
+                        global.diff_gameboarddmgx = ds_map_find_value(presetdata, ""gameboarddmgx"");
+                        global.diff_hitall = ds_map_find_value(presetdata, ""hitall"");
+                        global.diff_iframes = ds_map_find_value(presetdata, ""iframes"");
+                        global.diff_enemycd = ds_map_find_value(presetdata, ""enemycd"");
+                        global.diff_gmbrdenemycd = ds_map_find_value(presetdata, ""gmbrdenemycd"");
+                        global.diff_tpgain = ds_map_find_value(presetdata, ""tpgain"");
+                        global.diff_extraenemies = ds_map_find_value(presetdata, ""extraenemies"");
+                        global.diff_battlerewards = ds_map_find_value(presetdata, ""battlerewards"");
+                        global.diff_rewardranking = ds_map_find_value(presetdata, ""rewardranking"");
+                        global.diff_downdeficit = ds_map_find_value(presetdata, ""downdeficit"");
+                        global.diff_downedregen = ds_map_find_value(presetdata, ""downedregen"");
+                        global.diff_victoryres = ds_map_find_value(presetdata, ""victoryres"");
+                        global.diff_plrdmg = ds_map_find_value(presetdata, ""plrdmg"");
+                        global.diff_gmbrdplrdmg = ds_map_find_value(presetdata, ""gmbrdplrdmg"");
+                        global.diff_plrheal = ds_map_find_value(presetdata, ""plrheal"");
+                        global.diff_gmbrdplrheal = ds_map_find_value(presetdata, ""gmbrdplrheal"");
+                        global.diff_mercy = ds_map_find_value(presetdata, ""mercy"");
+                        global.diff_saveheal = ds_map_find_value(presetdata, ""saveheal"");
+                    }}
+                    break;
+            }}
+        }}
+
+        global.diff_usepreset_custom = function()
+        {{
+            global.diff_preset = ""Custom"";
+            global.diff_usepreset();
+        }}
+
+        global.diff_usepreset_default = function()
+        {{
+            global.diff_preset = ""{preset_default}"";
+            global.diff_usepreset();
+        }}
+
+        global.diff_usepreset_default();
+
+        // Provide support for mod devs to add compatibility
+        global.diff_apply = function(arg0, arg1, arg2) {{
+            switch (arg0) {{
+                case ""DIFFOP_DAMAGE"":
+                return ceil(global.diff_damagemulti * arg1);
+                case ""DIFFOP_DAMAGE_GB"":
+                return (global.diff_gameboarddmgx < 0 ? global.diff_damagemulti : global.diff_gameboarddmgx) * arg1;
+                case ""DIFFOP_HITALL"":
+                return global.diff_hitall || arg1;
+                case ""DIFFOP_IFRAMES"":
+                return ceil(global.diff_iframes * arg1);
+                case ""DIFFOP_ENEMYCD"":
+                return round(global.diff_enemycd * arg1);
+                case ""DIFFOP_ENEMYCD_GB"":
+                return ceil((global.diff_gmbrdenemycd < 0 ? global.diff_enemycd : global.diff_gmbrdenemycd) * arg1);
+                case ""DIFFOP_TPGAIN"":
+                return ceil(global.diff_tpgain * arg1);
+                case ""DIFFOP_EXTRAENEMIES"":
+                return global.diff_extraenemies;
+                case ""DIFFOP_REWARDS"":
+                return ceil(global.diff_battlerewards * arg1);
+                case ""DIFFOP_REWARDRANK_GB"":
+                return global.diff_rewardranking || arg1;
+                case ""DIFFOP_DOWNDEF"":
+                return max(-999, floor(global.diff_downdeficit * arg1));
+                case ""DIFFOP_DOWNREGEN"":
+                return ceil(global.diff_downedregen * arg1);
+                case ""DIFFOP_VICRES"":
+                return ceil(global.diff_victoryres >= 0 ? max(1, arg1 * global.diff_victoryres) : arg2);
+                case ""DIFFOP_PLRDMG"":
+                return ceil(global.diff_plrdmg * arg1);
+                case ""DIFFOP_PLRDMG_GB"":
+                return ceil(global.diff_gmbrdplrdmg * arg1);
+                case ""DIFFOP_PLRHEAL"":
+                return ceil(global.diff_plrheal * arg1);
+                case ""DIFFOP_PLRHEAL_GB"":
+                return ceil(global.diff_gmbrdplrheal * arg1);
+                case ""DIFFOP_MERCY"":
+                return ceil(global.diff_mercy * arg1);
+                case ""DIFFOP_SAVEHEAL"":
+                return global.diff_saveheal || arg1;
+            }}
+        }}
+
+        if (variable_instance_exists(id, ""modmenu"")) {{
+            var newuserpresetnames = ds_map_keys_to_array(global.diff_userpresets);
+            newuserpresetnames = global.diff_array_sort(newuserpresetnames, true);
+            var userpresetvaluerange = """";
+            for (var i = 0; i < array_length(newuserpresetnames); i++) {{
+                userpresetvaluerange += "";"" + newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
+            }}
+
+            var createuserpresetsvaluerange = """";
+            var hasaddednew = false;
+            for (var i = 1; i < 10; i++) {{
+                var thispresetname = ""USER "" + string(i);
+                if (global.diff_array_contains(newuserpresetnames, thispresetname)) {{
+                    if (i != 1)
+                        createuserpresetsvaluerange += "";"";
+                    createuserpresetsvaluerange += thispresetname + ""="" + thispresetname + ""`"";
+                }} else if (!hasaddednew) {{
+                    if (i != 1)
+                        createuserpresetsvaluerange += "";"";
+                    createuserpresetsvaluerange += thispresetname + ""="" + thispresetname + ""`"";
+                    hasaddednew = true;
+                }}
+            }}
+            var possibleuserpresetnames = [""USER 1"", ""USER 2"", ""USER 3"", ""USER 4"", ""USER 5"", ""USER 6"", ""USER 7"", ""USER 8"", ""USER 9""];
+            for (var i = 0; i < array_length(newuserpresetnames); i++) {{
+                if (!global.diff_array_contains(possibleuserpresetnames, newuserpresetnames[i])) {{
+                    createuserpresetsvaluerange += "";"";
+                    createuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
+                }}
+            }}
+
+            global.diff_deleteuserpresetname = """";
+            var deleteuserpresetsvaluerange = """";
+            for (var i = 0; i < array_length(newuserpresetnames); i++) {{
+                if (i != 0)
+                    deleteuserpresetsvaluerange += "";"";
+                else
+                    global.diff_deleteuserpresetname = newuserpresetnames[i];
+                deleteuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
+            }}
+
             global.diff_menu = modmenu.create({{
                 title: ""Difficulty"",
                 left_margin: 0,
                 left_value_pos: 240,
-                close_func: global.diff_savesettings,
-                save_name: ""difficulty"",
-                save_type: ""PerFile"",
+                apply: {{type: ""OnClose"", func: function () {{
+                    // Determine preset
+                    {string.Join(" else ", presets.Select(pair => @$"
+                        if (global.diff_damagemulti == {pair.Value.damagemulti.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_gameboarddmgx == {pair.Value.gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_hitall == {pair.Value.hitall.ToString().ToLower()}
+                            && global.diff_iframes == {pair.Value.iframes.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_enemycd == {pair.Value.enemycd.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_gmbrdenemycd == {pair.Value.gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_tpgain == {pair.Value.tpgain.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_extraenemies == {pair.Value.extraenemies.ToString()}
+                            && global.diff_battlerewards == {pair.Value.battlerewards.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_rewardranking == {pair.Value.rewardranking.ToString().ToLower()}
+                            && global.diff_downdeficit == {pair.Value.downdeficit.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_downedregen == {pair.Value.downedregen.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_victoryres == {pair.Value.victoryres.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_plrdmg == {pair.Value.plrdmg.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_gmbrdplrdmg == {pair.Value.gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_plrheal == {pair.Value.plrheal.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_gmbrdplrheal == {pair.Value.gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_mercy == {pair.Value.mercy.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_saveheal == {pair.Value.saveheal.ToString().ToLower()}) {{
+                                global.diff_preset = ""{pair.Key}"";
+                        }}
+                    "))}
+                    else {{
+                        var userpresetnames = ds_map_keys_to_array(global.diff_userpresets);
+                        var foundPreset = false;
+                        for (var i = 0; i < array_length(userpresetnames); i++) {{
+                            var presetdata = ds_map_find_value(global.diff_userpresets, userpresetnames[i]);
+                            if (global.diff_damagemulti == ds_map_find_value(presetdata, ""damagemulti"")
+                                && global.diff_gameboarddmgx == ds_map_find_value(presetdata, ""gameboarddmgx"")
+                                && global.diff_hitall == ds_map_find_value(presetdata, ""hitall"")
+                                && global.diff_iframes == ds_map_find_value(presetdata, ""iframes"")
+                                && global.diff_enemycd == ds_map_find_value(presetdata, ""enemycd"")
+                                && global.diff_gmbrdenemycd == ds_map_find_value(presetdata, ""gmbrdenemycd"")
+                                && global.diff_tpgain == ds_map_find_value(presetdata, ""tpgain"")
+                                && global.diff_extraenemies == ds_map_find_value(presetdata, ""extraenemies"")
+                                && global.diff_battlerewards == ds_map_find_value(presetdata, ""battlerewards"")
+                                && global.diff_rewardranking == ds_map_find_value(presetdata, ""rewardranking"")
+                                && global.diff_downdeficit == ds_map_find_value(presetdata, ""downdeficit"")
+                                && global.diff_downedregen == ds_map_find_value(presetdata, ""downedregen"")
+                                && global.diff_victoryres == ds_map_find_value(presetdata, ""victoryres"")
+                                && global.diff_plrdmg == ds_map_find_value(presetdata, ""plrdmg"")
+                                && global.diff_gmbrdplrdmg == ds_map_find_value(presetdata, ""gmbrdplrdmg"")
+                                && global.diff_plrheal == ds_map_find_value(presetdata, ""plrheal"")
+                                && global.diff_gmbrdplrheal == ds_map_find_value(presetdata, ""gmbrdplrheal"")
+                                && global.diff_mercy == ds_map_find_value(presetdata, ""mercy"")
+                                && global.diff_saveheal == ds_map_find_value(presetdata, ""saveheal"")) {{
+                                    global.diff_preset = userpresetnames[i];
+                                    foundPreset = true;
+                                    break;
+                            }}
+                        }}
+                        if (!foundPreset)
+                            global.diff_preset = ""Custom"";
+                    }}
+                }}}},
+                save: {{type: ""PerFile"", name: ""difficulty.ini""}},
                 form: [{{
                     type: ""Slider"",
                     title: ""Preset"",
+                    data_ref: {{var: ""diff_preset"", default: ""Normal""}},
                     value_range: ""{string.Join(";", presets.Select(pair => @$"{pair.Key.ToUpper()}={pair.Key}`"))};CUSTOM=Custom`"" + userpresetvaluerange,
-                    value_ref: ""diff_preset"",
-                    value_default: ""Normal"",
-                    value_type: ""String"",
-                    transient: true,
-                    change_func: global.diff_usepreset
+                    no_save: true,
+                    change_func: global.diff_usepreset,
+                    ref: {{var: ""diff_menupresetrow""}}
                 }}, {{
                     type: ""Header"",
                     title: ""BATTLE""
                 }}, {{
                     type: ""Slider"",
                     title: ""Damage Multi"",
+                    data_ref: {{var: ""diff_damagemulti"", default: {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""DAMAGE_MULTI""}},
                     value_range: ""0~1000%;INF=2147483647"",
-                    value_ref: ""diff_damagemulti"",
-                    value_default: {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Gameboard Dmg X"",
+                    data_ref: {{var: ""diff_gameboarddmgx"", default: {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GAMEBOARD_DMG_X""}},
                     value_range: ""INHERIT=-1;0-1000%;INF=2147483647"",
-                    value_ref: ""diff_gameboarddmgx"",
-                    value_default: {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(ch_no == 3 ? "false" : "true")}
                 }}, {{
                     type: ""Toggle"",
                     title: ""Hit.All"",
+                    data_ref: {{var: ""diff_hitall"", default: {presets[preset_default].hitall.ToString().ToLower()}, ini_key: ""HIT_ALL""}},
                     value_range: ""OFF=false;ON=true"",
-                    value_ref: ""diff_hitall"",
-                    value_default: {presets[preset_default].hitall.ToString().ToLower()},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""I-Frames"",
+                    data_ref: {{var: ""diff_iframes"", default: {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""I_FRAMES""}},
                     value_range: ""0~1000%"",
-                    value_ref: ""diff_iframes"",
-                    value_default: {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Enemy Cooldowns"",
+                    data_ref: {{var: ""diff_enemycd"", default: {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""ENEMY_COOLDOWNS""}},
                     value_range: ""0~200%"",
-                    value_ref: ""diff_enemycd"",
-                    value_default: {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Gmbrd Enemy CDs"",
+                    data_ref: {{var: ""diff_gmbrdenemycd"", default: {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_ENEMY_CDS""}},
                     value_range: ""INHERIT=-1;0~200%"",
-                    value_ref: ""diff_gmbrdenemycd"",
-                    value_default: {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(ch_no == 3 ? "false" : "true")}
                 }}, {{
                     type: ""Toggle"",
                     title: ""Extra Enemies"",
+                    data_ref: {{var: ""diff_extraenemies"", default: {presets[preset_default].extraenemies.ToString()}, ini_key: ""EXTRA_ENEMIES""}},
                     value_range: ""NONE=0;+1=1;+2=2"",
-                    value_ref: ""diff_extraenemies"",
-                    value_default: {presets[preset_default].extraenemies.ToString()},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Battle Rewards"",
+                    data_ref: {{var: ""diff_battlerewards"", default: {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""BATTLE_REWARDS""}},
                     value_range: ""0~1000%"",
-                    value_ref: ""diff_battlerewards"",
-                    value_default: {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Toggle"",
                     title: ""Reward Ranking"",
+                    data_ref: {{var: ""diff_rewardranking"", default: {presets[preset_default].rewardranking.ToString().ToLower()}, ini_key: ""REWARD_RANKING""}},
                     value_range: ""OFF=false;ON=true"",
-                    value_ref: ""diff_rewardranking"",
-                    value_default: {presets[preset_default].rewardranking.ToString().ToLower()},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(!hide_rewardrank && ch_no == 3 ? "false" : "true")}
                 }}, {{
@@ -951,26 +721,20 @@ foreach (string darkcon in darkcons)
                 }}, {{
                     type: ""Slider"",
                     title: ""Down Deficit"",
+                    data_ref: {{var: ""diff_downdeficit"", default: {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""DOWN_DEFICIT""}},
                     value_range: ""0~1000%;[-999]=2147483647"",
-                    value_ref: ""diff_downdeficit"",
-                    value_default: {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Downed Regen"",
+                    data_ref: {{var: ""diff_downedregen"", default: {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""DOWNED_REGEN""}},
                     value_range: ""0~1000%;INSTANT=2147483647"",
-                    value_ref: ""diff_downedregen"",
-                    value_default: {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Victory Res"",
+                    data_ref: {{var: ""diff_victoryres"", default: {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""VICTORY_RES""}},
                     value_range: ""OFF=-1;0~100%"",
-                    value_ref: ""diff_victoryres"",
-                    value_default: {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Header"",
@@ -978,94 +742,77 @@ foreach (string darkcon in darkcons)
                 }}, {{
                     type: ""Slider"",
                     title: ""Damage"",
+                    data_ref: {{var: ""diff_plrdmg"", default: {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""PLR_DMG""}},
                     value_range: ""0~1000%;INF=2147483647"",
-                    value_ref: ""diff_plrdmg"",
-                    value_default: {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Gmbrd Damage"",
+                    data_ref: {{var: ""diff_gmbrdplrdmg"", default: {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_PLR_DMG""}},
                     value_range: ""INHERIT=-1;0-1000%;INF=2147483647"",
-                    value_ref: ""diff_gmbrdplrdmg"",
-                    value_default: {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(ch_no == 3 ? "false" : "true")}
                 }}, {{
                     type: ""Slider"",
                     title: ""Healing"",
+                    data_ref: {{var: ""diff_plrheal"", default: {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""PLR_HEAL""}},
                     value_range: ""0~1000%;INF=2147483647"",
-                    value_ref: ""diff_plrheal"",
-                    value_default: {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Gmbrd Healing"",
+                    data_ref: {{var: ""diff_gmbrdplrheal"", default: {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_PLR_HEAL""}},
                     value_range: ""INHERIT=-1;0-1000%;INF=2147483647"",
-                    value_ref: ""diff_gmbrdplrheal"",
-                    value_default: {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(ch_no == 3 ? "false" : "true")}
                 }}, {{
                     type: ""Slider"",
                     title: ""TP Gain"",
+                    data_ref: {{var: ""diff_tpgain"", default: {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""TP_GAIN""}},
                     value_range: ""0~1000%;INF=2147483647"",
-                    value_ref: ""diff_tpgain"",
-                    value_default: {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Mercy"",
+                    data_ref: {{var: ""diff_mercy"", default: {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""MERCY""}},
                     value_range: ""0~1000%;INF=2147483647"",
-                    value_ref: ""diff_mercy"",
-                    value_default: {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Toggle"",
                     title: ""SAVE Point Heal"",
+                    data_ref: {{var: ""diff_saveheal"", default: {presets[preset_default].saveheal.ToString().ToLower()}, ini_key: ""SAVE_POINT_HEAL""}},
                     value_range: ""OFF=false;ON=true"",
-                    value_ref: ""diff_saveheal"",
-                    value_default: {presets[preset_default].saveheal.ToString().ToLower()},
-                    value_type: ""Real"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Header""
                 }}, {{
                     type: ""Slider"",
                     title: ""Save as preset"",
+                    data_ref: {{var: ""diff_saveuserpresetname"", default: ""USER 1""}},
                     value_range: createuserpresetsvaluerange,
-                    value_ref: ""diff_saveuserpresetname"",
-                    value_default: ""USER 1"",
-                    value_type: ""String"",
-                    transient: true,
-                    accept_on_cancel: false,
-                    accept_func: global.diff_saveuserpreset
+                    no_save: true,
+                    revert_on_cancel: true,
+                    accept_func: global.diff_saveuserpreset,
+                    ref: {{var: ""diff_menucreateuserpresetrow""}}
                 }}, {{
                     type: ""Slider"",
                     title: ""Delete a preset"",
+                    data_ref: {{var: ""diff_deleteuserpresetname"", default: """"}},
                     value_range: deleteuserpresetsvaluerange,
-                    value_ref: ""diff_deleteuserpresetname"",
-                    // TODO value_default: ""USER 1"",
-                    value_type: ""String"",
-                    transient: true,
-                    accept_on_cancel: false,
+                    no_save: true,
+                    revert_on_cancel: true,
                     accept_func: global.diff_deleteuserpreset,
-                    disabled: function() {{ return deleteuserpresetsvaluerange == """"; }}
+                    disabled: function() {{ return is_undefined(global.diff_menudeleteuserpresetrow) || (global.diff_menudeleteuserpresetrow.value_range == """"); }},
+                    ref: {{var: ""diff_menudeleteuserpresetrow""}}
                 }}, {{
                     type: ""Button"",
                     title: ""Reset to Defaults"",
                     trigger_func: global.diff_usepreset_default,
                 }}]
             }});
+        }}
 
-        // TODO global.diff_menupresetrow = rowdata;                 global.diff_menu.form[0]
-        // TODO global.diff_menucreateuserpresetrow = rowdata;       global.diff_menu.form[?]
-        // TODO global.diff_menudeleteuserpresetrow = rowdata;       global.diff_menu.form[?+1]
+        global.chapter = 
     ");
 }
 

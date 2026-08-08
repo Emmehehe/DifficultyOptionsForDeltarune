@@ -459,6 +459,11 @@ foreach (string gamestart in gamestarts)
                         ini_section_delete(section);
                     ossafe_ini_close();
                 }};
+                menu.all_data_refs = function() {{
+                    var result = [];
+                    array // TODO
+                }};
+                // TODO implement menu.all_data_refs() & menu.save_data_refs()
 
                 var init_data_ref = function(arg0) {{
                     var data_ref = arg0;
