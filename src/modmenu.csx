@@ -460,10 +460,23 @@ foreach (string gamestart in gamestarts)
                     ossafe_ini_close();
                 }};
                 menu.all_data_refs = function() {{
-                    var result = [];
-                    array // TODO
+                    var form_refs = [];
+                    for (var i = 0; i < array_length(menu.form); i++) {{
+                        if (menu.form[i].type == ""Slider"" || menu.form[i].type == ""Toggle"") {{
+                            array_insert(form_refs, -1, menu.form[i].data_ref);
+                        }} else if (menu.form[i].type == ""Button"" || menu.form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + menu.form[i].type);
+                    }}
+                    return array_concat(form_refs, menu.additional_save_data_refs);
                 }};
-                // TODO implement menu.all_data_refs() & menu.save_data_refs()
+                menu.save_data_refs = function() {{
+                    var form_refs = [];
+                    for (var i = 0; i < array_length(menu.form); i++) {{
+                        if (menu.form[i].no_save) {{}} else if (menu.form[i].type == ""Slider"" || menu.form[i].type == ""Toggle"") {{
+                            array_insert(form_refs, -1, menu.form[i].data_ref);
+                        }} else if (menu.form[i].type == ""Button"" || menu.form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + menu.form[i].type);
+                    }}
+                    return array_concat(form_refs, menu.additional_save_data_refs);
+                }};
 
                 var init_data_ref = function(arg0) {{
                     var data_ref = arg0;
@@ -475,19 +488,21 @@ foreach (string gamestart in gamestarts)
                     // data ref - optional
                     try {{ var check = data_ref.handle; }} catch (_e) {{ data_ref.handle = global; }}
                     try {{ var check = data_ref.handle; if (!is_handle(check)) throw ""data ref handle should be a handle.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref handle is not a handle.""; }}
+                    try {{ var check = data_ref.ini_key; }} catch (_e) {{ data_ref.ini_key = data_ref.var; }}
+                    try {{ var check = data_ref.ini_key; if (!is_string(ini_key)) throw ""data ref ini_key should be a string.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref ini_key is not a string.""; }}
                     // strip 'global.' from data_ref.var
                     {{ var check = data_ref.var; if (data_ref.handle == global && string_starts_with(check, ""global."")) data_ref.var = string_delete(data_ref.var, 0, 7); }}
                     // helper methods
-                    data_ref.get = function() {{ return variable_instance_exists(data_ref.handle, data_ref.name) ? variable_instance_get(data_ref.handle, data_ref.name) : data_ref.default; }};
-                    data_ref.set = function(arg0) {{ variable_instance_set(data_ref.handle, data_ref.name, (!is_undefined(arg0) ? arg0 : data_ref.default)); }};
+                    data_ref.get = function() {{ return variable_instance_exists(data_ref.handle, data_ref.var) ? variable_instance_get(data_ref.handle, data_ref.var) : data_ref.default; }};
+                    data_ref.set = function(arg0) {{ variable_instance_set(data_ref.handle, data_ref.var, (!is_undefined(arg0) ? arg0 : data_ref.default)); }};
                     data_ref.read = function(arg0 /* section */) {{
-                        if (is_string(data_ref.default)) return ini_read_string(arg0, data_ref.name, data_ref.default);
-                        if (is_numeric(data_ref.default)) return ini_read_real(arg0, data_ref.name, data_ref.default);
+                        if (is_string(data_ref.default)) return ini_read_string(arg0, data_ref.ini_key, data_ref.default);
+                        if (is_numeric(data_ref.default)) return ini_read_real(arg0, data_ref.ini_key, data_ref.default);
                         return data_ref.default;
                     }};
                     data_ref.write = function(arg0 /* section */, arg1 /* value */) {{
-                        if (is_string(data_ref.default)) ini_write_string(arg0, data_ref.name, arg1);
-                        if (is_numeric(data_ref.default)) ini_write_real(arg0, data_ref.name, arg1);
+                        if (is_string(data_ref.default)) ini_write_string(arg0, data_ref.ini_key, arg1);
+                        if (is_numeric(data_ref.default)) ini_write_real(arg0, data_ref.ini_key, arg1);
                     }};
                     data_ref.load = function(arg0 /* section */) {{
                         data_ref.set(data_ref.read(arg0));
@@ -596,6 +611,11 @@ foreach (string gamestart in gamestarts)
                         try {{ var check = row.hidden; if (!is_bool(check) && !is_callable(check)) throw ""row hidden should be a bool or a callable""; }} catch (_e) {{ row.hidden = false; }}
                         row.is_disabled = function() {{ return is_callable(row.disabled) ? row.disabled() : row.disabled; }};
                         row.is_hidden = function() {{ return is_callable(row.hidden) ? row.hidden() : row.hidden; }};
+                        try {{ var check = row.ref; }} catch (_e) {{ row.ref = undefined; }}
+                        try {{ var check = row.ref; if (!is_undefined(check) && !is_string(check.string)) throw ""row ref var should be a string""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row ref does not have a valid value for 'var'.""; }}
+                        try {{ var check = row.ref; if (!is_undefined(check) check = check.handle; }} catch (_e) {{ row.ref.handle = global; }}
+                        try {{ var check = row.ref; if (!is_undefined(check) && !is_handle(check.handle)) throw ""row ref handle should be a handle""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row ref does not have a valid value for 'handle'.""; }}
+                        if (!is_undefined(row.ref)) variable_instance_set(row.ref.handle, row.ref.var, row);
                     }} else throw (""Unsupported row type: "" + row.type);
                 }}
                 for (var i = 0; i < array_length(menu.additional_save_data_refs); i++) {{
