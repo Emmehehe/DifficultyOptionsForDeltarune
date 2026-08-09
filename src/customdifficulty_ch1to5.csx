@@ -646,72 +646,72 @@ foreach (string scrName in gamestartLikes)
                             global.diff_preset = ""Custom"";
                     }}
                 }}}},
-                save: {{type: ""PerFile"", name: ""difficulty.ini""}},
+                save_file: {{type: ""PerFile"", name: ""difficulty.ini""}},
                 form: [{{
                     type: ""Slider"",
                     title: ""Preset"",
-                    data_ref: {{var: ""diff_preset"", default: ""Normal""}},
+                    data_ref: {{var_name: ""diff_preset"", default_value: ""Normal""}},
                     value_range: ""{string.Join(";", presets.Select(pair => @$"{pair.Key.ToUpper()}={pair.Key}`"))};CUSTOM=Custom`"" + userpresetvaluerange,
                     no_save: true,
                     change_func: global.diff_usepreset,
-                    ref: {{var: ""diff_menupresetrow""}}
+                    ref: {{var_name: ""diff_menupresetrow""}}
                 }}, {{
                     type: ""Header"",
                     title: ""BATTLE""
                 }}, {{
                     type: ""Slider"",
                     title: ""Damage Multi"",
-                    data_ref: {{var: ""diff_damagemulti"", default: {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""DAMAGE_MULTI""}},
+                    data_ref: {{var_name: ""diff_damagemulti"", default_value: {presets[preset_default].damagemulti.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""DAMAGE_MULTI""}},
                     value_range: ""0~1000%;INF=2147483647"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Gameboard Dmg X"",
-                    data_ref: {{var: ""diff_gameboarddmgx"", default: {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GAMEBOARD_DMG_X""}},
+                    data_ref: {{var_name: ""diff_gameboarddmgx"", default_value: {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GAMEBOARD_DMG_X""}},
                     value_range: ""INHERIT=-1;0-1000%;INF=2147483647"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(ch_no == 3 ? "false" : "true")}
                 }}, {{
                     type: ""Toggle"",
                     title: ""Hit.All"",
-                    data_ref: {{var: ""diff_hitall"", default: {presets[preset_default].hitall.ToString().ToLower()}, ini_key: ""HIT_ALL""}},
+                    data_ref: {{var_name: ""diff_hitall"", default_value: {presets[preset_default].hitall.ToString().ToLower()}, ini_key: ""HIT_ALL""}},
                     value_range: ""OFF=false;ON=true"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""I-Frames"",
-                    data_ref: {{var: ""diff_iframes"", default: {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""I_FRAMES""}},
+                    data_ref: {{var_name: ""diff_iframes"", default_value: {presets[preset_default].iframes.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""I_FRAMES""}},
                     value_range: ""0~1000%"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Enemy Cooldowns"",
-                    data_ref: {{var: ""diff_enemycd"", default: {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""ENEMY_COOLDOWNS""}},
+                    data_ref: {{var_name: ""diff_enemycd"", default_value: {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""ENEMY_COOLDOWNS""}},
                     value_range: ""0~200%"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Gmbrd Enemy CDs"",
-                    data_ref: {{var: ""diff_gmbrdenemycd"", default: {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_ENEMY_CDS""}},
+                    data_ref: {{var_name: ""diff_gmbrdenemycd"", default_value: {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_ENEMY_CDS""}},
                     value_range: ""INHERIT=-1;0~200%"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(ch_no == 3 ? "false" : "true")}
                 }}, {{
                     type: ""Toggle"",
                     title: ""Extra Enemies"",
-                    data_ref: {{var: ""diff_extraenemies"", default: {presets[preset_default].extraenemies.ToString()}, ini_key: ""EXTRA_ENEMIES""}},
+                    data_ref: {{var_name: ""diff_extraenemies"", default_value: {presets[preset_default].extraenemies.ToString()}, ini_key: ""EXTRA_ENEMIES""}},
                     value_range: ""NONE=0;+1=1;+2=2"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Battle Rewards"",
-                    data_ref: {{var: ""diff_battlerewards"", default: {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""BATTLE_REWARDS""}},
+                    data_ref: {{var_name: ""diff_battlerewards"", default_value: {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""BATTLE_REWARDS""}},
                     value_range: ""0~1000%"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Toggle"",
                     title: ""Reward Ranking"",
-                    data_ref: {{var: ""diff_rewardranking"", default: {presets[preset_default].rewardranking.ToString().ToLower()}, ini_key: ""REWARD_RANKING""}},
+                    data_ref: {{var_name: ""diff_rewardranking"", default_value: {presets[preset_default].rewardranking.ToString().ToLower()}, ini_key: ""REWARD_RANKING""}},
                     value_range: ""OFF=false;ON=true"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(!hide_rewardrank && ch_no == 3 ? "false" : "true")}
@@ -721,19 +721,19 @@ foreach (string scrName in gamestartLikes)
                 }}, {{
                     type: ""Slider"",
                     title: ""Down Deficit"",
-                    data_ref: {{var: ""diff_downdeficit"", default: {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""DOWN_DEFICIT""}},
+                    data_ref: {{var_name: ""diff_downdeficit"", default_value: {presets[preset_default].downdeficit.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""DOWN_DEFICIT""}},
                     value_range: ""0~1000%;[-999]=2147483647"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Downed Regen"",
-                    data_ref: {{var: ""diff_downedregen"", default: {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""DOWNED_REGEN""}},
+                    data_ref: {{var_name: ""diff_downedregen"", default_value: {presets[preset_default].downedregen.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""DOWNED_REGEN""}},
                     value_range: ""0~1000%;INSTANT=2147483647"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Victory Res"",
-                    data_ref: {{var: ""diff_victoryres"", default: {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""VICTORY_RES""}},
+                    data_ref: {{var_name: ""diff_victoryres"", default_value: {presets[preset_default].victoryres.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""VICTORY_RES""}},
                     value_range: ""OFF=-1;0~100%"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
@@ -742,45 +742,45 @@ foreach (string scrName in gamestartLikes)
                 }}, {{
                     type: ""Slider"",
                     title: ""Damage"",
-                    data_ref: {{var: ""diff_plrdmg"", default: {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""PLR_DMG""}},
+                    data_ref: {{var_name: ""diff_plrdmg"", default_value: {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""PLR_DMG""}},
                     value_range: ""0~1000%;INF=2147483647"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Gmbrd Damage"",
-                    data_ref: {{var: ""diff_gmbrdplrdmg"", default: {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_PLR_DMG""}},
+                    data_ref: {{var_name: ""diff_gmbrdplrdmg"", default_value: {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_PLR_DMG""}},
                     value_range: ""INHERIT=-1;0-1000%;INF=2147483647"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(ch_no == 3 ? "false" : "true")}
                 }}, {{
                     type: ""Slider"",
                     title: ""Healing"",
-                    data_ref: {{var: ""diff_plrheal"", default: {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""PLR_HEAL""}},
+                    data_ref: {{var_name: ""diff_plrheal"", default_value: {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""PLR_HEAL""}},
                     value_range: ""0~1000%;INF=2147483647"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Gmbrd Healing"",
-                    data_ref: {{var: ""diff_gmbrdplrheal"", default: {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_PLR_HEAL""}},
+                    data_ref: {{var_name: ""diff_gmbrdplrheal"", default_value: {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_PLR_HEAL""}},
                     value_range: ""INHERIT=-1;0-1000%;INF=2147483647"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(ch_no == 3 ? "false" : "true")}
                 }}, {{
                     type: ""Slider"",
                     title: ""TP Gain"",
-                    data_ref: {{var: ""diff_tpgain"", default: {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""TP_GAIN""}},
+                    data_ref: {{var_name: ""diff_tpgain"", default_value: {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""TP_GAIN""}},
                     value_range: ""0~1000%;INF=2147483647"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Slider"",
                     title: ""Mercy"",
-                    data_ref: {{var: ""diff_mercy"", default: {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""MERCY""}},
+                    data_ref: {{var_name: ""diff_mercy"", default_value: {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""MERCY""}},
                     value_range: ""0~1000%;INF=2147483647"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
                     type: ""Toggle"",
                     title: ""SAVE Point Heal"",
-                    data_ref: {{var: ""diff_saveheal"", default: {presets[preset_default].saveheal.ToString().ToLower()}, ini_key: ""SAVE_POINT_HEAL""}},
+                    data_ref: {{var_name: ""diff_saveheal"", default_value: {presets[preset_default].saveheal.ToString().ToLower()}, ini_key: ""SAVE_POINT_HEAL""}},
                     value_range: ""OFF=false;ON=true"",
                     change_func: global.diff_usepreset_custom
                 }}, {{
@@ -788,22 +788,22 @@ foreach (string scrName in gamestartLikes)
                 }}, {{
                     type: ""Slider"",
                     title: ""Save as preset"",
-                    data_ref: {{var: ""diff_saveuserpresetname"", default: ""USER 1""}},
+                    data_ref: {{var_name: ""diff_saveuserpresetname"", default_value: ""USER 1""}},
                     value_range: createuserpresetsvaluerange,
                     no_save: true,
                     revert_on_cancel: true,
                     accept_func: global.diff_saveuserpreset,
-                    ref: {{var: ""diff_menucreateuserpresetrow""}}
+                    ref: {{var_name: ""diff_menucreateuserpresetrow""}}
                 }}, {{
                     type: ""Slider"",
                     title: ""Delete a preset"",
-                    data_ref: {{var: ""diff_deleteuserpresetname"", default: """"}},
+                    data_ref: {{var_name: ""diff_deleteuserpresetname"", default_value: """"}},
                     value_range: deleteuserpresetsvaluerange,
                     no_save: true,
                     revert_on_cancel: true,
                     accept_func: global.diff_deleteuserpreset,
                     disabled: function() {{ return is_undefined(global.diff_menudeleteuserpresetrow) || (global.diff_menudeleteuserpresetrow.value_range == """"); }},
-                    ref: {{var: ""diff_menudeleteuserpresetrow""}}
+                    ref: {{var_name: ""diff_menudeleteuserpresetrow""}}
                 }}, {{
                     type: ""Button"",
                     title: ""Reset to Defaults"",

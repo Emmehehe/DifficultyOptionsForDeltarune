@@ -150,104 +150,6 @@ if (ch_no == 0)
     darkcons = darkcons.Concat(demoDarkcons).ToArray();
 }
 
-if (ch_no == 0) {
-    // WARNING: only works for delimiters 1 char long
-    // WARNING: does not have optional args from GM's impl
-    string string_split = @"
-        function string_split(arg0, arg1)
-        {
-            length = string_length(arg0);
-            var result = array_create(0);
-            array_push(result, """");
-
-            // string_char_at index starts at 1 for some reason
-            for (i = 1; i <= length; i++)
-            {
-                thischar = string_char_at(arg0, i);
-
-                if (thischar != arg1) {
-                    result[array_length(result) - 1] = result[array_length(result) - 1] + thischar;
-                }
-                else
-                {
-                    array_push(result, """");
-                }
-            }
-
-            return result;
-        }
-
-    ";
-    foreach (string darkcon in darkcons)
-    {
-        importGroup.QueuePrepend(darkcon + "_Step_0", string_split);
-        importGroup.QueuePrepend(darkcon + "_Draw_0", string_split);
-    }
-    foreach (string gamestart in gamestarts)
-    {
-        importGroup.QueuePrepend(gamestart, string_split);
-    }
-
-    // WARNING: only works for substr 1 char long
-    string string_ends_with = @"
-        function string_ends_with(arg0, arg1)
-        {
-            length = string_length(arg0);
-            // string_char_at index starts at 1 for some reason
-            lastchar = string_char_at(arg0, length);
-
-            return (lastchar == arg1);
-        }
-
-    ";
-    foreach (string darkcon in darkcons)
-    {
-        importGroup.QueuePrepend(darkcon + "_Step_0", string_ends_with);
-        importGroup.QueuePrepend(darkcon + "_Draw_0", string_ends_with);
-    }
-    foreach (string gamestart in gamestarts)
-    {
-        importGroup.QueuePrepend(gamestart, string_ends_with);
-    }
-
-    // WARNING: only trims spaces, not other types of whitespace
-    // WARNING: only trims whitespace from the start of the string
-    string string_trim = @"
-        function string_trim(arg0)
-        {
-            length = string_length(arg0);
-            result = """";
-            var foundNonWS = false;
-
-            // string_char_at index starts at 1 for some reason
-            for (i = 1; i <= length; i++)
-            {
-                thischar = string_char_at(arg0, i);
-
-                if (thischar != "" "") {
-                    foundNonWS = true;
-                }
-
-                if (foundNonWS) {
-                    result += thischar;
-                }
-            }
-
-            return result;
-        }
-
-    ";
-    foreach (string darkcon in darkcons)
-    {
-        importGroup.QueuePrepend(darkcon + "_Step_0", string_trim);
-        importGroup.QueuePrepend(darkcon + "_Draw_0", string_trim);
-    }
-    foreach (string gamestart in gamestarts)
-    {
-        importGroup.QueuePrepend(gamestart, string_trim);
-    }
-}
-
 // Add modmenu gamestart code
 foreach (string gamestart in gamestarts)
 {
@@ -257,6 +159,87 @@ foreach (string gamestart in gamestarts)
         var installed_modmenu = true;
 
         modmenu = {{
+            {(ch_no == 0 ? @"
+                // The demo is on an old version of game maker that doesn't have the string_split, string_ends_with, or string_trim functions so add (very) basic implementations
+                // WARNING: only works for delimiters 1 char long
+                // WARNING: does not have optional args from GM's impl
+                string_split: function(arg0, arg1) {
+                    length = string_length(arg0);
+                    var result = array_create(0);
+                    array_push(result, """");
+
+                    // string_char_at index starts at 1 for some reason
+                    for (i = 1; i <= length; i++)
+                    {
+                        thischar = string_char_at(arg0, i);
+
+                        if (thischar != arg1) {
+                            result[array_length(result) - 1] = result[array_length(result) - 1] + thischar;
+                        }
+                        else
+                        {
+                            array_push(result, """");
+                        }
+                    }
+
+                    return result;
+                },
+                string_starts_with: function(arg0, arg1) {
+                    sublength = string_length(arg1);
+                    if (string_length(arg0) < sublength)
+                        return false;
+
+                    // string_char_at index starts at 1 for some reason
+                    for (var i = 1; i <= sublength; i++) {
+                        if (string_char_at(arg0, i) != string_char_at(arg1, i))
+                            return false;
+                    }
+
+                    return true;
+                },
+                string_ends_with: function(arg0, arg1) {
+                    length = string_length(arg0);
+                    sublength = string_length(arg1);
+                    if (length < sublength)
+                        return false;
+
+                    // string_char_at index starts at 1 for some reason
+                    for (var i = 1; i <= sublength; i++) {
+                        if (string_char_at(arg0, length - sublength + i) != string_char_at(arg1, i))
+                            return false;
+                    }
+
+                    return true;
+                },
+                // WARNING: only trims spaces, not other types of whitespace
+                // WARNING: only trims whitespace from the start of the string
+                string_trim: function(arg0) {
+                    length = string_length(arg0);
+                    result = """";
+                    var foundNonWS = false;
+
+                    // string_char_at index starts at 1 for some reason
+                    for (i = 1; i <= length; i++)
+                    {
+                        thischar = string_char_at(arg0, i);
+
+                        if (thischar != "" "") {
+                            foundNonWS = true;
+                        }
+
+                        if (foundNonWS) {
+                            result += thischar;
+                        }
+                    }
+
+                    return result;
+                },
+            " : @"
+                string_split: function(arg0, arg1) { return string_split(arg0, arg1); },
+                string_starts_with: function(arg0, arg1) { return string_starts_with(arg0, arg1); },
+                string_ends_with: function(arg0, arg1) { return string_ends_with(arg0, arg1); },
+                string_trim: function(arg0) { return string_trim(arg0); },
+            ")}
             menu_no: 0,
             row_no: -1,
             row_selected: false,
@@ -299,6 +282,7 @@ foreach (string gamestart in gamestarts)
             slider_speed_max: 3,
             slider_speed: 0,
             slider_accel: 1 / 20,
+            slider_orig_value: undefined,
 
             // some translation mods replace the english translation rather than using DR's built in localisation support, so can't always rely on global.lang and have to override for certain mods
             lang_override: """",
@@ -321,8 +305,8 @@ foreach (string gamestart in gamestarts)
             string_savename: function(arg0)
             {{
                 var result = string_lower(arg0);
-                if (string_ends_with(result, "".ini""))
-                    result = string_delete(result, 0, -4);
+                if (global.modmenu.string_ends_with(result, "".ini""))
+                    result = string_delete(result, string_length(result)-3, 4);
                 result = string_lettersdigits(arg0);
                 return result + "".ini"";
             }},
@@ -330,7 +314,7 @@ foreach (string gamestart in gamestarts)
             {{
                 if (arg0 != string_lower(arg0))
                     return arg0;
-                if (string_ends_with(arg0, "".ini""))
+                if (global.modmenu.string_ends_with(arg0, "".ini""))
                     return arg0;
                 if (arg0 != string_lettersdigits(arg0))
                     return arg0;
@@ -340,9 +324,9 @@ foreach (string gamestart in gamestarts)
             {{
                 if (arg0 != string_lower(arg0))
                     return false;
-                if (!string_ends_with(arg0, "".ini""))
+                if (!global.modmenu.string_ends_with(arg0, "".ini""))
                     return false;
-                if (string_delete(arg0, 0, -4) != string_lettersdigits(string_delete(arg0, 0, -4)))
+                if (string_delete(arg0, string_length(arg0)-3, 4) != string_lettersdigits(string_delete(arg0, string_length(arg0)-3, 4)))
                     return false;
                 return true;
             }},
@@ -431,7 +415,7 @@ foreach (string gamestart in gamestarts)
                     try {{ var check = data_ref.handle; }} catch (_e) {{ data_ref.handle = global; }}
                     try {{ var check = data_ref.handle; if (is_undefined(check)) throw ""data ref handle should not be undefined.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref handle is not a handle.""; }}
                     // strip 'global.' from data_ref.var_name
-                    {{ var check = data_ref.var_name; if (data_ref.handle == global && string_starts_with(check, ""global."")) data_ref.var_name = string_delete(data_ref.var_name, 0, 7); }}
+                    {{ var check = data_ref.var_name; if (data_ref.handle == global && global.modmenu.string_starts_with(check, ""global."")) data_ref.var_name = string_delete(data_ref.var_name, 1, 7); }}
                     try {{ var check = data_ref.ini_key; }} catch (_e) {{ data_ref.ini_key = data_ref.var_name; }}
                     try {{ var check = data_ref.ini_key; if (!is_string(check)) throw ""data ref ini_key should be a string.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref ini_key is not a string.""; }}
                     // helper methods
@@ -521,28 +505,28 @@ foreach (string gamestart in gamestarts)
                             disabled: row.disabled,
                             hidden: row.hidden,
                             ref: row.ref,
-                            title_loc: function(arg0) {{ return global.modmenu.find_locfind_loc(title, arg0); }},
-                            value_range_loc: function(arg0) {{ return global.modmenu.find_locfind_loc(value_range, arg0); }},
+                            title_loc: function(arg0) {{ return global.modmenu.find_loc(title, arg0); }},
+                            value_range_loc: function(arg0) {{ return global.modmenu.find_loc(value_range, arg0); }},
                             value_string: function() {{
                                 var value = data_ref.get();
                                 var value_range = value_range_loc();
-                                var ranges = string_split(value_range, "";"");
+                                var ranges = global.modmenu.string_split(value_range, "";"");
                                 var valueString = """";
 
                                 for (var j = 0; j < array_length(ranges); j++) {{
                                     var range = ranges[j];
                                     if (string_pos(""~"", range)) {{
-                                        var minMax = string_split(string_replace(range, ""%"", """"), ""~"");
-                                        var isPercent = string_ends_with(range, ""%"");
+                                        var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""~"");
+                                        var isPercent = global.modmenu.string_ends_with(range, ""%"");
                                         var convVal = isPercent ? value * 100 : value;
                                         if (convVal <= minMax[1] || j+1 == array_length(ranges)) {{
-                                            valueString = string_trim(string_format(convVal, 3, (isPercent && convVal > -20 && convVal < 20) ? 1 : 0) + (isPercent ? ""%"" : """"));
+                                            valueString = global.modmenu.string_trim(string_format(convVal, 3, (isPercent && convVal > -20 && convVal < 20) ? 1 : 0) + (isPercent ? ""%"" : """"));
                                             break;
                                         }}
                                     }} else if (string_pos(""="", range)) {{
-                                        var labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                        var isString = string_ends_with(range, ""`"");
-                                        var isPercent = !isString && string_ends_with(range, ""%"");
+                                        var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                        var isString = global.modmenu.string_ends_with(range, ""`"");
+                                        var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
                                         var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
 
                                         var isMatch = false;
@@ -559,10 +543,10 @@ foreach (string gamestart in gamestarts)
                                             valueString = labelValue[0];
                                             break;
                                         }}
-                                    }} else if (string_ends_with(range, ""%"")) {{
-                                        var minMax = string_split(string_replace(range, ""%"", """"), ""-"");
+                                    }} else if (global.modmenu.string_ends_with(range, ""%"")) {{
+                                        var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""-"");
                                         if (value * 100 <= minMax[1] || j+1 == array_length(ranges)) {{
-                                            valueString = string_trim(string_format(value * 100, 3, value < 0.2 ? 1 : 0) + ""%"");
+                                            valueString = global.modmenu.string_trim(string_format(value * 100, 3, value < 0.2 ? 1 : 0) + ""%"");
                                             break;
                                         }}
                                     }}
@@ -588,28 +572,28 @@ foreach (string gamestart in gamestarts)
                             disabled: row.disabled,
                             hidden: row.hidden,
                             ref: row.ref,
-                            title_loc: function(arg0) {{ return global.modmenu.find_locfind_loc(title, arg0); }},
-                            value_range_loc: function(arg0) {{ return global.modmenu.find_locfind_loc(value_range, arg0); }},
+                            title_loc: function(arg0) {{ return global.modmenu.find_loc(title, arg0); }},
+                            value_range_loc: function(arg0) {{ return global.modmenu.find_loc(value_range, arg0); }},
                             value_string: function() {{
                                 var value = data_ref.get();
                                 var value_range = value_range_loc();
-                                var ranges = string_split(value_range, "";"");
+                                var ranges = global.modmenu.string_split(value_range, "";"");
                                 var valueString = """";
 
                                 for (var j = 0; j < array_length(ranges); j++) {{
                                     var range = ranges[j];
                                     if (string_pos(""~"", range)) {{
-                                        var minMax = string_split(string_replace(range, ""%"", """"), ""~"");
-                                        var isPercent = string_ends_with(range, ""%"");
+                                        var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""~"");
+                                        var isPercent = global.modmenu.string_ends_with(range, ""%"");
                                         var convVal = isPercent ? value * 100 : value;
                                         if (convVal <= minMax[1] || j+1 == array_length(ranges)) {{
-                                            valueString = string_trim(string_format(convVal, 3, (isPercent && convVal > -20 && convVal < 20) ? 1 : 0) + (isPercent ? ""%"" : """"));
+                                            valueString = global.modmenu.string_trim(string_format(convVal, 3, (isPercent && convVal > -20 && convVal < 20) ? 1 : 0) + (isPercent ? ""%"" : """"));
                                             break;
                                         }}
                                     }} else if (string_pos(""="", range)) {{
-                                        var labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                        var isString = string_ends_with(range, ""`"");
-                                        var isPercent = !isString && string_ends_with(range, ""%"");
+                                        var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                        var isString = global.modmenu.string_ends_with(range, ""`"");
+                                        var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
                                         var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
 
                                         var isMatch = false;
@@ -626,10 +610,10 @@ foreach (string gamestart in gamestarts)
                                             valueString = labelValue[0];
                                             break;
                                         }}
-                                    }} else if (string_ends_with(range, ""%"")) {{
-                                        var minMax = string_split(string_replace(range, ""%"", """"), ""-"");
+                                    }} else if (global.modmenu.string_ends_with(range, ""%"")) {{
+                                        var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""-"");
                                         if (value * 100 <= minMax[1] || j+1 == array_length(ranges)) {{
-                                            valueString = string_trim(string_format(value * 100, 3, value < 0.2 ? 1 : 0) + ""%"");
+                                            valueString = global.modmenu.string_trim(string_format(value * 100, 3, value < 0.2 ? 1 : 0) + ""%"");
                                             break;
                                         }}
                                     }}
@@ -648,7 +632,7 @@ foreach (string gamestart in gamestarts)
                             disabled: row.disabled,
                             hidden: row.hidden,
                             ref: row.ref,
-                            title_loc: function(arg0) {{ return global.modmenu.find_locfind_loc(title, arg0); }},
+                            title_loc: function(arg0) {{ return global.modmenu.find_loc(title, arg0); }},
                             is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
                             is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
                         }};
@@ -659,7 +643,7 @@ foreach (string gamestart in gamestarts)
                             disabled: row.disabled,
                             hidden: row.hidden,
                             ref: row.ref,
-                            title_loc: function(arg0) {{ return global.modmenu.find_locfind_loc(title, arg0); }},
+                            title_loc: function(arg0) {{ return global.modmenu.find_loc(title, arg0); }},
                             is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
                             is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
                         }};
@@ -696,8 +680,9 @@ foreach (string gamestart in gamestarts)
                         var section = save_file.category(arg0, arg1);
                         ossafe_ini_open(save_file.name);
                         for (var i = 0; i < array_length(form); i++) {{
-                            if (form[i].no_save) {{}} else if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
-                                form[i].data_ref.load(section);
+                            if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                                if (!form[i].no_save)
+                                    form[i].data_ref.load(section);
                             }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                         }}
                         for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
@@ -715,8 +700,9 @@ foreach (string gamestart in gamestarts)
                         var section = save_file.category(undefined, arg0);
                         ossafe_ini_open(save_file.name);
                         for (var i = 0; i < array_length(form); i++) {{
-                            if (form[i].no_save) {{}} else if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
-                                form[i].data_ref.save(section);
+                            if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                                if (!form[i].no_save)
+                                    form[i].data_ref.save(section);
                             }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                         }}
                         for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
@@ -732,8 +718,9 @@ foreach (string gamestart in gamestarts)
                         var to = save_file.category(undefined, arg1);
                         ossafe_ini_open(save_file.name);
                         for (var i = 0; i < array_length(form); i++) {{
-                            if (form[i].no_save) {{}} else if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
-                                form[i].data_ref.copy(from, to);
+                            if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                                if (!form[i].no_save)
+                                    form[i].data_ref.copy(from, to);
                             }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                         }}
                         for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
@@ -756,7 +743,7 @@ foreach (string gamestart in gamestarts)
                         array_copy(data_refs, 0, additional_save_data_refs, 0, array_length(additional_save_data_refs));
                         for (var i = 0; i < array_length(form); i++) {{
                             if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
-                                array_insert(data_refs, -1, form[i].data_ref);
+                                array_insert(data_refs, array_length(data_refs), form[i].data_ref);
                             }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                         }}
                         return data_refs;
@@ -765,8 +752,9 @@ foreach (string gamestart in gamestarts)
                         var data_refs = [];
                         array_copy(data_refs, 0, additional_save_data_refs, 0, array_length(additional_save_data_refs));
                         for (var i = 0; i < array_length(form); i++) {{
-                            if (form[i].no_save) {{}} else if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
-                                array_insert(data_refs, -1, form[i].data_ref);
+                            if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                                if (!form[i].no_save)
+                                    array_insert(data_refs, array_length(data_refs), form[i].data_ref);
                             }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                         }}
                         return data_refs;
@@ -793,7 +781,14 @@ foreach (string gamestart in gamestarts)
 // Add dark menu create code
 foreach (string darkcon in darkcons)
 {
-    importGroup.QueueAppend(darkcon + "_Create_0", "modmenu = global.modmenu;");
+    importGroup.QueuePrepend(darkcon + "_Create_0", "modmenu = global.modmenu;");
+    if (ch_no == 0)
+        importGroup.QueuePrepend(darkcon + "_Create_0", @"
+            string_split = global.modmenu.string_split;
+            string_starts_with = global.modmenu.string_starts_with;
+            string_ends_with = global.modmenu.string_ends_with;
+            string_trim = global.modmenu.string_trim;
+        ");
 }
 
 // Add menu draw code
@@ -1270,28 +1265,26 @@ foreach (string darkcon in darkcons)
                     else
                     {{
                         modmenu.row_selected = true;
-
-                        // if range is only labels just cycle through them
                         var row_data = form_data[modmenu.row_no];
-                        var value_range = row_data.value_range_loc();
-                        var ranges = string_split(value_range, "";"");
 
-                        if (row_data.type != ""Slider"") {{
+                        if (row_data.type != ""Slider"")
                             modmenu.row_selected = false;
+                        else
                             modmenu.slider_orig_value = row_data.data_ref.get();
-                        }}
 
                         if (row_data.type == ""Toggle"") {{
                             // TODO does this handle spread ranges properly?
+                            var value_range = row_data.value_range_loc();
+                            var ranges = global.modmenu.string_split(value_range, "";"");
                             var value = row_data.data_ref.get();
 
                             var foundOption = false;
                             for (var i = 0; i < array_length(ranges); i++) {{
                                 var range = ranges[i];
                                 if (string_pos(""="", range)) {{
-                                    var labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                    var isString = string_ends_with(range, ""`"");
-                                    var isPercent = !isString && string_ends_with(range, ""%"");
+                                    var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                    var isString = global.modmenu.string_ends_with(range, ""`"");
+                                    var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
                                     var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
 
                                     var isMatch = false;
@@ -1306,9 +1299,9 @@ foreach (string darkcon in darkcons)
 
                                     if (!foundOption && i+1 == array_length(ranges)) {{
                                         range = ranges[0];
-                                        labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                        isString = string_ends_with(range, ""`"");
-                                        isPercent = !isString && string_ends_with(range, ""%"");
+                                        labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                        isString = global.modmenu.string_ends_with(range, ""`"");
+                                        isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
                                         isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
                                     }}
 
@@ -1359,7 +1352,7 @@ foreach (string darkcon in darkcons)
                 var form_data = modmenu.active_menu().form;
                 var row_data = form_data[modmenu.row_no];
                 var value_range = row_data.value_range_loc();
-                var ranges = string_split(value_range, "";"");
+                var ranges = global.modmenu.string_split(value_range, "";"");
                 var value = row_data.data_ref.get();
 
                 var scroll_todo = modmenu.slider_step div 1;
@@ -1381,9 +1374,9 @@ foreach (string darkcon in darkcons)
                         for (var i = 0; i < array_length(ranges); i++) {{
                             var range = ranges[i];
                             if (string_pos(""="", range)) {{
-                                var labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                var isString = string_ends_with(range, ""`"");
-                                var isPercent = !isString && string_ends_with(range, ""%"");
+                                var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                var isString = global.modmenu.string_ends_with(range, ""`"");
+                                var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
                                 var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
 
                                 var isMatch = false;
@@ -1398,9 +1391,9 @@ foreach (string darkcon in darkcons)
 
                                 if (!foundOption && i+1 == array_length(ranges)) {{
                                     range = ranges[0];
-                                    labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                    isString = string_ends_with(range, ""`"");
-                                    isPercent = !isString && string_ends_with(range, ""%"");
+                                    labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                    isString = global.modmenu.string_ends_with(range, ""`"");
+                                    isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
                                     isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
                                 }}
 
@@ -1448,8 +1441,8 @@ foreach (string darkcon in darkcons)
                         for (var i = 0; i < array_length(ranges); i++) {{
                             var range = ranges[i];
                             if (string_pos(""~"", range)) {{
-                                var minMax = string_split(string_replace(range, ""%"", """"), ""~"");
-                                var isPercent = string_ends_with(range, ""%"");
+                                var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""~"");
+                                var isPercent = global.modmenu.string_ends_with(range, ""%"");
                                 if (!isPercent)
                                     value = ceil(value);
                                 var convVal = isPercent ? value * 100 : value;
@@ -1459,15 +1452,15 @@ foreach (string darkcon in darkcons)
                                     break;
                                 }}
                             }} else if (string_pos(""="", range)) {{
-                                var labelValue = string_split(string_replace(range, ""%"", """"), ""="");
-                                var isPercent = string_ends_with(range, ""%"");
+                                var labelValue = global.modmenu.string_split(string_replace(range, ""%"", """"), ""="");
+                                var isPercent = global.modmenu.string_ends_with(range, ""%"");
                                 var convBack = isPercent ? 1 / 100 : 1;
                                 if (value <= (real(labelValue[1]) * convBack) || i+1 == array_length(ranges)) {{
                                     value = real(labelValue[1]) * convBack;
                                     break;
                                 }}
-                            }} else if (string_ends_with(range, ""%"")) {{
-                                var minMax = string_split(string_replace(range, ""%"", """"), ""-"");
+                            }} else if (global.modmenu.string_ends_with(range, ""%"")) {{
+                                var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""-"");
                                 if (value * 100 <= real(minMax[1]) || i+1 == array_length(ranges)) {{
                                     value = clamp(value, real(minMax[0]) / 100, real(minMax[1]) / 100);
                                     break;
@@ -1501,9 +1494,9 @@ foreach (string darkcon in darkcons)
                         for (var i = array_length(ranges) - 1; i >= 0; i--) {{
                             var range = ranges[i];
                             if (string_pos(""="", range)) {{
-                                var labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                var isString = string_ends_with(range, ""`"");
-                                var isPercent = !isString && string_ends_with(range, ""%"");
+                                var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                var isString = global.modmenu.string_ends_with(range, ""`"");
+                                var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
                                 var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
 
                                 var isMatch = false;
@@ -1518,9 +1511,9 @@ foreach (string darkcon in darkcons)
 
                                 if (!foundOption && i == 0) {{
                                     range = ranges[array_length(ranges) - 1];
-                                    labelValue = string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                    isString = string_ends_with(range, ""`"");
-                                    isPercent = !isString && string_ends_with(range, ""%"");
+                                    labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                    isString = global.modmenu.string_ends_with(range, ""`"");
+                                    isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
                                     isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
                                 }}
 
@@ -1569,8 +1562,8 @@ foreach (string darkcon in darkcons)
                         for (var i = array_length(ranges) - 1; i >= 0; i--) {{
                             var range = ranges[i];
                             if (string_pos(""~"", range)) {{
-                                var minMax = string_split(string_replace(range, ""%"", """"), ""~"");
-                                var isPercent = string_ends_with(range, ""%"");
+                                var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""~"");
+                                var isPercent = global.modmenu.string_ends_with(range, ""%"");
                                 if (!isPercent)
                                     value = floor(value);
                                 var convVal = isPercent ? value * 100 : value;
@@ -1580,15 +1573,15 @@ foreach (string darkcon in darkcons)
                                     break;
                                 }}
                             }} else if (string_pos(""="", range)) {{
-                                var labelValue = string_split(string_replace(range, ""%"", """"), ""="");
-                                var isPercent = string_ends_with(range, ""%"");
+                                var labelValue = global.modmenu.string_split(string_replace(range, ""%"", """"), ""="");
+                                var isPercent = global.modmenu.string_ends_with(range, ""%"");
                                 var convBack = isPercent ? 1 / 100 : 1;
                                 if (value >= (real(labelValue[1]) * convBack) || i == 0) {{
                                     value = real(labelValue[1]) * convBack;
                                     break;
                                 }}
-                            }} else if (string_ends_with(range, ""%"")) {{
-                                var minMax = string_split(string_replace(range, ""%"", """"), ""-"");
+                            }} else if (global.modmenu.string_ends_with(range, ""%"")) {{
+                                var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""-"");
                                 if (value * 100 >= real(minMax[0]) || i == 0) {{
                                     value = clamp(value, real(minMax[0]) / 100, real(minMax[1]) / 100);
                                     break;
