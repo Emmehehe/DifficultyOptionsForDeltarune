@@ -674,7 +674,7 @@ foreach (string gamestart in gamestarts)
                             default:
                                 throw (""Unsupported save_type: "" + save_type);
                         }}
-                    }}
+                    }},
                     load: function(arg0, arg1) {{
                         if (save_type == ""Never"")
                             return;
