@@ -360,10 +360,18 @@ foreach (string gamestart in gamestarts)
                 try {{ var check = menu.form[0]; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu without any form element.""; }}
 
                 // Menu - optional
-                try {{ var check = menu.left_margin; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.left_margin = 40; }}
-                try {{ var check = menu.left_margin; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""left_margin is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but left_margin is not numeric.""; }}
-                try {{ var check = menu.left_value_pos; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.left_value_pos = 300; }}
-                try {{ var check = menu.left_value_pos; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""left_value_pos is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but left_value_pos is not numeric.""; }}
+                try {{ var check = menu.style; if (is_undefined(check)) throw ""style not found""; }} catch (_e) {{ menu.style = {{ dark: {{ left_margin: 40, left_value_pos: 300 }} }}; }}
+                try {{ var check = menu.style.dark; if (is_undefined(check)) throw ""style.dark not found""; }} catch (_e) {{ menu.style.dark = {{ left_margin: 40, left_value_pos: 300 }}; }}
+                try {{ var check = menu.style.dark.left_margin; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.style.dark.left_margin = 40; }}
+                try {{ var check = menu.style.dark.left_margin; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""style.dark.left_margin is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but style.dark.left_margin is not numeric.""; }}
+                try {{ var check = menu.style.dark.left_value_pos; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.style.dark.left_value_pos = 300; }}
+                try {{ var check = menu.style.dark.left_value_pos; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""style.dark.left_value_pos is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but style.dark.left_value_pos is not numeric.""; }}
+                manu.style.dark = {{
+                    left_margin: menu.style.dark.left_margin,
+                    left_value_pos: menu.style.dark.left_value_pos,
+                    left_margin_loc: function(arg0) {{ return global.modmenu.find_loc(left_margin, arg0); }},
+                    left_value_pos_loc: function(arg0) {{ return global.modmenu.find_loc(left_value_pos, arg0); }},
+                }};
                 try {{ var check = menu.apply; }} catch (_e) {{ menu.apply = undefined; }}
                 try {{ var check = menu.apply; if (!is_undefined(check) && ((check.type != ""OnChange"" && check.type != ""OnClose""))) throw ""apply type failed validation""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but apply.type is not in set: OnChange, OnClose.""; }}
                 if (!is_undefined(menu.apply)) menu.apply = {{
@@ -373,28 +381,12 @@ foreach (string gamestart in gamestarts)
                     run_onclose: function() {{ if (type == ""OnClose"") func(); }},
                     run_onload: function() {{ func(); }}
                 }};
-                try {{ var check = menu.save_file; }} catch (_e) {{ menu.save_file = undefined; }}
-                try {{ var check = menu.save_file; if (!is_undefined(check) && ((check.type != ""Single"" && check.type != ""PerSlot"" && check.type != ""PerFile""))) throw ""save_file type failed validation""; }} catch (_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but save_file.type is not in set: Single, PerSlot, PerFile.""); }}
-                // TODO auto generation for save_file.name doesn't seem to work; or it could be the validation that doesn't work
-                try {{ var check = menu.save_file; if (!is_undefined(check)) check = check.name; }} catch (_e) {{ menu.save_file.name = string_savename(find_loc(menu.title)); }}
-                {{ var check = menu.save_file; if (!is_undefined(check)) check = check.name; if (is_string(check) && !is_savenamestring(check)) menu.save_file.name = string_savename_addini(menu.save_file.name); }}
-                try {{ var check = menu.save_file; if (!is_undefined(check)) {{check = check.name; if (!is_string(check) || !is_savenamestring(check)) throw ""save_file name isn't a string or contains invalid characters or no .ini"";}} }} catch (_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but save_file.name is missing; or is not a lower-case alphanumerical string. savefile.name = "" + menu.save_file.name); }}
-                if (!is_undefined(menu.save_file)) menu.save_file = {{
-                    type: menu.save_file.type,
-                    name: menu.save_file.name,
-                    category: function(arg0, arg1) {{
-                        switch (type) {{
-                            case ""Single"":
-                                return ""SETTINGS"";
-                            case ""PerSlot"":
-                                return ""SLOT"" + string(is_undefined(arg1) ? global.filechoice : arg1);
-                            case ""PerFile"":
-                                return ""CH"" + string(is_undefined(arg0) ? global.chapter : arg0) + ""_"" + string(is_undefined(arg1) ? global.filechoice : arg1);
-                            default:
-                                throw (""Unsupported save_file type: "" + type);
-                        }}
-                    }}
-                }};
+                // TODO auto generation for ini_name not work, haven't tested it
+                try {{ var check = menu.ini_name; }} catch (_e) {{ menu.ini_name = string_savename(find_loc(menu.title)); }}
+                {{ var check = menu.ini_name; if (is_string(check) && !is_savenamestring(check)) menu.ini_name = string_savename_addini(menu.ini_name); }}
+                try {{ var check = menu.ini_name; if (!is_string(check) || !is_savenamestring(check)) throw ""ini_name isn't a string or contains invalid characters or no .ini""; }} catch (_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but ini_name is missing; or is not a lower-case alphanumerical string. ini_name = '"" + string(menu.ini_name) + ""'""); }}
+                try {{ var check = menu.save_type; }} catch (_e) {{ menu.save_type = ""Never""; }}
+                try {{ var check = menu.save_type; if (check != ""Never"" && check != ""Single"" && check != ""PerSlot"" && check != ""PerFile"") throw ""save_type failed validation""; }} catch (_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but save_type is not in set: Never, Single, PerSlot, PerFile.""); }}
                 try {{ var check = menu.world; }} catch (_e) {{ menu.world = ""Dark""; }}
                 try {{ var check = menu.world; if (!is_string(check) || (check != ""Dark"" && check != ""Light"" && check != ""Both"")) throw ""menu.world not a string in: Dark, Light, Both""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but world is not in set: Dark, Light, Both.""; }}
                 try {{ var check = menu.open_func; }} catch (_e) {{ menu.open_func = function () {{}}; }}
@@ -661,24 +653,34 @@ foreach (string gamestart in gamestarts)
 
                 menu = {{
                     title: menu.title,
-                    left_margin: menu.left_margin,
-                    left_value_pos: menu.left_value_pos,
+                    style: menu.style,
                     apply: menu.apply,
-                    save_file: menu.save_file,
+                    ini_name: menu.ini_name,
+                    save_type: menu.save_type,
                     world: menu.world,
                     open_func: menu.open_func,
                     close_func: menu.close_func,
                     form: menu.form,
                     additional_save_data_refs: menu.additional_save_data_refs,
                     title_loc: function(arg0) {{ return global.modmenu.find_loc(title, arg0); }},
-                    left_margin_loc: function(arg0) {{ return global.modmenu.find_loc(left_margin, arg0); }},
-                    left_value_pos_loc: function(arg0) {{ return global.modmenu.find_loc(left_value_pos, arg0); }},
+                    save_category: function(arg0, arg1) {{
+                        switch (save_type) {{
+                            case ""Single"":
+                                return ""SETTINGS"";
+                            case ""PerSlot"":
+                                return ""SLOT"" + string(is_undefined(arg1) ? global.filechoice : arg1);
+                            case ""PerFile"":
+                                return ""CH"" + string(is_undefined(arg0) ? global.chapter : arg0) + ""_"" + string(is_undefined(arg1) ? global.filechoice : arg1);
+                            default:
+                                throw (""Unsupported save_type: "" + save_type);
+                        }}
+                    }}
                     load: function(arg0, arg1) {{
-                        if (is_undefined(save_file))
+                        if (save_type == ""Never"")
                             return;
 
-                        var section = save_file.category(arg0, arg1);
-                        ossafe_ini_open(save_file.name);
+                        var section = save_category(arg0, arg1);
+                        ossafe_ini_open(ini_name);
                         for (var i = 0; i < array_length(form); i++) {{
                             if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
                                 if (!form[i].no_save)
@@ -694,11 +696,11 @@ foreach (string gamestart in gamestarts)
                             apply.run_onload()
                     }},
                     save: function(arg0) {{
-                        if (is_undefined(save_file))
+                        if (save_type == ""Never"")
                             return;
 
-                        var section = save_file.category(undefined, arg0);
-                        ossafe_ini_open(save_file.name);
+                        var section = save_category(undefined, arg0);
+                        ossafe_ini_open(ini_name);
                         for (var i = 0; i < array_length(form); i++) {{
                             if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
                                 if (!form[i].no_save)
@@ -711,12 +713,12 @@ foreach (string gamestart in gamestarts)
                         ossafe_ini_close();
                     }},
                     copy: function(arg0, arg1) {{
-                        if (is_undefined(save_file))
+                        if (save_type == ""Never"")
                             return;
 
-                        var from = save_file.category(undefined, arg0);
-                        var to = save_file.category(undefined, arg1);
-                        ossafe_ini_open(save_file.name);
+                        var from = save_category(undefined, arg0);
+                        var to = save_category(undefined, arg1);
+                        ossafe_ini_open(ini_name);
                         for (var i = 0; i < array_length(form); i++) {{
                             if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
                                 if (!form[i].no_save)
@@ -729,11 +731,11 @@ foreach (string gamestart in gamestarts)
                         ossafe_ini_close();
                     }},
                     del: function(arg0) {{
-                        if (is_undefined(save_file))
+                        if (save_type == ""Never"")
                             return;
 
-                        var section = save_file.category(undefined, arg0);
-                        ossafe_ini_open(save_file.name);
+                        var section = save_category(undefined, arg0);
+                        ossafe_ini_open(ini_name);
                         if (ini_section_exists(section))
                             ini_section_delete(section);
                         ossafe_ini_close();
@@ -872,10 +874,10 @@ foreach (string darkcon in darkcons)
                 }}
 
                 // form buttons
-                var left_margin = modmenu.active_menu().left_margin_loc();
+                var left_margin = modmenu.active_menu().style.dark.left_margin_loc();
                 var _xPos = xx + 130 + left_margin;
                 var _heartXPos = xx + 105 + left_margin;
-                var _selectXPos = xx + 130 + modmenu.active_menu().left_value_pos_loc();
+                var _selectXPos = xx + 130 + modmenu.active_menu().style.dark.left_value_pos_loc();
 
                 draw_set_color(c_white);
 
@@ -1260,7 +1262,7 @@ foreach (string darkcon in darkcons)
 
                         modmenu.active_menu().close_func();
                         if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onclose();
-                        if (!is_undefined(modmenu.active_menu().save_file)) modmenu.active_menu().save();
+                        if (modmenu.active_menu().save_type != ""Never"") modmenu.active_menu().save();
                     }}
                     else
                     {{
@@ -1346,7 +1348,7 @@ foreach (string darkcon in darkcons)
 
                     modmenu.active_menu().close_func();
                     if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onclose();
-                    if (!is_undefined(modmenu.active_menu().save_file)) modmenu.active_menu().save();
+                    if (modmenu.active_menu().save_type != ""Never"") modmenu.active_menu().save();
                 }}
             }} else {{
                 var form_data = modmenu.active_menu().form;

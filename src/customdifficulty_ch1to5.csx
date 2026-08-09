@@ -586,8 +586,7 @@ foreach (string scrName in gamestartLikes)
 
             global.diff_menu = modmenu.create({{
                 title: ""Difficulty"",
-                left_margin: 0,
-                left_value_pos: 240,
+                style: {{ dark: {{ left_margin: 0, left_value_pos: 240 }} }},
                 apply: {{type: ""OnClose"", func: function () {{
                     // Determine preset
                     {string.Join(" else ", presets.Select(pair => @$"
@@ -646,7 +645,8 @@ foreach (string scrName in gamestartLikes)
                             global.diff_preset = ""Custom"";
                     }}
                 }}}},
-                save_file: {{type: ""PerFile"", name: ""difficulty.ini""}},
+                ini_name: ""difficulty.ini"",
+                save_type: ""PerFile"",
                 form: [{{
                     type: ""Slider"",
                     title: ""Preset"",
