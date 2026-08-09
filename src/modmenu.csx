@@ -380,11 +380,11 @@ foreach (string gamestart in gamestarts)
                 try {{ var check = menu.form[0]; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu without any form element.""; }}
 
                 // Menu - optional
-                try {{ var check = menu.style; if (is_undefined(check)) throw ""style not found""; }} catch (_e) {{ menu.style = {{ dark: {{ left_margin: 40, left_value_pos: 300 }} }}; }}
-                try {{ var check = menu.style.dark; if (is_undefined(check)) throw ""style.dark not found""; }} catch (_e) {{ menu.style.dark = {{ left_margin: 40, left_value_pos: 300 }}; }}
-                try {{ var check = menu.style.dark.left_margin; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.style.dark.left_margin = 40; }}
+                try {{ var check = menu.style; if (is_undefined(check)) throw ""style not found""; }} catch (_e) {{ menu.style = {{ dark: {{ left_margin: 0, left_value_pos: 240 }} }}; }}
+                try {{ var check = menu.style.dark; if (is_undefined(check)) throw ""style.dark not found""; }} catch (_e) {{ menu.style.dark = {{ left_margin: 0, left_value_pos: 240 }}; }}
+                try {{ var check = menu.style.dark.left_margin; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.style.dark.left_margin = 0; }}
                 try {{ var check = menu.style.dark.left_margin; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""style.dark.left_margin is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but style.dark.left_margin is not numeric.""; }}
-                try {{ var check = menu.style.dark.left_value_pos; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.style.dark.left_value_pos = 300; }}
+                try {{ var check = menu.style.dark.left_value_pos; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.style.dark.left_value_pos = 240; }}
                 try {{ var check = menu.style.dark.left_value_pos; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""style.dark.left_value_pos is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but style.dark.left_value_pos is not numeric.""; }}
                 menu.style.dark = {{
                     left_margin: menu.style.dark.left_margin,
@@ -1289,6 +1289,9 @@ foreach (string darkcon in darkcons)
                         modmenu.row_selected = true;
                         var row_data = form_data[modmenu.row_no];
 
+                        if (row_data.type != ""Header"")
+                            row_data.trigger_func();
+
                         if (row_data.type != ""Slider"")
                             modmenu.row_selected = false;
                         else
@@ -1348,9 +1351,6 @@ foreach (string darkcon in darkcons)
                             row_data.change_func();
                             if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onchange();
                         }}
-
-                        if (row_data.type != ""Header"")
-                            row_data.trigger_func();
                     }}
                 }}
                 if (button2_p() && onebuffer < 0 && twobuffer < 0)
