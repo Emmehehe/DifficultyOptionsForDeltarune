@@ -302,31 +302,51 @@ foreach (string gamestart in gamestarts)
             }},
 
             // save/load
-            string_savename: function(arg0)
-            {{
-                var result = string_lower(arg0);
+            string_savename_namechars: function(arg0) {{
+                // only take alphanumeric, _, -, (, ), &; white space is converted to _
+                var result = """";
+                for (var i = 1; i <= string_length(arg0); i++) {{
+                    var thischar = string_char_at(arg0, i);
+                    if (thischar == string_lettersdigits(thischar) || thischar == ""_"" || thischar == ""-"" || thischar == ""("" || thischar == "")"" || thischar == ""&"")
+                        result += thischar;
+                    else if (thischar == "" "" || thischar == ""\n"" || thischar == ""\t"" || thischar == ""\v"")
+                        result += ""_"";
+                }}
+
+                // consolidate multiple _s (e.g. '_my__mod___' -> 'my_mod')
+                var consolidated = """";
+                var shouldconsolidate = true; // initially true to remove _s at start of string
+                for (var i = 1; i <= string_length(result); i++) {{
+                    var thischar = string_char_at(result, i);
+                    var isunderscore = thischar == ""_"";
+                    if (shouldconsolidate && isunderscore) {{}} else
+                        consolidated += thischar;
+                    shouldconsolidate = isunderscore;
+                }}
+                var lastchar = string_char_at(consolidated, string_length(consolidated));
+                if (lastchar == ""_"")
+                    consolidated = string_delete(consolidated, string_length(consolidated), 1);
+
+                return consolidated;
+            }},
+            string_savename: function(arg0) {{
+                var result = arg0;
                 if (global.modmenu.string_ends_with(result, "".ini""))
                     result = string_delete(result, string_length(result)-3, 4);
-                result = string_lettersdigits(arg0);
+                result = global.modmenu.string_savename_namechars(arg0);
                 return result + "".ini"";
             }},
-            string_savename_addini: function(arg0)
-            {{
-                if (arg0 != string_lower(arg0))
-                    return arg0;
+            string_savename_addini: function(arg0) {{
                 if (global.modmenu.string_ends_with(arg0, "".ini""))
                     return arg0;
-                if (arg0 != string_lettersdigits(arg0))
+                if (arg0 != global.modmenu.string_savename_namechars(arg0))
                     return arg0;
                 return arg0 + "".ini"";
             }},
-            is_savenamestring: function(arg0)
-            {{
-                if (arg0 != string_lower(arg0))
-                    return false;
+            is_savenamestring: function(arg0) {{
                 if (!global.modmenu.string_ends_with(arg0, "".ini""))
                     return false;
-                if (string_delete(arg0, string_length(arg0)-3, 4) != string_lettersdigits(string_delete(arg0, string_length(arg0)-3, 4)))
+                if (string_delete(arg0, string_length(arg0)-3, 4) != global.modmenu.string_savename_namechars(string_delete(arg0, string_length(arg0)-3, 4)))
                     return false;
                 return true;
             }},
