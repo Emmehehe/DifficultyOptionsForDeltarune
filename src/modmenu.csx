@@ -386,7 +386,7 @@ foreach (string gamestart in gamestarts)
                 try {{ var check = menu.style.dark.left_margin; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""style.dark.left_margin is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but style.dark.left_margin is not numeric.""; }}
                 try {{ var check = menu.style.dark.left_value_pos; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.style.dark.left_value_pos = 300; }}
                 try {{ var check = menu.style.dark.left_value_pos; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""style.dark.left_value_pos is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but style.dark.left_value_pos is not numeric.""; }}
-                manu.style.dark = {{
+                menu.style.dark = {{
                     left_margin: menu.style.dark.left_margin,
                     left_value_pos: menu.style.dark.left_value_pos,
                     left_margin_loc: function(arg0) {{ return global.modmenu.find_loc(left_margin, arg0); }},
