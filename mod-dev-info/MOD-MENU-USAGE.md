@@ -1,4 +1,4 @@
-# Mod Menu Guide for Mod Devs
+# Mod Menu Usage Guide
 Mod Menu is a mod framework that can be used to quickly add settings menus for your mods. Optionally, the tool can also save your settings between sessions.
 
 For an example of this mod in action see the [Custom Difficulty mod](https://gamebanana.com/mods/613308).
@@ -13,7 +13,7 @@ For reference, you can see the exact code that this mod uses to configure its me
 
 ## Creating your menu
 
-Add this code to the end of the `scr_gamestart(_ch1)` function, found at 'gml_GlobalScript_scr_gamestart(_ch1)':
+Add this code to the end of the `scr_gamestart(_ch1)` function, found at gml_GlobalScript_scr_gamestart(_ch1):
 ```
 if (variable_instance_exists(id, "modmenu")) {
   modmenu.create({
@@ -41,20 +41,20 @@ if (variable_instance_exists(id, "modmenu")) {
   });
 }
 ```
-A menu titled "My Mod's Menu" (you can change this) will now appear in-game!
+A menu titled "My Mod's Menu" (you can change the name) will now appear in-game!
 
 The menu's `form` contains a basic example of every type of menu-item available. You can have as many or as few menu-items as you want.
 
-- Toggle — When clicked; cycles through a range of values ([`value_range`](#Value-Ranges)), updates a variable (global scoped by default) indicated by [`data_ref`](#Data-Refs).
-- Slider — When clicked, and then left/right pressed; slides through a range of values ([`value_range`](#Value-Ranges)), updates a variable (global scoped by default) indicated by [`data_ref`](#Data-Refs).
+- Toggle — When clicked; cycles through a range of values ([`value_range`](#Value-Ranges)), updates a variable indicated by [`data_ref`](#Data-Refs) (global scoped by default).
+- Slider — When clicked, and then left/right pressed; slides through a range of values ([`value_range`](#Value-Ranges)), updates a variable indicated by [`data_ref`](#Data-Refs) (global scoped by default).
 - Header — No behaviour, just used to divide your menu into sections.
 - Button — When clicked; run a function of your choice.
 
-There are a multitude of optional properties you can add to your [config](#All-Config-Options) to further customize your menu.
+There are also a multitude of optional properties that you can add to your [config](#All-Config-Options) to further customize your menu.
 
-#### Some common examples of how you can customize your menu:
+## Some common examples of how you can customize your menu:
 
-Save settings between play sessions:
+**Save settings between play sessions:**
 ```
 modmenu.create({
   title: "My Mod's Menu",
@@ -66,7 +66,7 @@ modmenu.create({
 });
 ```
 
-Make adjustments to game state based on settings (apply your settings):
+**Make adjustments to game state based on settings (apply your settings):**
 ```
 modmenu.create({
   title: "My Mod's Menu",
@@ -75,7 +75,7 @@ modmenu.create({
   // ...
 ```
 
-The above can be combined, the apply function will also run when the settings are loaded from file:
+**The above can be combined, the apply function will also run when the settings are loaded from file:**
 ```
 modmenu.create({
   title: "My Mod's Menu",
@@ -86,7 +86,7 @@ modmenu.create({
   // ...
 ```
 
-Disabling save for a menu-item:
+**Disabling save for a menu-item:**
 ```
 {
   type: "Toggle",
@@ -97,8 +97,7 @@ Disabling save for a menu-item:
 }
 ```
 
-Adding extra save file data without affecting the menu:
-
+**Adding extra save file data without affecting the menu:**
 ```
 modmenu.create({
   title: "My Mod's Menu",
@@ -113,7 +112,7 @@ modmenu.create({
 });
 ```
 
-Revert slider value on cancel `[X]/(B)`:
+**Revert slider value on cancel [X]/(B):**
 ```
 {
   type: "Slider",
@@ -124,7 +123,7 @@ Revert slider value on cancel `[X]/(B)`:
 }
 ```
 
-Adjust the positioning of menu-items:
+**Adjust the positioning of menu-items:**
 ```
 modmenu.create({
   title: "My Mod's Menu",
@@ -138,7 +137,7 @@ modmenu.create({
   // ...
 ```
 
-[Intermediate] Disable menu-items when a toggle is set to OFF:
+**[Intermediate] Disable menu-items when a toggle is set to OFF:**
 ```
 {
   type: "Toggle",
@@ -163,7 +162,7 @@ modmenu.create({
 }
 ```
 
-[Intermediate] Localize to Japanese or to languages added by translation mods (see [Localisation](#Localisation)):
+**[Intermediate] Localize to Japanese or to languages added by translation mods (see [Localisation](#Localisation)):**
 ```
 modmenu.create({
   title: [{lang: "en", val: "Hello"}, {lang: "fr", val: "Bonjour"}], // if language not found (e.g. "ja":japanese), uses first entry ("Hello" in this case)
@@ -183,7 +182,7 @@ modmenu.create({
 // ...
 ```
 
-[Advanced] Add function callbacks (listeners) for various events:
+**[Advanced] Add function callbacks (listeners) for various events:**
 ```
 modmenu.create({
   title: "My Mod's Menu",
@@ -215,7 +214,7 @@ modmenu.create({
 });
 ```
 
-[Advanced] Get reference to a menu-item, so that you can add any dynamic behaviour that isn't already covered by the config:
+**[Advanced] Get reference to a menu-item, so that you can add any dynamic behaviour that isn't already covered by the config:**
 ```
 {
   type: "Slider",
