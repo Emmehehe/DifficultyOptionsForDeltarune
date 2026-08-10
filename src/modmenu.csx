@@ -1193,15 +1193,16 @@ foreach (string darkcon in darkcons)
                         if (modmenu.menu_no >= modmenu.menu_dark_count)
                             modmenu.menu_no = 0;
                     }}
-                    if (button1_p() && onebuffer < 0 && twobuffer < 0)
+                    if ((button1_p() || down_p() || up_p()) && onebuffer < 0 && twobuffer < 0)
                     {{
                         onebuffer = 2;
                         selectnoise = 1;
-                        modmenu.row_no = 0;
 
                         // make sure category header or hidden/disabled row isn't selected
                         var form_data = modmenu.active_menu().form;
                         var form_length = array_length(form_data);
+                        // nav to bottom if press up, top otherwise
+                        modmenu.row_no = up_p() ? form_length : 0;
                         // back button
                         form_length++;
                         var movecount = 0;
