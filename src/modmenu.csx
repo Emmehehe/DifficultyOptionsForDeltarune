@@ -156,7 +156,7 @@ string modmenu_core_init = @$"
 
     global.modmenu = {{
         {(ch_no == 0 ? @"
-            // The demo is on an old version of game maker that doesn't have the string_split, string_ends_with, or string_trim functions so add (very) basic implementations
+            // The demo is on an old version of game maker that doesn't have the string_split, string_starts_with, string_ends_with, or string_trim functions so add (very) basic implementations
             // WARNING: only works for delimiters 1 char long
             // WARNING: does not have optional args from GM's impl
             string_split: function(arg0, arg1) {
@@ -295,6 +295,840 @@ string modmenu_core_init = @$"
                     first = arg0[i].val;
             }}
             return first;
+        }},
+
+        // step/draw
+        step_darkmenu: function() {{
+            // override for deltaesp's spanish translation
+            if (lang_override != ""es"" && global.lang == ""en"" && variable_instance_exists(global, ""esp_names""))
+            {{
+                lang_override = ""es"";
+            }}
+            // override for the Korean translation
+            // TODO this doesn't work for chapter 2 as the dubbing feature hasn't been added
+            if (lang_override != ""ko"" && global.lang == ""ja"" && variable_instance_exists(global, ""krdub""))
+            {{
+                lang_override = ""ko"";
+            }}
+
+            function scrolldownforcontent()
+            {{
+                var form_data = active_menu().form;
+                row_scroll = row_no + 1;
+                var menuscreenlength = 7 * 35;
+                var lastscreenlength = 0;
+                for (var i = row_no; i >= 0; i--) {{
+                    var newlastscreenlength = lastscreenlength;
+                    if (i >= array_length(form_data))
+                    {{
+                        newlastscreenlength += 35;
+                    }}
+                    else
+                    {{
+                        newlastscreenlength += ((form_data[i].type == ""Header"") ? 12 : 35);
+                    }}
+
+                    if (newlastscreenlength > menuscreenlength)
+                    {{
+                        break;
+                    }}
+                    lastscreenlength = newlastscreenlength;
+                    row_scroll--;
+                }}
+            }}
+
+            function isneedscrolldown()
+            {{
+                var form_data = active_menu().form;
+                var menuscreenlength = 7 * 35;
+                var currentscreenlength = 0;
+                var foundselected = false;
+                for (var i = row_scroll; i < array_length(form_data) + 1; i++) {{
+                    var newcurrentscreenlength = currentscreenlength;
+                    if (i >= array_length(form_data))
+                    {{
+                        newcurrentscreenlength += 35;
+                    }}
+                    else
+                    {{
+                        newcurrentscreenlength += ((form_data[i].type == ""Header"") ? 12 : 35);
+                    }}
+
+                    if (newcurrentscreenlength > menuscreenlength)
+                    {{
+                        break;
+                    }}
+                    currentscreenlength = newcurrentscreenlength;
+                    if (i == row_no)
+                    {{
+                        foundselected = true;
+                    }}
+                }}
+                return !foundselected;
+            }}
+
+            function modsubmenu_up(arg0)
+            {{
+                row_no--;
+
+                if (row_no < 0)
+                {{
+                    row_no = arg0 - 1;
+
+                    scrolldownforcontent();
+                }}
+                else
+                {{
+                    if (row_no < row_scroll)
+                        row_scroll = row_no;
+                }}
+            }}
+
+            function modsubmenu_down(arg0)
+            {{
+                row_no++;
+
+                if (row_no >= arg0)
+                {{
+                    row_no = 0;
+                    row_scroll = 0;
+                }}
+                else if (isneedscrolldown())
+                {{
+                    scrolldownforcontent();
+                }}
+            }}
+
+            function issubmenucategory(arg0, arg1)
+            {{
+                if (row_no >= (arg0 - 1))
+                    return false;
+
+                return (arg1[row_no].type == ""Header"");
+            }}
+
+            function ishidden(arg0, arg1)
+            {{
+                if (row_no >= (arg0 - 1))
+                    return false;
+
+                return arg1[row_no].is_hidden();
+            }}
+
+            function isdisabled(arg0, arg1)
+            {{
+                if (row_no >= (arg0 - 1))
+                    return false;
+
+                return arg1[row_no].is_disabled();
+            }}
+
+            function shouldskiprow(arg0, arg1)
+            {{
+                return issubmenucategory(arg0, arg1) || ishidden(arg0, arg1);
+            }}
+
+            if (global.menuno == 6)
+            {{
+                var isSubmenu = (row_no >= 0);
+
+                if (!isSubmenu) {{
+                    // enter submenu right away if there is only one submenu
+                    if (menu_dark_count == 1) {{
+                        row_no = 0;
+
+                        active_menu().open_func();
+                    }}
+
+                    if (menu_dark_count > 0)
+                    {{
+                        if (left_p())
+                        {{
+                            movenoise = 1;
+
+                            menu_no--;
+                            if (menu_no < 0)
+                                menu_no = menu_dark_count - 1;
+                        }}
+                        if (right_p())
+                        {{
+                            movenoise = 1;
+
+                            menu_no++;
+                            if (menu_no >= menu_dark_count)
+                                menu_no = 0;
+                        }}
+                        if ((button1_p() || down_p() || up_p()) && onebuffer < 0 && twobuffer < 0)
+                        {{
+                            onebuffer = 2;
+                            selectnoise = 1;
+
+                            // make sure category header or hidden/disabled row isn't selected
+                            var form_data = active_menu().form;
+                            var form_length = array_length(form_data);
+                            // nav to bottom if press up, top otherwise
+                            row_no = up_p() ? form_length : 0;
+                            // back button
+                            form_length++;
+                            var movecount = 0;
+                            while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
+                                modsubmenu_down(form_length);
+                                movecount++;
+                            }}
+
+                            active_menu().open_func();
+                        }}
+                    }}
+                    if (button2_p() && onebuffer < 0 && twobuffer < 0)
+                    {{
+                        cancelnoise = 1;
+                        twobuffer = 2;
+                        global.menuno = 0;
+                        global.submenu = 0;
+                    }}
+                }} else if (!row_selected) {{
+                    var form_data = active_menu().form;
+                    var form_length = array_length(form_data);
+
+                    if (form_length <= 0) {{
+                        row_no = -1;
+                        row_scroll = 0;
+                    }}
+
+                    // back button
+                    form_length++;
+
+                    // TODO freezes game :/ // state change could leave us stranded on a non-selectable row, so need to check
+                    // var movecount = 0;
+                    // while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
+                    //     modsubmenu_down(form_length);
+                    //     movecount++;
+                    // }}
+
+                    if (up_p())
+                    {{
+                        movenoise = 1;
+
+                        modsubmenu_up(form_length);
+
+                        // make sure category header or hidden/disabled row isn't selected
+                        var movecount = 0;
+                        while ((movecount < form_length + 1) && (shouldskiprow(form_length, form_data))) {{
+                            modsubmenu_up(form_length);
+                            movecount++;
+                        }}
+                    }}
+                    if (down_p())
+                    {{
+                        movenoise = 1;
+
+                        modsubmenu_down(form_length);
+
+                        // make sure category header or hidden/disabled row isn't selected
+                        var movecount = 0;
+                        while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
+                            modsubmenu_down(form_length);
+                            movecount++;
+                        }}
+                    }}
+                    if (button1_p() && onebuffer < 0 && twobuffer < 0 && !isdisabled(form_length, form_data))
+                    {{
+                        onebuffer = 2;
+                        selectnoise = 1;
+
+                        if (row_no >= array_length(form_data)) {{
+                            row_no = -1;
+                            row_scroll = 0;
+
+                            if (menu_dark_count == 1)
+                            {{
+                                global.menuno = 0;
+                                global.submenu = 0;
+                            }}
+
+                            active_menu().close_func();
+                            if (!is_undefined(active_menu().apply)) active_menu().apply.run_onclose();
+                            if (active_menu().save_type != ""Never"") active_menu().save();
+                        }}
+                        else
+                        {{
+                            row_selected = true;
+                            var row_data = form_data[row_no];
+
+                            if (row_data.type != ""Header"")
+                                row_data.trigger_func();
+
+                            if (row_data.type != ""Slider"")
+                                row_selected = false;
+                            else
+                                slider_orig_value = row_data.data_ref.get();
+
+                            if (row_data.type == ""Toggle"") {{
+                                // TODO does this handle spread ranges properly?
+                                var value_range = row_data.value_range_loc();
+                                var ranges = global.modmenu.string_split(value_range, "";"");
+                                var value = row_data.data_ref.get();
+
+                                var foundOption = false;
+                                for (var i = 0; i < array_length(ranges); i++) {{
+                                    var range = ranges[i];
+                                    if (string_pos(""="", range)) {{
+                                        var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                        var isString = global.modmenu.string_ends_with(range, ""`"");
+                                        var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
+                                        var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
+
+                                        var isMatch = false;
+                                        if (isString)
+                                            isMatch = value == labelValue[1];
+                                        else if (isBool)
+                                            isMatch = value == bool(labelValue[1]);
+                                        else {{ // number
+                                            var convBack = isPercent ? 1 / 100 : 1;
+                                            isMatch = value == real(labelValue[1]) * convBack;
+                                        }}
+
+                                        if (!foundOption && i+1 == array_length(ranges)) {{
+                                            range = ranges[0];
+                                            labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                            isString = global.modmenu.string_ends_with(range, ""`"");
+                                            isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
+                                            isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
+                                        }}
+
+                                        if (foundOption || i+1 == array_length(ranges)) {{
+                                            if (isString)
+                                                value = labelValue[1];
+                                            else if (isBool)
+                                                value = bool(labelValue[1]);
+                                            else {{ // number
+                                                value = real(labelValue[1]) * convBack;
+                                            }}
+                                            break;
+                                        }}
+
+                                        if (isMatch) {{
+                                            foundOption = true;
+                                        }}
+                                    }}
+                                }}
+
+                                row_data.data_ref.set(value);
+                                row_data.change_func();
+                                if (!is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
+                            }}
+                        }}
+                    }}
+                    if (button2_p() && onebuffer < 0 && twobuffer < 0)
+                    {{
+                        cancelnoise = 1;
+                        twobuffer = 2;
+                        row_no = -1;
+                        row_scroll = 0;
+
+                        if (menu_dark_count == 1)
+                        {{
+                            global.menuno = 0;
+                            global.submenu = 0;
+                        }}
+
+                        active_menu().close_func();
+                        if (!is_undefined(active_menu().apply)) active_menu().apply.run_onclose();
+                        if (active_menu().save_type != ""Never"") active_menu().save();
+                    }}
+                }} else {{
+                    var form_data = active_menu().form;
+                    var row_data = form_data[row_no];
+                    var value_range = row_data.value_range_loc();
+                    var ranges = global.modmenu.string_split(value_range, "";"");
+                    var value = row_data.data_ref.get();
+
+                    var scroll_todo = slider_step div 1;
+
+                    if (right_h() && scroll_todo > 0)
+                    {{
+                        var isAllLabels = true;
+
+                        for (var i = 0; i < array_length(ranges); i++) {{
+                            var range = ranges[i];
+                            if (!string_pos(""="", range)) {{
+                                isAllLabels = false;
+                                break;
+                            }}
+                        }}
+
+                        if (isAllLabels) {{
+                            var foundOption = false;
+                            for (var i = 0; i < array_length(ranges); i++) {{
+                                var range = ranges[i];
+                                if (string_pos(""="", range)) {{
+                                    var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                    var isString = global.modmenu.string_ends_with(range, ""`"");
+                                    var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
+                                    var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
+
+                                    var isMatch = false;
+                                    if (isString)
+                                        isMatch = value == labelValue[1];
+                                    else if (isBool)
+                                        isMatch = value == bool(labelValue[1]);
+                                    else {{ // number
+                                        var convBack = isPercent ? 1 / 100 : 1;
+                                        isMatch = value == real(labelValue[1]) * convBack;
+                                    }}
+
+                                    if (!foundOption && i+1 == array_length(ranges)) {{
+                                        range = ranges[0];
+                                        labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                        isString = global.modmenu.string_ends_with(range, ""`"");
+                                        isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
+                                        isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
+                                    }}
+
+                                    if (foundOption || i+1 == array_length(ranges)) {{
+                                        if (isString)
+                                            value = labelValue[1];
+                                        else if (isBool)
+                                            value = bool(labelValue[1]);
+                                        else {{ // number
+                                            value = real(labelValue[1]) * convBack;
+                                        }}
+                                        break;
+                                    }}
+
+                                    if (isMatch) {{
+                                        foundOption = true;
+                                    }}
+                                }}
+                            }}
+                        }}
+                        else
+                        {{
+                            var value_adjust = 0;
+                            if (value <= -2)
+                                value_adjust = 0.1;
+                            else if (value <= -1)
+                                value_adjust = 0.05;
+                            else if (value <= -0.5)
+                                value_adjust = 0.02;
+                            else if (value <= -0.2)
+                                value_adjust = 0.01;
+                            else if (value < 0.2)
+                                value_adjust = 0.005;
+                            else if (value < 0.5)
+                                value_adjust = 0.01;
+                            else if (value < 1)
+                                value_adjust = 0.02;
+                            else if (value < 2)
+                                value_adjust = 0.05;
+                            else
+                                value_adjust = 0.1;
+
+                            value += value_adjust * scroll_todo;
+
+                            for (var i = 0; i < array_length(ranges); i++) {{
+                                var range = ranges[i];
+                                if (string_pos(""~"", range)) {{
+                                    var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""~"");
+                                    var isPercent = global.modmenu.string_ends_with(range, ""%"");
+                                    if (!isPercent)
+                                        value = ceil(value);
+                                    var convVal = isPercent ? value * 100 : value;
+                                    var convBack = isPercent ? 1 / 100 : 1;
+                                    if (convVal <= real(minMax[1]) || i+1 == array_length(ranges)) {{
+                                        value = clamp(value, real(minMax[0]) * convBack, real(minMax[1]) * convBack);
+                                        break;
+                                    }}
+                                }} else if (string_pos(""="", range)) {{
+                                    var labelValue = global.modmenu.string_split(string_replace(range, ""%"", """"), ""="");
+                                    var isPercent = global.modmenu.string_ends_with(range, ""%"");
+                                    var convBack = isPercent ? 1 / 100 : 1;
+                                    if (value <= (real(labelValue[1]) * convBack) || i+1 == array_length(ranges)) {{
+                                        value = real(labelValue[1]) * convBack;
+                                        break;
+                                    }}
+                                }} else if (global.modmenu.string_ends_with(range, ""%"")) {{
+                                    var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""-"");
+                                    if (value * 100 <= real(minMax[1]) || i+1 == array_length(ranges)) {{
+                                        value = clamp(value, real(minMax[0]) / 100, real(minMax[1]) / 100);
+                                        break;
+                                    }}
+                                }}
+                            }}
+                        }}
+
+                        row_data.data_ref.set(value);
+
+                        row_data.change_func();
+                        if (!is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
+
+                        slider_step = slider_step % 1;
+                    }}
+
+                    if (left_h() && scroll_todo > 0)
+                    {{
+                        var isAllLabels = true;
+
+                        for (var i = 0; i < array_length(ranges); i++) {{
+                            var range = ranges[i];
+                            if (!string_pos(""="", range)) {{
+                                isAllLabels = false;
+                                break;
+                            }}
+                        }}
+
+                        if (isAllLabels) {{
+                            var foundOption = false;
+                            for (var i = array_length(ranges) - 1; i >= 0; i--) {{
+                                var range = ranges[i];
+                                if (string_pos(""="", range)) {{
+                                    var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                    var isString = global.modmenu.string_ends_with(range, ""`"");
+                                    var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
+                                    var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
+
+                                    var isMatch = false;
+                                    if (isString)
+                                        isMatch = value == labelValue[1];
+                                    else if (isBool)
+                                        isMatch = value == bool(labelValue[1]);
+                                    else {{ // number
+                                        var convBack = isPercent ? 1 / 100 : 1;
+                                        isMatch = value == real(labelValue[1]) * convBack;
+                                    }}
+
+                                    if (!foundOption && i == 0) {{
+                                        range = ranges[array_length(ranges) - 1];
+                                        labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                                        isString = global.modmenu.string_ends_with(range, ""`"");
+                                        isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
+                                        isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
+                                    }}
+
+                                    if (foundOption || i == 0) {{
+                                        if (isString)
+                                            value = labelValue[1];
+                                        else if (isBool)
+                                            value = bool(labelValue[1]);
+                                        else {{ // number
+                                            value = real(labelValue[1]) * convBack;
+                                        }}
+                                        break;
+                                    }}
+
+                                    if (isMatch) {{
+                                        foundOption = true;
+                                    }}
+                                }}
+                            }}
+                        }}
+                        else
+                        {{
+                            var value_adjust = 0;
+                            if (value < -2)
+                                value_adjust = -0.1;
+                            else if (value < -1)
+                                value_adjust = -0.05;
+                            else if (value < -0.5)
+                                value_adjust = -0.02;
+                            else if (value < -0.2)
+                                value_adjust = -0.01;
+                            else if (value <= 0.2)
+                                value_adjust = -0.005;
+                            else if (value <= 0.5)
+                                value_adjust = -0.01;
+                            else if (value <= 1)
+                                value_adjust = -0.02;
+                            else if (value <= 2)
+                                value_adjust = -0.05;
+                            else
+                                value_adjust = -0.1;
+
+                            var scroll_todo = slider_step div 1;
+                            value += value_adjust * scroll_todo;
+
+                            for (var i = array_length(ranges) - 1; i >= 0; i--) {{
+                                var range = ranges[i];
+                                if (string_pos(""~"", range)) {{
+                                    var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""~"");
+                                    var isPercent = global.modmenu.string_ends_with(range, ""%"");
+                                    if (!isPercent)
+                                        value = floor(value);
+                                    var convVal = isPercent ? value * 100 : value;
+                                    var convBack = isPercent ? 1 / 100 : 1;
+                                    if (convVal >= real(minMax[0]) || i == 0) {{
+                                        value = clamp(value, real(minMax[0]) * convBack, real(minMax[1]) * convBack);
+                                        break;
+                                    }}
+                                }} else if (string_pos(""="", range)) {{
+                                    var labelValue = global.modmenu.string_split(string_replace(range, ""%"", """"), ""="");
+                                    var isPercent = global.modmenu.string_ends_with(range, ""%"");
+                                    var convBack = isPercent ? 1 / 100 : 1;
+                                    if (value >= (real(labelValue[1]) * convBack) || i == 0) {{
+                                        value = real(labelValue[1]) * convBack;
+                                        break;
+                                    }}
+                                }} else if (global.modmenu.string_ends_with(range, ""%"")) {{
+                                    var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""-"");
+                                    if (value * 100 >= real(minMax[0]) || i == 0) {{
+                                        value = clamp(value, real(minMax[0]) / 100, real(minMax[1]) / 100);
+                                        break;
+                                    }}
+                                }}
+                            }}
+                        }}
+
+                        row_data.data_ref.set(value);
+
+                        row_data.change_func();
+                        if (!is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
+
+                        slider_step = slider_step % 1;
+                    }}
+
+                    if (right_h() || left_h())
+                    {{
+                        slider_step += slider_speed;
+                        slider_speed = clamp(slider_speed + slider_accel, slider_speed_min, slider_speed_max);
+                    }}
+                    else
+                    {{
+                        slider_step = 1; // reset to 1 as first interaction should be instantaneous
+                        slider_speed = slider_speed_min;
+                    }}
+
+                    se_select = 0;
+                    se_cancel = 0;
+
+                    if (button1_p() && onebuffer < 0)
+                        se_select = 1;
+
+                    if (button2_p() && twobuffer < 0)
+                        se_cancel = 1;
+
+                    if (se_select == 1 || se_cancel == 1)
+                    {{
+                        selectnoise = 1;
+                        onebuffer = 2;
+                        twobuffer = 2;
+                        row_selected = false;
+
+                        if (se_select == 1)
+                            row_data.accept_func();
+                        if (se_cancel == 1) {{
+                            if (row_data.revert_on_cancel && row_data.data_ref.get() != slider_orig_value) {{
+                                row_data.data_ref.set(slider_orig_value);
+                                row_data.change_func();
+                                if (!is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
+                            }}
+                            row_data.cancel_func();
+                        }}
+
+                        slider_step = 1; // reset to 1 as first interaction should be instantaneous
+                        slider_speed = slider_speed_min;
+                        slider_orig_value = undefined;
+                    }}
+                }}
+            }}
+        }},
+        draw_darkmenu: function(arg0 /* back text (different localisation method in chapter 1) */) {{
+            if (global.menuno == 6)
+            {{
+                draw_set_color(c_black);
+
+                if (global.lang == ""ja"")
+                {{
+                    draw_rectangle(xx + 60, yy + 85, xx + 580, yy + 412, false);
+                    scr_darkbox(xx + 50, yy + 75, xx + 590, yy + 422);
+                }}
+                else
+                {{
+                    draw_rectangle(xx + 60, yy + 90, xx + 580, yy + 410, false);
+                    scr_darkbox(xx + 50, yy + 80, xx + 590, yy + 420);
+                }}
+
+                draw_set_color(c_white);
+
+                if (menu_dark_count > 0)
+                {{
+                    // top row buttons
+                    var isSubmenu = (row_no >= 0);
+                    var isMenuLonely = menu_dark_count == 1;
+
+                    var allmodmenus = """";
+
+                    for (var i = menu_no; i < menu_dark_count; i++)
+                    {{
+                        allmodmenus += string_upper(menus_dark[i].title_loc()) + (i + 1 < menu_dark_count ? ""        "" : """");
+                    }}
+
+                    surface_set_target(get_surf_titles());
+                    draw_clear_alpha(c_black, 0);
+
+                    if (isMenuLonely || !isSubmenu)
+                    {{
+                        draw_set_color(c_white);
+                        if (isMenuLonely)
+                        {{
+                            draw_set_halign(fa_center);
+                            draw_text(205, 0, allmodmenus);
+                            draw_set_halign(fa_left);
+                        }}
+                        else
+                        {{
+                            draw_text(0, 0, allmodmenus);
+                        }}
+                    }}
+                    else
+                    {{
+                        draw_set_color(c_gray);
+                        draw_text(0, 0, allmodmenus);
+                        draw_set_color(c_orange);
+                        draw_text(0, 0, string_upper(active_menu().title_loc()));
+                    }}
+
+                    draw_sprite(spr_darkmodsfade, 0, 410 - 35, 0);
+
+                    surface_reset_target();
+                    draw_surface(get_surf_titles(), xx + 110, yy + 110);
+
+                    if (!isSubmenu) {{
+                        menusiner += 1;
+                        draw_sprite_part(spr_heart_harrows, menusiner / 20, 8 - 8 * (menu_no > 0), 0, 16 + 8 * (menu_no > 0) + 8 * (menu_no < (menu_dark_count - 1)), 16, xx + 85 - 8 * (menu_no > 0), yy + 120);
+                    }}
+
+                    // form buttons
+                    var left_margin = active_menu().style.dark.left_margin_loc();
+                    var _xPos = xx + 130 + left_margin;
+                    var _heartXPos = xx + 105 + left_margin;
+                    var _selectXPos = xx + 130 + active_menu().style.dark.left_value_pos_loc();
+
+                    draw_set_color(c_white);
+
+                    if (!isSubmenu)
+                        draw_set_color(c_gray);
+
+                    var form_data = active_menu().form;
+
+                    var heartyprogress = 150;
+                    if (array_length(form_data) >= 0)
+                    {{
+                        var i = row_scroll;
+                        var yprogress = 150;
+                        while ((yprogress <= 150 + 6 * 35) && (i < array_length(form_data) + 1))
+                        {{
+                            if (i >= array_length(form_data))
+                            {{
+                                draw_set_color(c_white);
+                                draw_text(_xPos, yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(arg0)); // Back
+                                if (row_no == i)
+                                    heartyprogress = yprogress;
+                                yprogress += 35;
+                                break;
+                            }}
+
+                            var row_data = form_data[i];
+                            if (row_data.is_hidden()) {{
+                                i++;
+                                continue;
+                            }}
+
+                            if (row_data.is_disabled())
+                                draw_set_color(c_gray);
+                            else if (row_selected && row_no == i)
+                                draw_set_color(c_yellow);
+                            else
+                                draw_set_color(c_white);
+
+                            var isCategory = (row_data.type == ""Header"");
+                            draw_text_transformed(_xPos - (isCategory * 28), yy + yprogress - (isCategory * 5){(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.title_loc()), (isCategory ? 0.5 : 1), (isCategory ? 0.5 : 1), 0);
+                            if (isCategory){{
+                                draw_line(_xPos - 28 - 3, yy + yprogress + 9, _xPos + 400, yy + yprogress + 9);
+                            }}
+
+                            if (row_data.type == ""Slider"" || row_data.type == ""Toggle"")
+                                draw_text(_selectXPos, yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.value_string()));
+
+                            if (row_no == i){{
+                                heartyprogress = yprogress;
+                            }}
+                            yprogress += (isCategory ? 12 : 35);
+                            i++;
+                        }}
+
+                        // calcs required to get the scroller size & position correct: need to know how far we've scrolled & total length of menu in pixels
+                        var menuscreenlength = 7 * 35;
+                        var totalmenulength = 0;
+                        var scrollprogress = 0;
+                        for (var i = 0; i < array_length(form_data) + 1; i++) {{
+                            if (i >= array_length(form_data))
+                            {{
+                                if (row_scroll == i){{
+                                    scrollprogress = totalmenulength;
+                                }}
+                                totalmenulength += 35;
+                                continue;
+                            }}
+
+                            if (row_scroll == i){{
+                                scrollprogress = totalmenulength;
+                            }}
+                            totalmenulength += ((form_data[i].type == ""Header"") ? 12 : 35);
+                        }}
+
+                        // also need to account for empty space at the bottom of the menu
+                        var lastscreenlength = 0;
+                        for (var i = array_length(form_data); i >= 0; i--) {{
+                            var newlastscreenlength = lastscreenlength;
+                            if (i >= array_length(form_data))
+                            {{
+                                newlastscreenlength += 35;
+                            }}
+                            else
+                            {{
+                                newlastscreenlength += ((form_data[i].type == ""Header"") ? 12 : 35);
+                            }}
+
+                            if (newlastscreenlength > menuscreenlength)
+                            {{
+                                break;
+                            }}
+                            lastscreenlength = newlastscreenlength;
+                        }}
+                        totalmenulength += menuscreenlength - lastscreenlength;
+
+                        // draw scroll bar based on previous calcs
+                        if (totalmenulength > menuscreenlength)
+                        {{
+                            var modscrollbary = 180;
+                            var modscrollbarlength = 190;
+                            var modscrollery = modscrollbarlength * (scrollprogress / totalmenulength);
+                            var modscrollerlength = modscrollbarlength * (menuscreenlength / totalmenulength);
+                            draw_set_color(c_dkgray);
+                            draw_rectangle(xx + 85, yy + modscrollbary, xx + 90, yy + modscrollbary + modscrollbarlength, false);
+                            draw_set_color(c_white);
+                            draw_rectangle(xx + 85, yy + modscrollbary + modscrollery, xx + 90, yy + modscrollbary + modscrollerlength + modscrollery, false);
+
+                            if (row_scroll > 0)
+                                draw_sprite_ext(spr_morearrow, 0, xx + 81, (yy + modscrollbary) - 10 - (sin(cur_jewel / 12) * 3), 1, -1, 0, c_white, 1);
+
+                            if ((row_scroll + 7) < (array_length(form_data) + 1))
+                                draw_sprite_ext(spr_morearrow, 0, xx + 81, yy + 10 + modscrollbary + modscrollbarlength + (sin(cur_jewel / 12) * 3), 1, 1, 0, c_white, 1);
+                        }}
+                    }}
+
+                    if (isSubmenu)
+                        draw_sprite(spr_heart, 0, _heartXPos, yy + 10 + heartyprogress);
+                }}
+                else
+                {{
+                    draw_set_halign(fa_center);
+                    draw_set_valign(fa_middle);
+                    draw_text(xx + 320, yy + 250, string_hash_to_newline(""NO MOD MENUS FOUND""));
+                    draw_set_halign(fa_left);
+                    draw_set_valign(fa_top);
+                }}
+            }}
         }},
 
         // save/load
@@ -808,18 +1642,19 @@ if (useModularScripts) {
     }
 }
 
-// Add dark menu create code
-foreach (string darkcon in darkcons)
-{
-    importGroup.QueuePrepend(darkcon + "_Create_0", "modmenu = global.modmenu;");
-    if (ch_no == 0)
-        importGroup.QueuePrepend(darkcon + "_Create_0", @"
-            string_split = global.modmenu.string_split;
-            string_starts_with = global.modmenu.string_starts_with;
-            string_ends_with = global.modmenu.string_ends_with;
-            string_trim = global.modmenu.string_trim;
-        ");
-}
+// TODO remove
+// // Add dark menu create code
+// foreach (string darkcon in darkcons)
+// {
+//     importGroup.QueuePrepend(darkcon + "_Create_0", "modmenu = global.modmenu;");
+//     if (ch_no == 0)
+//         importGroup.QueuePrepend(darkcon + "_Create_0", @"
+//             string_split = global.modmenu.string_split;
+//             string_starts_with = global.modmenu.string_starts_with;
+//             string_ends_with = global.modmenu.string_ends_with;
+//             string_trim = global.modmenu.string_trim;
+//         ");
+// }
 
 // Add menu draw code
 foreach (string darkcon in darkcons)
@@ -835,205 +1670,7 @@ foreach (string darkcon in darkcons)
         "draw_sprite_ext(msprite[i], off, xx + 110 + (i * 80) + spritemx, (yy + tp) - 60, 2, 2, 0, c_white, 1);");
     string ch1_back_text = "scr_84_get_lang_string(\"obj_darkcontroller_slash_Draw_0_gml_96_0\")";
     string back_text = (ch_no >= 2 || ch_no == 0) ? "back_text" : ch1_back_text;
-    importGroup.QueueAppend(darkcon + "_Draw_0", @$"
-        if (global.menuno == 6)
-        {{
-            draw_set_color(c_black);
-
-            if (global.lang == ""ja"")
-            {{
-                draw_rectangle(xx + 60, yy + 85, xx + 580, yy + 412, false);
-                scr_darkbox(xx + 50, yy + 75, xx + 590, yy + 422);
-            }}
-            else
-            {{
-                draw_rectangle(xx + 60, yy + 90, xx + 580, yy + 410, false);
-                scr_darkbox(xx + 50, yy + 80, xx + 590, yy + 420);
-            }}
-
-            draw_set_color(c_white);
-
-            if (modmenu.menu_dark_count > 0)
-            {{
-                // top row buttons
-                var isSubmenu = (modmenu.row_no >= 0);
-                var isMenuLonely = modmenu.menu_dark_count == 1;
-
-                var allmodmenus = """";
-
-                for (var i = modmenu.menu_no; i < modmenu.menu_dark_count; i++)
-                {{
-                    allmodmenus += string_upper(modmenu.menus_dark[i].title_loc()) + (i + 1 < modmenu.menu_dark_count ? ""        "" : """");
-                }}
-
-                surface_set_target(modmenu.get_surf_titles());
-                draw_clear_alpha(c_black, 0);
-
-                if (isMenuLonely || !isSubmenu)
-                {{
-                    draw_set_color(c_white);
-                    if (isMenuLonely)
-                    {{
-                        draw_set_halign(fa_center);
-                        draw_text(205, 0, allmodmenus);
-                        draw_set_halign(fa_left);
-                    }}
-                    else
-                    {{
-                        draw_text(0, 0, allmodmenus);
-                    }}
-                }}
-                else
-                {{
-                    draw_set_color(c_gray);
-                    draw_text(0, 0, allmodmenus);
-                    draw_set_color(c_orange);
-                    draw_text(0, 0, string_upper(modmenu.active_menu().title_loc()));
-                }}
-
-                draw_sprite(spr_darkmodsfade, 0, 410 - 35, 0);
-
-                surface_reset_target();
-                draw_surface(modmenu.get_surf_titles(), xx + 110, yy + 110);
-
-                if (!isSubmenu) {{
-                    menusiner += 1;
-                    draw_sprite_part(spr_heart_harrows, menusiner / 20, 8 - 8 * (modmenu.menu_no > 0), 0, 16 + 8 * (modmenu.menu_no > 0) + 8 * (modmenu.menu_no < (modmenu.menu_dark_count - 1)), 16, xx + 85 - 8 * (modmenu.menu_no > 0), yy + 120);
-                }}
-
-                // form buttons
-                var left_margin = modmenu.active_menu().style.dark.left_margin_loc();
-                var _xPos = xx + 130 + left_margin;
-                var _heartXPos = xx + 105 + left_margin;
-                var _selectXPos = xx + 130 + modmenu.active_menu().style.dark.left_value_pos_loc();
-
-                draw_set_color(c_white);
-
-                if (!isSubmenu)
-                    draw_set_color(c_gray);
-
-                var form_data = modmenu.active_menu().form;
-
-                var heartyprogress = 150;
-                if (array_length(form_data) >= 0)
-                {{
-                    var i = modmenu.row_scroll;
-                    var yprogress = 150;
-                    while ((yprogress <= 150 + 6 * 35) && (i < array_length(form_data) + 1))
-                    {{
-                        if (i >= array_length(form_data))
-                        {{
-                            draw_set_color(c_white);
-                            draw_text(_xPos, yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline({(darkcon.EndsWith("_ch1") ? ch1_back_text : back_text)})); // Back
-                            if (modmenu.row_no == i)
-                                heartyprogress = yprogress;
-                            yprogress += 35;
-                            break;
-                        }}
-
-                        var row_data = form_data[i];
-                        if (row_data.is_hidden()) {{
-                            i++;
-                            continue;
-                        }}
-
-                        if (row_data.is_disabled())
-                            draw_set_color(c_gray);
-                        else if (modmenu.row_selected && modmenu.row_no == i)
-                            draw_set_color(c_yellow);
-                        else
-                            draw_set_color(c_white);
-
-                        var isCategory = (row_data.type == ""Header"");
-                        draw_text_transformed(_xPos - (isCategory * 28), yy + yprogress - (isCategory * 5){(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.title_loc()), (isCategory ? 0.5 : 1), (isCategory ? 0.5 : 1), 0);
-                        if (isCategory){{
-                            draw_line(_xPos - 28 - 3, yy + yprogress + 9, _xPos + 400, yy + yprogress + 9);
-                        }}
-
-                        if (row_data.type == ""Slider"" || row_data.type == ""Toggle"")
-                            draw_text(_selectXPos, yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.value_string()));
-
-                        if (modmenu.row_no == i){{
-                            heartyprogress = yprogress;
-                        }}
-                        yprogress += (isCategory ? 12 : 35);
-                        i++;
-                    }}
-
-                    // calcs required to get the scroller size & position correct: need to know how far we've scrolled & total length of menu in pixels
-                    var menuscreenlength = 7 * 35;
-                    var totalmenulength = 0;
-                    var scrollprogress = 0;
-                    for (var i = 0; i < array_length(form_data) + 1; i++) {{
-                        if (i >= array_length(form_data))
-                        {{
-                            if (modmenu.row_scroll == i){{
-                                scrollprogress = totalmenulength;
-                            }}
-                            totalmenulength += 35;
-                            continue;
-                        }}
-
-                        if (modmenu.row_scroll == i){{
-                            scrollprogress = totalmenulength;
-                        }}
-                        totalmenulength += ((form_data[i].type == ""Header"") ? 12 : 35);
-                    }}
-
-                    // also need to account for empty space at the bottom of the menu
-                    var lastscreenlength = 0;
-                    for (var i = array_length(form_data); i >= 0; i--) {{
-                        var newlastscreenlength = lastscreenlength;
-                        if (i >= array_length(form_data))
-                        {{
-                            newlastscreenlength += 35;
-                        }}
-                        else
-                        {{
-                            newlastscreenlength += ((form_data[i].type == ""Header"") ? 12 : 35);
-                        }}
-
-                        if (newlastscreenlength > menuscreenlength)
-                        {{
-                            break;
-                        }}
-                        lastscreenlength = newlastscreenlength;
-                    }}
-                    totalmenulength += menuscreenlength - lastscreenlength;
-
-                    // draw scroll bar based on previous calcs
-                    if (totalmenulength > menuscreenlength)
-                    {{
-                        var modscrollbary = 180;
-                        var modscrollbarlength = 190;
-                        var modscrollery = modscrollbarlength * (scrollprogress / totalmenulength);
-                        var modscrollerlength = modscrollbarlength * (menuscreenlength / totalmenulength);
-                        draw_set_color(c_dkgray);
-                        draw_rectangle(xx + 85, yy + modscrollbary, xx + 90, yy + modscrollbary + modscrollbarlength, false);
-                        draw_set_color(c_white);
-                        draw_rectangle(xx + 85, yy + modscrollbary + modscrollery, xx + 90, yy + modscrollbary + modscrollerlength + modscrollery, false);
-
-                        if (modmenu.row_scroll > 0)
-                            draw_sprite_ext(spr_morearrow, 0, xx + 81, (yy + modscrollbary) - 10 - (sin(cur_jewel / 12) * 3), 1, -1, 0, c_white, 1);
-
-                        if ((modmenu.row_scroll + 7) < (array_length(form_data) + 1))
-                            draw_sprite_ext(spr_morearrow, 0, xx + 81, yy + 10 + modscrollbary + modscrollbarlength + (sin(cur_jewel / 12) * 3), 1, 1, 0, c_white, 1);
-                    }}
-                }}
-
-                if (isSubmenu)
-                    draw_sprite(spr_heart, 0, _heartXPos, yy + 10 + heartyprogress);
-            }}
-            else
-            {{
-                draw_set_halign(fa_center);
-                draw_set_valign(fa_middle);
-                draw_text(xx + 320, yy + 250, string_hash_to_newline(""NO MOD MENUS FOUND""));
-                draw_set_halign(fa_left);
-                draw_set_valign(fa_top);
-            }}
-        }}
-    ");
+    importGroup.QueueAppend(darkcon + "_Draw_0", $"global.modmenu.draw_darkmenu({(darkcon.EndsWith("_ch1") ? ch1_back_text : back_text)});");
 }
 
 // Add menu step code
@@ -1041,639 +1678,7 @@ foreach (string darkcon in darkcons)
 {
     importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "global.menucoord[0] = 4;", "global.menucoord[0] = 5;");
     importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "if (global.menucoord[0] == 4)", "if (global.menucoord[0] == 5)");
-    importGroup.QueueAppend(darkcon + "_Step_0", @$"
-        // override for deltaesp's spanish translation
-        if (modmenu.lang_override != ""es"" && global.lang == ""en"" && variable_instance_exists(global, ""esp_names""))
-        {{
-            modmenu.lang_override = ""es"";
-        }}
-        // override for the Korean translation
-        // TODO this doesn't work for chapter 2 as the dubbing feature hasn't been added
-        if (modmenu.lang_override != ""ko"" && global.lang == ""ja"" && variable_instance_exists(global, ""krdub""))
-        {{
-            modmenu.lang_override = ""ko"";
-        }}
-
-        function scrolldownforcontent()
-        {{
-            var form_data = modmenu.active_menu().form;
-            modmenu.row_scroll = modmenu.row_no + 1;
-            var menuscreenlength = 7 * 35;
-            var lastscreenlength = 0;
-            for (var i = modmenu.row_no; i >= 0; i--) {{
-                var newlastscreenlength = lastscreenlength;
-                if (i >= array_length(form_data))
-                {{
-                    newlastscreenlength += 35;
-                }}
-                else
-                {{
-                    newlastscreenlength += ((form_data[i].type == ""Header"") ? 12 : 35);
-                }}
-
-                if (newlastscreenlength > menuscreenlength)
-                {{
-                    break;
-                }}
-                lastscreenlength = newlastscreenlength;
-                modmenu.row_scroll--;
-            }}
-        }}
-
-        function isneedscrolldown()
-        {{
-            var form_data = modmenu.active_menu().form;
-            var menuscreenlength = 7 * 35;
-            var currentscreenlength = 0;
-            var foundselected = false;
-            for (var i = modmenu.row_scroll; i < array_length(form_data) + 1; i++) {{
-                var newcurrentscreenlength = currentscreenlength;
-                if (i >= array_length(form_data))
-                {{
-                    newcurrentscreenlength += 35;
-                }}
-                else
-                {{
-                    newcurrentscreenlength += ((form_data[i].type == ""Header"") ? 12 : 35);
-                }}
-
-                if (newcurrentscreenlength > menuscreenlength)
-                {{
-                    break;
-                }}
-                currentscreenlength = newcurrentscreenlength;
-                if (i == modmenu.row_no)
-                {{
-                    foundselected = true;
-                }}
-            }}
-            return !foundselected;
-        }}
-
-        function modsubmenu_up(arg0)
-        {{
-            modmenu.row_no--;
-
-            if (modmenu.row_no < 0)
-            {{
-                modmenu.row_no = arg0 - 1;
-
-                scrolldownforcontent();
-            }}
-            else
-            {{
-                if (modmenu.row_no < modmenu.row_scroll)
-                    modmenu.row_scroll = modmenu.row_no;
-            }}
-        }}
-
-        function modsubmenu_down(arg0)
-        {{
-            modmenu.row_no++;
-
-            if (modmenu.row_no >= arg0)
-            {{
-                modmenu.row_no = 0;
-                modmenu.row_scroll = 0;
-            }}
-            else if (isneedscrolldown())
-            {{
-                scrolldownforcontent();
-            }}
-        }}
-
-        function issubmenucategory(arg0, arg1)
-        {{
-            if (modmenu.row_no >= (arg0 - 1))
-                return false;
-
-            return (arg1[modmenu.row_no].type == ""Header"");
-        }}
-
-        function ishidden(arg0, arg1)
-        {{
-            if (modmenu.row_no >= (arg0 - 1))
-                return false;
-
-            return arg1[modmenu.row_no].is_hidden();
-        }}
-
-        function isdisabled(arg0, arg1)
-        {{
-            if (modmenu.row_no >= (arg0 - 1))
-                return false;
-
-            return arg1[modmenu.row_no].is_disabled();
-        }}
-
-        function shouldskiprow(arg0, arg1)
-        {{
-            return issubmenucategory(arg0, arg1) || ishidden(arg0, arg1);
-        }}
-
-        if (global.menuno == 6)
-        {{
-            var isSubmenu = (modmenu.row_no >= 0);
-
-            if (!isSubmenu) {{
-                // enter submenu right away if there is only one submenu
-                if (modmenu.menu_dark_count == 1) {{
-                    modmenu.row_no = 0;
-
-                    modmenu.active_menu().open_func();
-                }}
-
-                if (modmenu.menu_dark_count > 0)
-                {{
-                    if (left_p())
-                    {{
-                        movenoise = 1;
-
-                        modmenu.menu_no--;
-                        if (modmenu.menu_no < 0)
-                            modmenu.menu_no = modmenu.menu_dark_count - 1;
-                    }}
-                    if (right_p())
-                    {{
-                        movenoise = 1;
-
-                        modmenu.menu_no++;
-                        if (modmenu.menu_no >= modmenu.menu_dark_count)
-                            modmenu.menu_no = 0;
-                    }}
-                    if ((button1_p() || down_p() || up_p()) && onebuffer < 0 && twobuffer < 0)
-                    {{
-                        onebuffer = 2;
-                        selectnoise = 1;
-
-                        // make sure category header or hidden/disabled row isn't selected
-                        var form_data = modmenu.active_menu().form;
-                        var form_length = array_length(form_data);
-                        // nav to bottom if press up, top otherwise
-                        modmenu.row_no = up_p() ? form_length : 0;
-                        // back button
-                        form_length++;
-                        var movecount = 0;
-                        while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
-                            modsubmenu_down(form_length);
-                            movecount++;
-                        }}
-
-                        modmenu.active_menu().open_func();
-                    }}
-                }}
-                if (button2_p() && onebuffer < 0 && twobuffer < 0)
-                {{
-                    cancelnoise = 1;
-                    twobuffer = 2;
-                    global.menuno = 0;
-                    global.submenu = 0;
-                }}
-            }} else if (!modmenu.row_selected) {{
-                var form_data = modmenu.active_menu().form;
-                var form_length = array_length(form_data);
-
-                if (form_length <= 0) {{
-                    modmenu.row_no = -1;
-                    modmenu.row_scroll = 0;
-                }}
-
-                // back button
-                form_length++;
-
-                // TODO freezes game :/ // state change could leave us stranded on a non-selectable row, so need to check
-                // var movecount = 0;
-                // while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
-                //     modsubmenu_down(form_length);
-                //     movecount++;
-                // }}
-
-                if (up_p())
-                {{
-                    movenoise = 1;
-
-                    modsubmenu_up(form_length);
-
-                    // make sure category header or hidden/disabled row isn't selected
-                    var movecount = 0;
-                    while ((movecount < form_length + 1) && (shouldskiprow(form_length, form_data))) {{
-                        modsubmenu_up(form_length);
-                        movecount++;
-                    }}
-                }}
-                if (down_p())
-                {{
-                    movenoise = 1;
-
-                    modsubmenu_down(form_length);
-
-                    // make sure category header or hidden/disabled row isn't selected
-                    var movecount = 0;
-                    while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
-                        modsubmenu_down(form_length);
-                        movecount++;
-                    }}
-                }}
-                if (button1_p() && onebuffer < 0 && twobuffer < 0 && !isdisabled(form_length, form_data))
-                {{
-                    onebuffer = 2;
-                    selectnoise = 1;
-
-                    if (modmenu.row_no >= array_length(form_data)) {{
-                        modmenu.row_no = -1;
-                        modmenu.row_scroll = 0;
-
-                        if (modmenu.menu_dark_count == 1)
-                        {{
-                            global.menuno = 0;
-                            global.submenu = 0;
-                        }}
-
-                        modmenu.active_menu().close_func();
-                        if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onclose();
-                        if (modmenu.active_menu().save_type != ""Never"") modmenu.active_menu().save();
-                    }}
-                    else
-                    {{
-                        modmenu.row_selected = true;
-                        var row_data = form_data[modmenu.row_no];
-
-                        if (row_data.type != ""Header"")
-                            row_data.trigger_func();
-
-                        if (row_data.type != ""Slider"")
-                            modmenu.row_selected = false;
-                        else
-                            modmenu.slider_orig_value = row_data.data_ref.get();
-
-                        if (row_data.type == ""Toggle"") {{
-                            // TODO does this handle spread ranges properly?
-                            var value_range = row_data.value_range_loc();
-                            var ranges = global.modmenu.string_split(value_range, "";"");
-                            var value = row_data.data_ref.get();
-
-                            var foundOption = false;
-                            for (var i = 0; i < array_length(ranges); i++) {{
-                                var range = ranges[i];
-                                if (string_pos(""="", range)) {{
-                                    var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                    var isString = global.modmenu.string_ends_with(range, ""`"");
-                                    var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
-                                    var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-
-                                    var isMatch = false;
-                                    if (isString)
-                                        isMatch = value == labelValue[1];
-                                    else if (isBool)
-                                        isMatch = value == bool(labelValue[1]);
-                                    else {{ // number
-                                        var convBack = isPercent ? 1 / 100 : 1;
-                                        isMatch = value == real(labelValue[1]) * convBack;
-                                    }}
-
-                                    if (!foundOption && i+1 == array_length(ranges)) {{
-                                        range = ranges[0];
-                                        labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                        isString = global.modmenu.string_ends_with(range, ""`"");
-                                        isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
-                                        isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-                                    }}
-
-                                    if (foundOption || i+1 == array_length(ranges)) {{
-                                        if (isString)
-                                            value = labelValue[1];
-                                        else if (isBool)
-                                            value = bool(labelValue[1]);
-                                        else {{ // number
-                                            value = real(labelValue[1]) * convBack;
-                                        }}
-                                        break;
-                                    }}
-
-                                    if (isMatch) {{
-                                        foundOption = true;
-                                    }}
-                                }}
-                            }}
-
-                            row_data.data_ref.set(value);
-                            row_data.change_func();
-                            if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onchange();
-                        }}
-                    }}
-                }}
-                if (button2_p() && onebuffer < 0 && twobuffer < 0)
-                {{
-                    cancelnoise = 1;
-                    twobuffer = 2;
-                    modmenu.row_no = -1;
-                    modmenu.row_scroll = 0;
-
-                    if (modmenu.menu_dark_count == 1)
-                    {{
-                        global.menuno = 0;
-                        global.submenu = 0;
-                    }}
-
-                    modmenu.active_menu().close_func();
-                    if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onclose();
-                    if (modmenu.active_menu().save_type != ""Never"") modmenu.active_menu().save();
-                }}
-            }} else {{
-                var form_data = modmenu.active_menu().form;
-                var row_data = form_data[modmenu.row_no];
-                var value_range = row_data.value_range_loc();
-                var ranges = global.modmenu.string_split(value_range, "";"");
-                var value = row_data.data_ref.get();
-
-                var scroll_todo = modmenu.slider_step div 1;
-
-                if (right_h() && scroll_todo > 0)
-                {{
-                    var isAllLabels = true;
-
-                    for (var i = 0; i < array_length(ranges); i++) {{
-                        var range = ranges[i];
-                        if (!string_pos(""="", range)) {{
-                            isAllLabels = false;
-                            break;
-                        }}
-                    }}
-
-                    if (isAllLabels) {{
-                        var foundOption = false;
-                        for (var i = 0; i < array_length(ranges); i++) {{
-                            var range = ranges[i];
-                            if (string_pos(""="", range)) {{
-                                var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                var isString = global.modmenu.string_ends_with(range, ""`"");
-                                var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
-                                var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-
-                                var isMatch = false;
-                                if (isString)
-                                    isMatch = value == labelValue[1];
-                                else if (isBool)
-                                    isMatch = value == bool(labelValue[1]);
-                                else {{ // number
-                                    var convBack = isPercent ? 1 / 100 : 1;
-                                    isMatch = value == real(labelValue[1]) * convBack;
-                                }}
-
-                                if (!foundOption && i+1 == array_length(ranges)) {{
-                                    range = ranges[0];
-                                    labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                    isString = global.modmenu.string_ends_with(range, ""`"");
-                                    isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
-                                    isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-                                }}
-
-                                if (foundOption || i+1 == array_length(ranges)) {{
-                                    if (isString)
-                                        value = labelValue[1];
-                                    else if (isBool)
-                                        value = bool(labelValue[1]);
-                                    else {{ // number
-                                        value = real(labelValue[1]) * convBack;
-                                    }}
-                                    break;
-                                }}
-
-                                if (isMatch) {{
-                                    foundOption = true;
-                                }}
-                            }}
-                        }}
-                    }}
-                    else
-                    {{
-                        var value_adjust = 0;
-                        if (value <= -2)
-                            value_adjust = 0.1;
-                        else if (value <= -1)
-                            value_adjust = 0.05;
-                        else if (value <= -0.5)
-                            value_adjust = 0.02;
-                        else if (value <= -0.2)
-                            value_adjust = 0.01;
-                        else if (value < 0.2)
-                            value_adjust = 0.005;
-                        else if (value < 0.5)
-                            value_adjust = 0.01;
-                        else if (value < 1)
-                            value_adjust = 0.02;
-                        else if (value < 2)
-                            value_adjust = 0.05;
-                        else
-                            value_adjust = 0.1;
-
-                        value += value_adjust * scroll_todo;
-
-                        for (var i = 0; i < array_length(ranges); i++) {{
-                            var range = ranges[i];
-                            if (string_pos(""~"", range)) {{
-                                var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""~"");
-                                var isPercent = global.modmenu.string_ends_with(range, ""%"");
-                                if (!isPercent)
-                                    value = ceil(value);
-                                var convVal = isPercent ? value * 100 : value;
-                                var convBack = isPercent ? 1 / 100 : 1;
-                                if (convVal <= real(minMax[1]) || i+1 == array_length(ranges)) {{
-                                    value = clamp(value, real(minMax[0]) * convBack, real(minMax[1]) * convBack);
-                                    break;
-                                }}
-                            }} else if (string_pos(""="", range)) {{
-                                var labelValue = global.modmenu.string_split(string_replace(range, ""%"", """"), ""="");
-                                var isPercent = global.modmenu.string_ends_with(range, ""%"");
-                                var convBack = isPercent ? 1 / 100 : 1;
-                                if (value <= (real(labelValue[1]) * convBack) || i+1 == array_length(ranges)) {{
-                                    value = real(labelValue[1]) * convBack;
-                                    break;
-                                }}
-                            }} else if (global.modmenu.string_ends_with(range, ""%"")) {{
-                                var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""-"");
-                                if (value * 100 <= real(minMax[1]) || i+1 == array_length(ranges)) {{
-                                    value = clamp(value, real(minMax[0]) / 100, real(minMax[1]) / 100);
-                                    break;
-                                }}
-                            }}
-                        }}
-                    }}
-
-                    row_data.data_ref.set(value);
-
-                    row_data.change_func();
-                    if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onchange();
-
-                    modmenu.slider_step = modmenu.slider_step % 1;
-                }}
-
-                if (left_h() && scroll_todo > 0)
-                {{
-                    var isAllLabels = true;
-
-                    for (var i = 0; i < array_length(ranges); i++) {{
-                        var range = ranges[i];
-                        if (!string_pos(""="", range)) {{
-                            isAllLabels = false;
-                            break;
-                        }}
-                    }}
-
-                    if (isAllLabels) {{
-                        var foundOption = false;
-                        for (var i = array_length(ranges) - 1; i >= 0; i--) {{
-                            var range = ranges[i];
-                            if (string_pos(""="", range)) {{
-                                var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                var isString = global.modmenu.string_ends_with(range, ""`"");
-                                var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
-                                var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-
-                                var isMatch = false;
-                                if (isString)
-                                    isMatch = value == labelValue[1];
-                                else if (isBool)
-                                    isMatch = value == bool(labelValue[1]);
-                                else {{ // number
-                                    var convBack = isPercent ? 1 / 100 : 1;
-                                    isMatch = value == real(labelValue[1]) * convBack;
-                                }}
-
-                                if (!foundOption && i == 0) {{
-                                    range = ranges[array_length(ranges) - 1];
-                                    labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                    isString = global.modmenu.string_ends_with(range, ""`"");
-                                    isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
-                                    isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-                                }}
-
-                                if (foundOption || i == 0) {{
-                                    if (isString)
-                                        value = labelValue[1];
-                                    else if (isBool)
-                                        value = bool(labelValue[1]);
-                                    else {{ // number
-                                        value = real(labelValue[1]) * convBack;
-                                    }}
-                                    break;
-                                }}
-
-                                if (isMatch) {{
-                                    foundOption = true;
-                                }}
-                            }}
-                        }}
-                    }}
-                    else
-                    {{
-                        var value_adjust = 0;
-                        if (value < -2)
-                            value_adjust = -0.1;
-                        else if (value < -1)
-                            value_adjust = -0.05;
-                        else if (value < -0.5)
-                            value_adjust = -0.02;
-                        else if (value < -0.2)
-                            value_adjust = -0.01;
-                        else if (value <= 0.2)
-                            value_adjust = -0.005;
-                        else if (value <= 0.5)
-                            value_adjust = -0.01;
-                        else if (value <= 1)
-                            value_adjust = -0.02;
-                        else if (value <= 2)
-                            value_adjust = -0.05;
-                        else
-                            value_adjust = -0.1;
-
-                        var scroll_todo = modmenu.slider_step div 1;
-                        value += value_adjust * scroll_todo;
-
-                        for (var i = array_length(ranges) - 1; i >= 0; i--) {{
-                            var range = ranges[i];
-                            if (string_pos(""~"", range)) {{
-                                var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""~"");
-                                var isPercent = global.modmenu.string_ends_with(range, ""%"");
-                                if (!isPercent)
-                                    value = floor(value);
-                                var convVal = isPercent ? value * 100 : value;
-                                var convBack = isPercent ? 1 / 100 : 1;
-                                if (convVal >= real(minMax[0]) || i == 0) {{
-                                    value = clamp(value, real(minMax[0]) * convBack, real(minMax[1]) * convBack);
-                                    break;
-                                }}
-                            }} else if (string_pos(""="", range)) {{
-                                var labelValue = global.modmenu.string_split(string_replace(range, ""%"", """"), ""="");
-                                var isPercent = global.modmenu.string_ends_with(range, ""%"");
-                                var convBack = isPercent ? 1 / 100 : 1;
-                                if (value >= (real(labelValue[1]) * convBack) || i == 0) {{
-                                    value = real(labelValue[1]) * convBack;
-                                    break;
-                                }}
-                            }} else if (global.modmenu.string_ends_with(range, ""%"")) {{
-                                var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""-"");
-                                if (value * 100 >= real(minMax[0]) || i == 0) {{
-                                    value = clamp(value, real(minMax[0]) / 100, real(minMax[1]) / 100);
-                                    break;
-                                }}
-                            }}
-                        }}
-                    }}
-
-                    row_data.data_ref.set(value);
-
-                    row_data.change_func();
-                    if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onchange();
-
-                    modmenu.slider_step = modmenu.slider_step % 1;
-                }}
-
-                if (right_h() || left_h())
-                {{
-                    modmenu.slider_step += modmenu.slider_speed;
-                    modmenu.slider_speed = clamp(modmenu.slider_speed + modmenu.slider_accel, modmenu.slider_speed_min, modmenu.slider_speed_max);
-                }}
-                else
-                {{
-                    modmenu.slider_step = 1; // reset to 1 as first interaction should be instantaneous
-                    modmenu.slider_speed = modmenu.slider_speed_min;
-                }}
-
-                se_select = 0;
-                se_cancel = 0;
-
-                if (button1_p() && onebuffer < 0)
-                    se_select = 1;
-
-                if (button2_p() && twobuffer < 0)
-                    se_cancel = 1;
-
-                if (se_select == 1 || se_cancel == 1)
-                {{
-                    selectnoise = 1;
-                    onebuffer = 2;
-                    twobuffer = 2;
-                    modmenu.row_selected = false;
-
-                    if (se_select == 1)
-                        row_data.accept_func();
-                    if (se_cancel == 1) {{
-                        if (row_data.revert_on_cancel && row_data.data_ref.get() != modmenu.slider_orig_value) {{
-                            row_data.data_ref.set(modmenu.slider_orig_value);
-                            row_data.change_func();
-                            if (!is_undefined(modmenu.active_menu().apply)) modmenu.active_menu().apply.run_onchange();
-                        }}
-                        row_data.cancel_func();
-                    }}
-
-                    modmenu.slider_step = 1; // reset to 1 as first interaction should be instantaneous
-                    modmenu.slider_speed = modmenu.slider_speed_min;
-                    modmenu.slider_orig_value = undefined;
-                }}
-            }}
-        }}
-    ");
+    importGroup.QueueAppend(darkcon + "_Step_0", "global.modmenu.step_darkmenu();");
 }
 
 // Save menu data
