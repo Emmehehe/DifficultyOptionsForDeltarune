@@ -13,13 +13,14 @@ For reference, you can see the exact code that this mod uses to configure its me
 
 ## Creating your menu
 
-Either: run the script [add_modmenu.csx](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/blob/190-release/mod-dev-info/add_modmenu.csx).
+Either: run the script `add_modmenu.csx`.
 
 Or; add this code to the end of the `scr_gamestart(_ch1)` function, found at gml_GlobalScript_scr_gamestart(_ch1):
 ```
 if (variable_instance_exists(global, "modmenu")) {
   global.menu_my_mods_menu = global.modmenu.create({
     title: "My Mod's Menu",
+    ini_name: "my_mods_menu",
     form: [
       {
         type: "Toggle",
@@ -43,7 +44,7 @@ if (variable_instance_exists(global, "modmenu")) {
   });
 }
 ```
-A menu titled "My Mod's Menu" (you can change the name) will now appear in-game!
+A menu will now appear in-game, titled "My Mod's Menu"! (you can change the name)
 
 The menu's `form` contains a basic example of every type of menu-item available. You can have as many or as few menu-items as you want.
 
@@ -60,7 +61,7 @@ There are also a multitude of optional properties that you can add to your [conf
 ```
 global.modmenu.create({
   title: "My Mod's Menu",
-  ini_name: "my-mods-menu.ini",
+  ini_name: "my-mods-menu",
   save_type: "Single", // other options: PerSlot, PerFile, Never
   form: [
     // ...
@@ -82,7 +83,7 @@ global.modmenu.create({
 global.modmenu.create({
   title: "My Mod's Menu",
   apply: { type: "OnClose", func: global.cool_function_that_runs_on_close_of_menu_and_on_load_from_file }, // other options: OnChange
-  ini_name: "my-mods-menu.ini",
+  ini_name: "my-mods-menu",
   save_type: "Single", // other options: PerSlot, PerFile, Never
   form: [
   // ...
@@ -103,7 +104,7 @@ global.modmenu.create({
 ```
 global.modmenu.create({
   title: "My Mod's Menu",
-  ini_name: "my-mods-menu.ini",
+  ini_name: "my-mods-menu",
   save_type: "Single", // other options: PerSlot, PerFile, Never
   form: [
     // ...
@@ -219,15 +220,31 @@ global.modmenu.create({
 **[Advanced] Get reference to a menu-item, so that you can add any dynamic behaviour that isn't already covered by the config:**
 ```
 {
+  type: "Toggle",
+  title: "Example Toggle",
+  data_ref: { var_name: "example_toggle", default_value: false },
+  value_range: "OFF=false;ON=true",
+  ref: {var_name: "my_toggle_ref"}
+},{
   type: "Slider",
   title: "Example Slider",
   data_ref: { var_name: "example_slider", default_value: -1 },
   value_range: "OFF=-1;0~1000%;INF=2147483647",
-  ref: {var_name: "my_slider_ref"}
+  ref: {var_name: "my_ref_arr[0]"}
+},{
+  type: "Button",
+  title: "Example Button",
+  ref: {var_name: "my_ref_arr[1]"}
 }
 // ...
 if (something_happens)
-  global.my_slider_ref.title = "Something happened!";
+  global.my_toggle_ref.title = "Something happened!";
+
+for (var i = 0; i < array_length(my_ref_arr); i++) {
+  var menu_item = my_ref_arr[i];
+  // do stuff with menu-item...
+}
+// ...
 ```
 
 ## All Config Options
@@ -319,7 +336,7 @@ These tell your menu what variables to get/set/save/load when it is interacted w
 ```
 {
   handle: handle, // optional - instance id (or global scope) for the variable (default=global)
-  var_name: string, // name of the variable e.g. global.fun_time -> var_name: "fun_time"
+  var_name: string, // name of the variable e.g. global.fun_time -> var_name: "fun_time" - this can also be an array entry e.g. global.some_arr[0] -> var_name: "some_arr[0]"
   default_value: any, // default value to use if the variable doesn't exist, or is not found in save data (if using save feature); this also helps ModMenu understand what data type to use when reading/writing to the save file
   ini_key: string  // optional - the ini key to use when saving/loading this data (defaults to the var_name)
 }
