@@ -425,7 +425,7 @@ string modmenu_core_init = @$"
                     {{
                         if (left_p())
                         {{
-                            movenoise = 1;
+                            other.movenoise = 1;
 
                             menu_no--;
                             if (menu_no < 0)
@@ -433,16 +433,16 @@ string modmenu_core_init = @$"
                         }}
                         if (right_p())
                         {{
-                            movenoise = 1;
+                            other.movenoise = 1;
 
                             menu_no++;
                             if (menu_no >= menu_dark_count)
                                 menu_no = 0;
                         }}
-                        if ((button1_p() || down_p() || up_p()) && onebuffer < 0 && twobuffer < 0)
+                        if ((button1_p() || down_p() || up_p()) && other.onebuffer < 0 && other.twobuffer < 0)
                         {{
-                            onebuffer = 2;
-                            selectnoise = 1;
+                            other.onebuffer = 2;
+                            other.selectnoise = 1;
 
                             // make sure category header or hidden/disabled row isn't selected
                             var form_data = active_menu().form;
@@ -460,10 +460,10 @@ string modmenu_core_init = @$"
                             active_menu().open_func();
                         }}
                     }}
-                    if (button2_p() && onebuffer < 0 && twobuffer < 0)
+                    if (button2_p() && other.onebuffer < 0 && other.twobuffer < 0)
                     {{
-                        cancelnoise = 1;
-                        twobuffer = 2;
+                        other.cancelnoise = 1;
+                        other.twobuffer = 2;
                         global.menuno = 0;
                         global.submenu = 0;
                     }}
@@ -488,7 +488,7 @@ string modmenu_core_init = @$"
 
                     if (up_p())
                     {{
-                        movenoise = 1;
+                        other.movenoise = 1;
 
                         modsubmenu_up(form_length);
 
@@ -501,7 +501,7 @@ string modmenu_core_init = @$"
                     }}
                     if (down_p())
                     {{
-                        movenoise = 1;
+                        other.movenoise = 1;
 
                         modsubmenu_down(form_length);
 
@@ -512,10 +512,10 @@ string modmenu_core_init = @$"
                             movecount++;
                         }}
                     }}
-                    if (button1_p() && onebuffer < 0 && twobuffer < 0 && !isdisabled(form_length, form_data))
+                    if (button1_p() && other.onebuffer < 0 && other.twobuffer < 0 && !isdisabled(form_length, form_data))
                     {{
-                        onebuffer = 2;
-                        selectnoise = 1;
+                        other.onebuffer = 2;
+                        other.selectnoise = 1;
 
                         if (row_no >= array_length(form_data)) {{
                             row_no = -1;
@@ -600,10 +600,10 @@ string modmenu_core_init = @$"
                             }}
                         }}
                     }}
-                    if (button2_p() && onebuffer < 0 && twobuffer < 0)
+                    if (button2_p() && other.onebuffer < 0 && other.twobuffer < 0)
                     {{
-                        cancelnoise = 1;
-                        twobuffer = 2;
+                        other.cancelnoise = 1;
+                        other.twobuffer = 2;
                         row_no = -1;
                         row_scroll = 0;
 
@@ -878,25 +878,25 @@ string modmenu_core_init = @$"
                         slider_speed = slider_speed_min;
                     }}
 
-                    se_select = 0;
-                    se_cancel = 0;
+                    other.se_select = 0;
+                    other.se_cancel = 0;
 
-                    if (button1_p() && onebuffer < 0)
-                        se_select = 1;
+                    if (button1_p() && other.onebuffer < 0)
+                        other.se_select = 1;
 
-                    if (button2_p() && twobuffer < 0)
-                        se_cancel = 1;
+                    if (button2_p() && other.twobuffer < 0)
+                        other.se_cancel = 1;
 
-                    if (se_select == 1 || se_cancel == 1)
+                    if (other.se_select == 1 || other.se_cancel == 1)
                     {{
-                        selectnoise = 1;
-                        onebuffer = 2;
-                        twobuffer = 2;
+                        other.selectnoise = 1;
+                        other.onebuffer = 2;
+                        other.twobuffer = 2;
                         row_selected = false;
 
-                        if (se_select == 1)
+                        if (other.se_select == 1)
                             row_data.accept_func();
-                        if (se_cancel == 1) {{
+                        if (other.se_cancel == 1) {{
                             if (row_data.revert_on_cancel && row_data.data_ref.get() != slider_orig_value) {{
                                 row_data.data_ref.set(slider_orig_value);
                                 row_data.change_func();
@@ -919,13 +919,13 @@ string modmenu_core_init = @$"
 
                 if (global.lang == ""ja"")
                 {{
-                    draw_rectangle(xx + 60, yy + 85, xx + 580, yy + 412, false);
-                    scr_darkbox(xx + 50, yy + 75, xx + 590, yy + 422);
+                    draw_rectangle(other.xx + 60, other.yy + 85, other.xx + 580, other.yy + 412, false);
+                    with (other) scr_darkbox(xx + 50, yy + 75, xx + 590,other.yy + 422);
                 }}
                 else
                 {{
-                    draw_rectangle(xx + 60, yy + 90, xx + 580, yy + 410, false);
-                    scr_darkbox(xx + 50, yy + 80, xx + 590, yy + 420);
+                    draw_rectangle(other.xx + 60, other.yy + 90, other.xx + 580, other.yy + 410, false);
+                    with (other) scr_darkbox(xx + 50, yy + 80, xx + 590, yy + 420);
                 }}
 
                 draw_set_color(c_white);
@@ -971,18 +971,18 @@ string modmenu_core_init = @$"
                     draw_sprite(spr_darkmodsfade, 0, 410 - 35, 0);
 
                     surface_reset_target();
-                    draw_surface(get_surf_titles(), xx + 110, yy + 110);
+                    draw_surface(get_surf_titles(), other.xx + 110, other.yy + 110);
 
                     if (!isSubmenu) {{
-                        menusiner += 1;
-                        draw_sprite_part(spr_heart_harrows, menusiner / 20, 8 - 8 * (menu_no > 0), 0, 16 + 8 * (menu_no > 0) + 8 * (menu_no < (menu_dark_count - 1)), 16, xx + 85 - 8 * (menu_no > 0), yy + 120);
+                        other.menusiner += 1;
+                        draw_sprite_part(spr_heart_harrows, other.menusiner / 20, 8 - 8 * (menu_no > 0), 0, 16 + 8 * (menu_no > 0) + 8 * (menu_no < (menu_dark_count - 1)), 16, other.xx + 85 - 8 * (menu_no > 0), other.yy + 120);
                     }}
 
                     // form buttons
                     var left_margin = active_menu().style.dark.left_margin_loc();
-                    var _xPos = xx + 130 + left_margin;
-                    var _heartXPos = xx + 105 + left_margin;
-                    var _selectXPos = xx + 130 + active_menu().style.dark.left_value_pos_loc();
+                    var _xPos = other.xx + 130 + left_margin;
+                    var _heartXPos = other.xx + 105 + left_margin;
+                    var _selectXPos = other.xx + 130 + active_menu().style.dark.left_value_pos_loc();
 
                     draw_set_color(c_white);
 
@@ -1001,7 +1001,7 @@ string modmenu_core_init = @$"
                             if (i >= array_length(form_data))
                             {{
                                 draw_set_color(c_white);
-                                draw_text(_xPos, yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(arg0)); // Back
+                                draw_text(_xPos, other.yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(arg0)); // Back
                                 if (row_no == i)
                                     heartyprogress = yprogress;
                                 yprogress += 35;
@@ -1022,13 +1022,13 @@ string modmenu_core_init = @$"
                                 draw_set_color(c_white);
 
                             var isCategory = (row_data.type == ""Header"");
-                            draw_text_transformed(_xPos - (isCategory * 28), yy + yprogress - (isCategory * 5){(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.title_loc()), (isCategory ? 0.5 : 1), (isCategory ? 0.5 : 1), 0);
+                            draw_text_transformed(_xPos - (isCategory * 28), other.yy + yprogress - (isCategory * 5){(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.title_loc()), (isCategory ? 0.5 : 1), (isCategory ? 0.5 : 1), 0);
                             if (isCategory){{
-                                draw_line(_xPos - 28 - 3, yy + yprogress + 9, _xPos + 400, yy + yprogress + 9);
+                                draw_line(_xPos - 28 - 3, other.yy + yprogress + 9, _xPos + 400, other.yy + yprogress + 9);
                             }}
 
                             if (row_data.type == ""Slider"" || row_data.type == ""Toggle"")
-                                draw_text(_selectXPos, yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.value_string()));
+                                draw_text(_selectXPos, other.yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.value_string()));
 
                             if (row_no == i){{
                                 heartyprogress = yprogress;
@@ -1086,26 +1086,26 @@ string modmenu_core_init = @$"
                             var modscrollery = modscrollbarlength * (scrollprogress / totalmenulength);
                             var modscrollerlength = modscrollbarlength * (menuscreenlength / totalmenulength);
                             draw_set_color(c_dkgray);
-                            draw_rectangle(xx + 85, yy + modscrollbary, xx + 90, yy + modscrollbary + modscrollbarlength, false);
+                            draw_rectangle(other.xx + 85, other.yy + modscrollbary, other.xx + 90, other.yy + modscrollbary + modscrollbarlength, false);
                             draw_set_color(c_white);
-                            draw_rectangle(xx + 85, yy + modscrollbary + modscrollery, xx + 90, yy + modscrollbary + modscrollerlength + modscrollery, false);
+                            draw_rectangle(other.xx + 85, other.yy + modscrollbary + modscrollery, other.xx + 90, other.yy + modscrollbary + modscrollerlength + modscrollery, false);
 
                             if (row_scroll > 0)
-                                draw_sprite_ext(spr_morearrow, 0, xx + 81, (yy + modscrollbary) - 10 - (sin(cur_jewel / 12) * 3), 1, -1, 0, c_white, 1);
+                                draw_sprite_ext(spr_morearrow, 0, other.xx + 81, (other.yy + modscrollbary) - 10 - (sin(other.cur_jewel / 12) * 3), 1, -1, 0, c_white, 1);
 
                             if ((row_scroll + 7) < (array_length(form_data) + 1))
-                                draw_sprite_ext(spr_morearrow, 0, xx + 81, yy + 10 + modscrollbary + modscrollbarlength + (sin(cur_jewel / 12) * 3), 1, 1, 0, c_white, 1);
+                                draw_sprite_ext(spr_morearrow, 0, other.xx + 81, other.yy + 10 + modscrollbary + modscrollbarlength + (sin(other.cur_jewel / 12) * 3), 1, 1, 0, c_white, 1);
                         }}
                     }}
 
                     if (isSubmenu)
-                        draw_sprite(spr_heart, 0, _heartXPos, yy + 10 + heartyprogress);
+                        draw_sprite(spr_heart, 0, _heartXPos, other.yy + 10 + heartyprogress);
                 }}
                 else
                 {{
                     draw_set_halign(fa_center);
                     draw_set_valign(fa_middle);
-                    draw_text(xx + 320, yy + 250, string_hash_to_newline(""NO MOD MENUS FOUND""));
+                    draw_text(other.xx + 320, other.yy + 250, string_hash_to_newline(""NO MOD MENUS FOUND""));
                     draw_set_halign(fa_left);
                     draw_set_valign(fa_top);
                 }}
@@ -1615,7 +1615,7 @@ UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
 };
 
 // Add modmenu init code
-const useModularScripts = false;
+const bool useModularScripts = false;
 if (useModularScripts) {
     importGroup.QueueAppend("gml_GlobalScript_scr_modmenu_init", modmenu_core_init);
 } else {

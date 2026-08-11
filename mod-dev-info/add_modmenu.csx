@@ -26,6 +26,14 @@ if (!Regex.IsMatch(displayName, expectedDisplayName, RegexOptions.IgnoreCase, Ti
     return;
 }
 
+// Determine chapter
+string ch_no_str = Regex.Match(displayName, expectedDisplayName, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(500)).Groups[1].Captures[0].Value;
+ushort ch_no = 0;
+if (ch_no_str == "1&2")
+    ch_no = 0; // 0 = demo
+else
+    ch_no = ushort.Parse(Regex.Match(displayName, expectedDisplayName, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(500)).Groups[1].Captures[0].Value);
+
 // Get config name from user
 string configName = ScriptInputDialog("Config identifier", "Input a unique identifier for your menu config (alphanumeric & underscores only, no trailing underscores)", "my_mods_menu", "Cancel", "Submit", false, false);
 
@@ -43,6 +51,18 @@ if (!Regex.IsMatch(configName, validConfigName, RegexOptions.IgnoreCase, TimeSpa
 UndertaleVariable alreadyInstalled = Data.Variables.ByName($"menu_{configName}");
 if (alreadyInstalled != null) {
     ScriptError($"Can't add mod menu config '{configName}' to  '{displayName}' as it already exists.");
+    return;
+}
+
+bool addToChapter = true;
+bool addToDemoChapter1 = false;
+if (ch_no == 0) {
+    addToDemoChapter1 = ScriptQuestion("Add to chapter 1?");
+    addToChapter = ScriptQuestion("Add to chapter 2?");
+}
+
+if (!addToChapter && !addToDemoChapter1) {
+    ScriptError($"Can't add mod menu config '{configName}' to  '{displayName}' as no chapter has been selected.");
     return;
 }
 
@@ -82,12 +102,18 @@ string example_config = @$"
     }}
 ";
 
-const useModularScripts = false;
+const bool useModularScripts = false;
 if (useModularScripts) {
+    // TODO how do we make menu only for one chapter in the demo?
     importGroup.QueueAppend($"gml_GlobalScript_scr_modmenu_{configName}", example_config);
 } else {
-    string[] gamestarts = {"gml_GlobalScript_scr_gamestart"};
-    if (ch_no == 0)
+    string[] gamestarts = {};
+    if (addToChapter)
+    {
+        string[] chapterGamestarts = {"gml_GlobalScript_scr_gamestart"};
+        gamestarts = gamestarts.Concat(chapterGamestarts).ToArray();
+    }
+    if (addToDemoChapter1)
     {
         string[] demoGamestarts = {"gml_GlobalScript_scr_gamestart_ch1"};
         gamestarts = gamestarts.Concat(demoGamestarts).ToArray();

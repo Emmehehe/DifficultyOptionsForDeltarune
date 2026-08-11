@@ -1687,6 +1687,7 @@ if (ch_no == 1) {
     importGroup.QueueFindReplace("gml_GlobalScript_scr_spelltext", "if (cancelattack == 1)", @"
         if (global.monstertype[star] == 2) {
             global.msg[0] = scr_84_get_subst_string(""* ~1 spared ~2^2!&* But Lancer's bike cannot be stopped.../%"", global.charname[global.char[caster]], global.monstername[star]);
+            // global.msg[0] = scr_84_get_subst_string(""* ~1 spared ~2^2!&* But Lancer can't find the brakes. He pretends that this was a part of his evil plan all along (hohoho!)./%"", global.charname[global.char[caster]], global.monstername[star]);
         }
         if (cancelattack == 1)
     ");
