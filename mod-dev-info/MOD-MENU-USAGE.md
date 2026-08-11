@@ -30,7 +30,7 @@ if (variable_instance_exists(global, "modmenu")) {
         type: "Slider",
         title: "Example Slider",
         data_ref: { var_name: "example_slider", default_value: -1 },
-        value_range: "OFF=-1;0-1000%;INF=2147483647"
+        value_range: "OFF=-1;0~1000%;INF=2147483647"
       },{
         type: "Header",
         title: "Example Header"
@@ -120,7 +120,7 @@ global.modmenu.create({
   type: "Slider",
   title: "Example Slider",
   data_ref: { var_name: "example_slider", default_value: -1 },
-  value_range: "OFF=-1;0-1000%;INF=2147483647",
+  value_range: "OFF=-1;0~1000%;INF=2147483647",
   revert_on_cancel: true // e.g. if slider was set to OFF, then the user slides it to 20%, then cancels (presses [X]/(B)); the value will be set back to OFF
 }
 ```
@@ -150,7 +150,7 @@ global.modmenu.create({
   type: "Slider",
   title: "Example Slider",
   data_ref: { var_name: "example_slider", default_value: -1 },
-  value_range: "OFF=-1;0-1000%;INF=2147483647",
+  value_range: "OFF=-1;0~1000%;INF=2147483647",
   disabled: function () { return !global.my_mod_toggle; } // reads value of my_mod_toggle and sets disabled=true if my_mod_toggle=false
 },{
   type: "Header",
@@ -202,7 +202,7 @@ global.modmenu.create({
       type: "Slider",
       title: "Example Slider",
       data_ref: { var_name: "example_slider", default_value: -1 },
-      value_range: "OFF=-1;0-1000%;INF=2147483647",
+      value_range: "OFF=-1;0~1000%;INF=2147483647",
       trigger_func: global.runs_when_user_clicks_into_this_menu_item,
       change_func: global.runs_when_value_is_changed_by_the_user,
       cancel_func: global.runs_when_user_cancels_out_of_this_slide, // [X]/(B)
@@ -222,7 +222,7 @@ global.modmenu.create({
   type: "Slider",
   title: "Example Slider",
   data_ref: { var_name: "example_slider", default_value: -1 },
-  value_range: "OFF=-1;0-1000%;INF=2147483647",
+  value_range: "OFF=-1;0~1000%;INF=2147483647",
   ref: {var_name: "my_slider_ref"}
 }
 // ...

@@ -668,7 +668,7 @@ foreach (string scrName in gamestartLikes)
                     type: ""Slider"",
                     title: ""Gameboard Dmg X"",
                     data_ref: {{var_name: ""diff_gameboarddmgx"", default_value: {presets[preset_default].gameboarddmgx.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GAMEBOARD_DMG_X""}},
-                    value_range: ""INHERIT=-1;0-1000%;INF=2147483647"",
+                    value_range: ""INHERIT=-1;0~1000%;INF=2147483647"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(ch_no == 3 ? "false" : "true")}
                 }}, {{
@@ -749,7 +749,7 @@ foreach (string scrName in gamestartLikes)
                     type: ""Slider"",
                     title: ""Gmbrd Damage"",
                     data_ref: {{var_name: ""diff_gmbrdplrdmg"", default_value: {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_PLR_DMG""}},
-                    value_range: ""INHERIT=-1;0-1000%;INF=2147483647"",
+                    value_range: ""INHERIT=-1;0~1000%;INF=2147483647"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(ch_no == 3 ? "false" : "true")}
                 }}, {{
@@ -762,7 +762,7 @@ foreach (string scrName in gamestartLikes)
                     type: ""Slider"",
                     title: ""Gmbrd Healing"",
                     data_ref: {{var_name: ""diff_gmbrdplrheal"", default_value: {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_PLR_HEAL""}},
-                    value_range: ""INHERIT=-1;0-1000%;INF=2147483647"",
+                    value_range: ""INHERIT=-1;0~1000%;INF=2147483647"",
                     change_func: global.diff_usepreset_custom,
                     hidden: {(ch_no == 3 ? "false" : "true")}
                 }}, {{

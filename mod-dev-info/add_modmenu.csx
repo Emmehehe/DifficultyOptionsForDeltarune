@@ -68,7 +68,7 @@ string example_config = @$"
                     type: ""Slider"",
                     title: ""Example Slider"",
                     data_ref: {{ var_name: ""example_slider"", default_value: -1 }},
-                    value_range: ""OFF=-1;0-1000%;INF=2147483647""
+                    value_range: ""OFF=-1;0~1000%;INF=2147483647""
                 }},{{
                     type: ""Header"",
                     title: ""Example Header""
