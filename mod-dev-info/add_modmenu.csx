@@ -39,12 +39,12 @@ if (!Regex.IsMatch(configName, validConfigName, RegexOptions.IgnoreCase, TimeSpa
     return;
 }
 
-// // check version
-// UndertaleVariable alreadyInstalled = Data.Variables.ByName($"installed_{configName}");
-// if (alreadyInstalled != null) {
-//     ScriptError($"Can't add mod menu config '{configName}' to  '{displayName}' as it already exists.");
-//     return;
-// }
+// check version
+UndertaleVariable alreadyInstalled = Data.Variables.ByName($"modmenu_{configName}");
+if (alreadyInstalled != null) {
+    ScriptError($"Can't add mod menu config '{configName}' to  '{displayName}' as it already exists.");
+    return;
+}
 
 // Begin edit
 ScriptMessage($"Adding new mod menu config '{configName}' to '{displayName}'...");
@@ -55,10 +55,8 @@ UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
 };
 
 string example_config = @$"
-    // var installed_{configName} = true;
-
     if (variable_instance_exists(global, ""modmenu"")) {{
-        modmenu.create({{
+        global.modmenu_{configName} = modmenu.create({{
             title: ""My Mod's Menu"",
             form: [
                 {{
