@@ -131,25 +131,6 @@ if (ch_no == 0) {
     Data.Sprites.Add(sItem);
 }
 
-// Code edits
-UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
-    ThrowOnNoOpFindReplace = true
-};
-
-// Script lists
-string[] gamestarts = {"gml_GlobalScript_scr_gamestart"};
-if (ch_no == 0)
-{
-    string[] demoGamestarts = {"gml_GlobalScript_scr_gamestart_ch1"};
-    gamestarts = gamestarts.Concat(demoGamestarts).ToArray();
-}
-string[] darkcons = {"gml_Object_obj_darkcontroller"};
-if (ch_no == 0)
-{
-    string[] demoDarkcons = {"gml_Object_obj_darkcontroller_ch1"};
-    darkcons = darkcons.Concat(demoDarkcons).ToArray();
-}
-
 // modmenu core init
 string modmenu_core_init = @$"
     var installed_modmenu = true;
@@ -1628,13 +1609,23 @@ string modmenu_core_init = @$"
     }};
 ";
 
+// Code edits
+UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
+    ThrowOnNoOpFindReplace = true
+};
+
 // Add modmenu init code
 const useModularScripts = false;
 if (useModularScripts) {
     importGroup.QueueAppend("gml_GlobalScript_scr_modmenu_init", modmenu_core_init);
 } else {
-    foreach (string gamestart in gamestarts)
+    string[] gamestarts = {"gml_GlobalScript_scr_gamestart"};
+    if (ch_no == 0)
     {
+        string[] demoGamestarts = {"gml_GlobalScript_scr_gamestart_ch1"};
+        gamestarts = gamestarts.Concat(demoGamestarts).ToArray();
+    }
+    foreach (string gamestart in gamestarts) {
         importGroup.QueueRegexFindReplace(gamestart, "function scr_gamestart(?:_ch1)?\\(\\)\\s*{", @$"
             function scr_gamestart{(gamestart.EndsWith("_ch1") ? "_ch1" : "")}(){{
                 {modmenu_core_init}
@@ -1642,23 +1633,16 @@ if (useModularScripts) {
     }
 }
 
-// TODO remove
-// // Add dark menu create code
-// foreach (string darkcon in darkcons)
-// {
-//     importGroup.QueuePrepend(darkcon + "_Create_0", "modmenu = global.modmenu;");
-//     if (ch_no == 0)
-//         importGroup.QueuePrepend(darkcon + "_Create_0", @"
-//             string_split = global.modmenu.string_split;
-//             string_starts_with = global.modmenu.string_starts_with;
-//             string_ends_with = global.modmenu.string_ends_with;
-//             string_trim = global.modmenu.string_trim;
-//         ");
-// }
-
-// Add menu draw code
+// Step & draw menu code
+string[] darkcons = {"gml_Object_obj_darkcontroller"};
+if (ch_no == 0)
+{
+    string[] demoDarkcons = {"gml_Object_obj_darkcontroller_ch1"};
+    darkcons = darkcons.Concat(demoDarkcons).ToArray();
+}
 foreach (string darkcon in darkcons)
 {
+    // Add menu draw code
     importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Draw_0", $"msprite[4] = spr_darkconfigbt{(darkcon.EndsWith("_ch1") ? "_ch1" : "")};", @$"
         msprite[4] = spr_darkconfigbt{(darkcon.EndsWith("_ch1") ? "_ch1" : "")};
         msprite[5] = spr_darkmodsbt;
@@ -1671,11 +1655,8 @@ foreach (string darkcon in darkcons)
     string ch1_back_text = "scr_84_get_lang_string(\"obj_darkcontroller_slash_Draw_0_gml_96_0\")";
     string back_text = (ch_no >= 2 || ch_no == 0) ? "back_text" : ch1_back_text;
     importGroup.QueueAppend(darkcon + "_Draw_0", $"global.modmenu.draw_darkmenu({(darkcon.EndsWith("_ch1") ? ch1_back_text : back_text)});");
-}
 
-// Add menu step code
-foreach (string darkcon in darkcons)
-{
+    // Add menu step code
     importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "global.menucoord[0] = 4;", "global.menucoord[0] = 5;");
     importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "if (global.menucoord[0] == 4)", "if (global.menucoord[0] == 5)");
     importGroup.QueueAppend(darkcon + "_Step_0", "global.modmenu.step_darkmenu();");
@@ -1724,17 +1705,16 @@ if (ch_no > 4)
     (string script, string chapter) [] loadCh4 = {("gml_GlobalScript_scr_load_chapter4", "4")};
     loadLikes = loadLikes.Concat(loadCh4).ToArray();
 }
-// if (ch_no > 5)
-// {
-//     (string script, string chapter) [] loadCh5 = {("gml_GlobalScript_scr_load_chapter5", "5")};
-//     loadLikes = loadLikes.Concat(loadCh5).ToArray();
-// }
-// if (ch_no > 6)
-// {
-//     (string script, string chapter) [] loadCh6 = {("gml_GlobalScript_scr_load_chapter6", "6")};
-//     loadLikes = loadLikes.Concat(loadCh6).ToArray();
-// }
-
+if (ch_no > 5)
+{
+    (string script, string chapter) [] loadCh5 = {("gml_GlobalScript_scr_load_chapter5", "5")};
+    loadLikes = loadLikes.Concat(loadCh5).ToArray();
+}
+if (ch_no > 6)
+{
+    (string script, string chapter) [] loadCh6 = {("gml_GlobalScript_scr_load_chapter6", "6")};
+    loadLikes = loadLikes.Concat(loadCh6).ToArray();
+}
 foreach ((string script, string chapter) loadLike in loadLikes)
 {
     importGroup.QueueTrimmedLinesFindReplace(loadLike.script, $"ossafe_file_text_close{(loadLike.script.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
