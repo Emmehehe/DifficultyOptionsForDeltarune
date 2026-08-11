@@ -78,6 +78,7 @@ string example_config = @$"
     if (variable_instance_exists(global, ""modmenu"")) {{
         global.menu_{configName} = global.modmenu.create({{
             title: ""My Mod's Menu"",
+            ini_name: ""{configName}"",
             form: [
                 {{
                     type: ""Toggle"",

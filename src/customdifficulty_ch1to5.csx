@@ -586,7 +586,6 @@ foreach (string scrName in gamestartLikes)
 
             global.diff_menu = global.modmenu.create({{
                 title: ""Difficulty"",
-                style: {{ dark: {{ left_margin: 0, left_value_pos: 240 }} }},
                 apply: {{type: ""OnClose"", func: function () {{
                     // Determine preset
                     {string.Join(" else ", presets.Select(pair => @$"

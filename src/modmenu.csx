@@ -447,14 +447,28 @@ string modmenu_core_init = @$"
                             // make sure category header or hidden/disabled row isn't selected
                             var form_data = active_menu().form;
                             var form_length = array_length(form_data);
-                            // nav to bottom if press up, top otherwise
-                            row_no = up_p() ? form_length : 0;
+                            row_no = 0;
+
                             // back button
                             form_length++;
-                            var movecount = 0;
-                            while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
-                                modsubmenu_down(form_length);
-                                movecount++;
+
+                            // nav to bottom if press up, top otherwise
+                            if (!up_p()) {{
+                                // make sure category header or hidden/disabled row isn't selected
+                                var movecount = 0;
+                                while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
+                                    modsubmenu_down(form_length);
+                                    movecount++;
+                                }}
+                            }} else {{
+                                modsubmenu_up(form_length);
+
+                                // make sure category header or hidden/disabled row isn't selected
+                                var movecount = 0;
+                                while ((movecount < form_length + 1) && (shouldskiprow(form_length, form_data))) {{
+                                    modsubmenu_up(form_length);
+                                    movecount++;
+                                }}
                             }}
 
                             active_menu().open_func();
@@ -937,11 +951,16 @@ string modmenu_core_init = @$"
                     var isMenuLonely = menu_dark_count == 1;
 
                     var allmodmenus = """";
+                    var prevmodmenu = """";
 
                     for (var i = menu_no; i < menu_dark_count; i++)
                     {{
                         allmodmenus += string_upper(menus_dark[i].title_loc()) + (i + 1 < menu_dark_count ? ""        "" : """");
                     }}
+                    if (menu_no > 0)
+                        prevmodmenu = (string_upper(menus_dark[menu_no-1].title_loc()) + ""        "");
+
+                    var heartscrolloffset = 35 + 50 * menu_no / max(1, menu_dark_count - 1);
 
                     surface_set_target(get_surf_titles());
                     draw_clear_alpha(c_black, 0);
@@ -957,17 +976,24 @@ string modmenu_core_init = @$"
                         }}
                         else
                         {{
-                            draw_text(0, 0, allmodmenus);
+                            draw_text(heartscrolloffset, 0, allmodmenus);
+                            draw_set_halign(fa_right);
+                            draw_text(heartscrolloffset, 0, prevmodmenu);
+                            draw_set_halign(fa_left);
                         }}
                     }}
                     else
                     {{
                         draw_set_color(c_gray);
-                        draw_text(0, 0, allmodmenus);
+                        draw_text(heartscrolloffset, 0, allmodmenus);
+                        draw_set_halign(fa_right);
+                        draw_text(heartscrolloffset, 0, prevmodmenu);
+                        draw_set_halign(fa_left);
                         draw_set_color(c_orange);
-                        draw_text(0, 0, string_upper(active_menu().title_loc()));
+                        draw_text(heartscrolloffset, 0, string_upper(active_menu().title_loc()));
                     }}
 
+                    draw_sprite_ext(spr_darkmodsfade, 0, 35, 0, -1, 1, 0, c_white, 1);
                     draw_sprite(spr_darkmodsfade, 0, 410 - 35, 0);
 
                     surface_reset_target();
@@ -975,7 +1001,7 @@ string modmenu_core_init = @$"
 
                     if (!isSubmenu) {{
                         other.menusiner += 1;
-                        draw_sprite_part(spr_heart_harrows, other.menusiner / 20, 8 - 8 * (menu_no > 0), 0, 16 + 8 * (menu_no > 0) + 8 * (menu_no < (menu_dark_count - 1)), 16, other.xx + 85 - 8 * (menu_no > 0), other.yy + 120);
+                        draw_sprite_part(spr_heart_harrows, other.menusiner / 20, 8 - 8 * (menu_no > 0), 0, 16 + 8 * (menu_no > 0) + 8 * (menu_no < (menu_dark_count - 1)), 16, other.xx + 85 + heartscrolloffset - 8 * (menu_no > 0), other.yy + 120);
                     }}
 
                     // form buttons
@@ -1241,14 +1267,39 @@ string modmenu_core_init = @$"
                 {{ var check = data_ref.var_name; if (data_ref.handle == global && global.modmenu.string_starts_with(check, ""global."")) data_ref.var_name = string_delete(data_ref.var_name, 1, 7); }}
                 try {{ var check = data_ref.ini_key; }} catch (_e) {{ data_ref.ini_key = data_ref.var_name; }}
                 try {{ var check = data_ref.ini_key; if (!is_string(check)) throw ""data ref ini_key should be a string.""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref ini_key is not a string.""; }}
+                try {{ if (global.modmenu.string_ends_with(data_ref.var_name, ""]"")) {{
+                    var nameandindex = global.modmenu.string_split(data_ref.var_name, ""["");
+                    data_ref.var_name = nameandindex[0];
+                    data_ref.index = real(string_delete(nameandindex[1], string_length(nameandindex[1]), 1));
+                }} else data_ref.index = -1; }} catch(_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref var_name is invalid: "" + data_ref.var_name); }}
                 // helper methods
                 return {{
                     var_name: data_ref.var_name,
                     default_value: data_ref.default_value,
                     handle: data_ref.handle,
                     ini_key: data_ref.ini_key,
-                    get: function() {{ return variable_instance_exists(handle, var_name) ? variable_instance_get(handle, var_name) : default_value; }},
-                    set: function(arg0) {{ variable_instance_set(handle, var_name, (!is_undefined(arg0) ? arg0 : default_value)); }},
+                    index: data_ref.index,
+                    get: function() {{
+                        if (index < 0)
+                            return variable_instance_exists(handle, var_name) ? variable_instance_get(handle, var_name) : default_value;
+                        var arr = [];
+                        if (variable_instance_exists(handle, var_name))
+                            arr = variable_instance_get(handle, var_name);
+                        if (array_length(arr) <= index)
+                            return default_value;
+                        return arr[index];
+                    }},
+                    set: function(arg0) {{
+                        if (index < 0) {{
+                            variable_instance_set(handle, var_name, (!is_undefined(arg0) ? arg0 : default_value));
+                            return;
+                        }}
+                        var arr = [];
+                        if (variable_instance_exists(handle, var_name))
+                            arr = variable_instance_get(handle, var_name);
+                        arr[index] = !is_undefined(arg0) ? arg0 : default_value;
+                        variable_instance_set(handle, var_name, arr);
+                    }},
                     read: function(arg0 /* section */) {{
                         if (is_string(default_value)) return ini_read_string(arg0, ini_key, default_value);
                         if (is_numeric(default_value)) return ini_read_real(arg0, ini_key, default_value);
@@ -1314,6 +1365,29 @@ string modmenu_core_init = @$"
                     try {{ var check = row.ref; if (!is_undefined(check) && !is_string(check.var_name)) throw ""row ref var_name should be a string""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row ref does not have a valid value for 'var_name'.""; }}
                     try {{ var check = row.ref; if (!is_undefined(check)) check = check.handle; }} catch (_e) {{ row.ref.handle = global; }}
                     try {{ var check = row.ref; if (!is_undefined(check) && is_undefined(check.handle)) throw ""row ref handle should not be undefined""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row ref does not have a valid value for 'handle'.""; }}
+                    if (!is_undefined(row.ref)) {{
+                        try {{ if (global.modmenu.string_ends_with(row.ref.var_name, ""]"")) {{
+                            var nameandindex = global.modmenu.string_split(row.ref.var_name, ""["");
+                            row.ref.var_name = nameandindex[0];
+                            row.ref.index = real(string_delete(nameandindex[1], string_length(nameandindex[1]), 1));
+                        }} else row.ref.index = -1; }} catch(_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but form row ref var_name is invalid: "" + row.ref.var_name); }}
+                        row.ref = {{
+                            var_name: row.ref.var_name,
+                            handle: row.ref.handle,
+                            index: row.ref.index,
+                            set: function(arg0) {{
+                                if (index < 0) {{
+                                    variable_instance_set(handle, var_name, (!is_undefined(arg0) ? arg0 : default_value));
+                                    return;
+                                }}
+                                var arr = [];
+                                if (variable_instance_exists(handle, var_name))
+                                    arr = variable_instance_get(handle, var_name);
+                                arr[index] = !is_undefined(arg0) ? arg0 : default_value;
+                                variable_instance_set(handle, var_name, arr);
+                            }}
+                        }};
+                    }}
                 }} else throw (""Unsupported row type: "" + row.type);
 
                 if (row.type == ""Toggle"")
@@ -1472,7 +1546,7 @@ string modmenu_core_init = @$"
                     }};
                 else throw (""Unsupported row type: "" + row.type);
 
-                if (!is_undefined(row.ref)) variable_instance_set(row.ref.handle, row.ref.var_name, row);
+                if (!is_undefined(row.ref)) row.ref.set(row);
                 array_insert(inited_form, array_length(inited_form), row);
             }}
             menu.form = inited_form;
