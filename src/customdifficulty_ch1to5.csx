@@ -543,7 +543,7 @@ foreach (string scrName in gamestartLikes)
             }}
         }}
 
-        if (variable_instance_exists(id, ""modmenu"")) {{
+        if (variable_instance_exists(global, ""modmenu"")) {{
             var newuserpresetnames = ds_map_keys_to_array(global.diff_userpresets);
             newuserpresetnames = global.diff_array_sort(newuserpresetnames, true);
             var userpresetvaluerange = """";
@@ -584,7 +584,7 @@ foreach (string scrName in gamestartLikes)
                 deleteuserpresetsvaluerange += newuserpresetnames[i] + ""="" + newuserpresetnames[i] + ""`"";
             }}
 
-            global.diff_menu = modmenu.create({{
+            global.diff_menu = global.modmenu.create({{
                 title: ""Difficulty"",
                 style: {{ dark: {{ left_margin: 0, left_value_pos: 240 }} }},
                 apply: {{type: ""OnClose"", func: function () {{

@@ -13,10 +13,12 @@ For reference, you can see the exact code that this mod uses to configure its me
 
 ## Creating your menu
 
-Add this code to the end of the `scr_gamestart(_ch1)` function, found at gml_GlobalScript_scr_gamestart(_ch1):
+Either: run the script [add_modmenu.csx](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/blob/190-release/mod-dev-info/add_modmenu.csx).
+
+Or; add this code to the end of the `scr_gamestart(_ch1)` function, found at gml_GlobalScript_scr_gamestart(_ch1):
 ```
-if (variable_instance_exists(id, "modmenu")) {
-  modmenu.create({
+if (variable_instance_exists(global, "modmenu")) {
+  global.menu_my_mods_menu = global.modmenu.create({
     title: "My Mod's Menu",
     form: [
       {
@@ -56,7 +58,7 @@ There are also a multitude of optional properties that you can add to your [conf
 
 **Save settings between play sessions:**
 ```
-modmenu.create({
+global.modmenu.create({
   title: "My Mod's Menu",
   ini_name: "my-mods-menu.ini",
   save_type: "Single", // other options: PerSlot, PerFile, Never
@@ -68,7 +70,7 @@ modmenu.create({
 
 **Make adjustments to game state based on settings (apply your settings):**
 ```
-modmenu.create({
+global.modmenu.create({
   title: "My Mod's Menu",
   apply: { type: "OnClose", func: global.cool_function_that_runs_on_close_of_menu }, // other options: OnChange
   form: [
@@ -77,7 +79,7 @@ modmenu.create({
 
 **The above can be combined, the apply function will also run when the settings are loaded from file:**
 ```
-modmenu.create({
+global.modmenu.create({
   title: "My Mod's Menu",
   apply: { type: "OnClose", func: global.cool_function_that_runs_on_close_of_menu_and_on_load_from_file }, // other options: OnChange
   ini_name: "my-mods-menu.ini",
@@ -99,7 +101,7 @@ modmenu.create({
 
 **Adding extra save file data without affecting the menu:**
 ```
-modmenu.create({
+global.modmenu.create({
   title: "My Mod's Menu",
   ini_name: "my-mods-menu.ini",
   save_type: "Single", // other options: PerSlot, PerFile, Never
@@ -125,7 +127,7 @@ modmenu.create({
 
 **Adjust the positioning of menu-items:**
 ```
-modmenu.create({
+global.modmenu.create({
   title: "My Mod's Menu",
   style: {
     dark: {
@@ -164,7 +166,7 @@ modmenu.create({
 
 **[Intermediate] Localize to Japanese or to languages added by translation mods (see [Localisation](#Localisation)):**
 ```
-modmenu.create({
+global.modmenu.create({
   title: [{lang: "en", val: "Hello"}, {lang: "fr", val: "Bonjour"}], // if language not found (e.g. "ja":japanese), uses first entry ("Hello" in this case)
   style: {
     dark: {
@@ -184,7 +186,7 @@ modmenu.create({
 
 **[Advanced] Add function callbacks (listeners) for various events:**
 ```
-modmenu.create({
+global.modmenu.create({
   title: "My Mod's Menu",
   open_func: global.runs_when_user_opens_this_menu,
   close_func: global.runs_when_user_closes_this_menu,

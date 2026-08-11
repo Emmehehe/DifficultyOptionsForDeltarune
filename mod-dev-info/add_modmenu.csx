@@ -40,7 +40,7 @@ if (!Regex.IsMatch(configName, validConfigName, RegexOptions.IgnoreCase, TimeSpa
 }
 
 // check version
-UndertaleVariable alreadyInstalled = Data.Variables.ByName($"modmenu_{configName}");
+UndertaleVariable alreadyInstalled = Data.Variables.ByName($"menu_{configName}");
 if (alreadyInstalled != null) {
     ScriptError($"Can't add mod menu config '{configName}' to  '{displayName}' as it already exists.");
     return;
@@ -56,7 +56,7 @@ UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
 
 string example_config = @$"
     if (variable_instance_exists(global, ""modmenu"")) {{
-        global.modmenu_{configName} = modmenu.create({{
+        global.menu_{configName} = global.modmenu.create({{
             title: ""My Mod's Menu"",
             form: [
                 {{
