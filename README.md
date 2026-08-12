@@ -82,9 +82,9 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
 2. Go to **MODS** and adjust settings.
 
 ## Installation via Deltamod/G3M
-**Full game** — custom-difficulty-drmod-fullgame-{version number}.zip
+**Full game** — datapack_difficulty_dr-fullgame_v#-#-#.zip
 
-**Demo** — custom-difficulty-drmod-demo-{version number}.zip
+**Demo** — datapack_difficulty_dr-demo_v#-#-#.zip
 
 ## Installation without a mod-manager
 
