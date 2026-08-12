@@ -1146,9 +1146,6 @@ if (ch_no == 4) {
     }
     // sound of justice
     importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage", "if (global.hp[1] > 0 && global.hp[2] < (global.maxhp[2] * 0.4))", "if (global.hp[1] > 0 && global.hp[2] < (global.maxhp[2] * 0.4 * global.diff_damagemulti))");
-    // break in case of emergency - above fix should be sufficient but below will make absolutely sure its fixed (but I like to keep changes as minimal as possible)
-    // importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_spearshot", "if (i_ex(obj_sound_of_justice_enemy) && obj_sound_of_justice_enemy.susiedown == false)",
-    //     "if (i_ex(obj_sound_of_justice_enemy) && (obj_sound_of_justice_enemy.susiedown == false || obj_sound_of_justice_enemy.phase == 2))");
 }
 // Apply damage multiplier (Damage Over Time)
 if (ch_no >= 2 || ch_no == 0)
@@ -1233,8 +1230,10 @@ if (ch_no == 4) {
 if (ch_no == 0)
 {
     importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_ch1_Step_0", "global.maxhp[i] / 8", "global.diff_victoryres >= 0 ? max(1, global.maxhp[i] * global.diff_victoryres) : global.hp[i]");
+    importGroup.QueueFindReplace("gml_GlobalScript_scr_losechar_ch1", "global.char[2] = 0;", "if (global.hp[1] <= 0) global.hp[1] = 1; global.char[2] = 0;");
 }
 importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "global.maxhp[i] / 8", "global.diff_victoryres >= 0 ? max(1, global.maxhp[i] * global.diff_victoryres) : global.hp[i]");
+importGroup.QueueFindReplace("gml_GlobalScript_scr_losechar", "global.char[2] = 0;", "if (global.hp[1] <= 0) global.hp[1] = 1; global.char[2] = 0;");
 if (ch_no >= 5)
 {
     importGroup.QueueFindReplace("gml_GlobalScript_scr_endcombat_instant", "global.maxhp[i] / 8", "global.diff_victoryres >= 0 ? max(1, global.maxhp[i] * global.diff_victoryres) : global.hp[i]");
@@ -1437,6 +1436,12 @@ if (ch_no == 4) {
     importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage", "if (global.chapter == 4 && i_ex(obj_sound_of_justice_enemy) && obj_sound_of_justice_enemy.phase == 2)",
         "if (global.diff_hitall <= 0 && global.chapter == 4 && i_ex(obj_sound_of_justice_enemy) && obj_sound_of_justice_enemy.phase == 2)");
     importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage", "if (global.hp[1] < 1)", "if (global.diff_hitall <= 0 && global.hp[1] < 1)");
+    // sound of justice - Susie could go down before Kris which causes a softlock
+    importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage", "if (global.chapter == 4 && i_ex(obj_titan_enemy) && obj_titan_enemy.phase == 8 && chartarget == 1)", @"
+        if (global.chapter == 4 && i_ex(obj_sound_of_justice_enemy) && obj_sound_of_justice_enemy.phase == 2 && chartarget == 2 && global.hp[1] > 0) {
+            global.hp[chartarget] = 1;
+        } else if (global.chapter == 4 && i_ex(obj_titan_enemy) && obj_titan_enemy.phase == 8 && chartarget == 1)
+    ");
 }
 if (ch_no == 5) {
     importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_damage", "target = choose(0, 1);", @"
@@ -1961,6 +1966,7 @@ if (ch_no == 3) {
     importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_enemy_Step_0", "obj_dmgwriter_boogie\\.damage \\+= ([0-9]+);", "obj_dmgwriter_boogie.damage += ceil(global.diff_mercy * ($1));");
     importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_enemy_Step_0", "global\\.mercymod\\[myself\\] \\+= ([0-9]+);", "global.mercymod[myself] += ceil(global.diff_mercy * ($1));");
     importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_enemy_Step_0", "__mercydmgwriter\\.damage = ([0-9]+);", "__mercydmgwriter.damage = ceil(global.diff_mercy * ($1));");
+    importGroup.QueueFindReplace("gml_Object_obj_shutta_enemy_Step_0", "global.mercymod[obj_shutta_enemy.myself] >= 80", "global.mercymod[obj_shutta_enemy.myself] >= (100 - ceil(global.diff_mercy * 20))");
 }
 if (ch_no == 4) {
     importGroup.QueueFindReplace("gml_Object_obj_organ_enemy_vertical_pillar_Other_15", "if ((global.mercymod[myself] + mercygiven) > 100)", @"
