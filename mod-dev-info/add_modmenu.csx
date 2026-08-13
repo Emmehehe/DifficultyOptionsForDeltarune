@@ -74,9 +74,9 @@ UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
     ThrowOnNoOpFindReplace = true
 };
 
-string example_config = @$"
+string example_config(string modmenuPostfix) { return @$"
     if (variable_instance_exists(global, ""modmenu"")) {{
-        global.menu_{configName} = global.modmenu.create({{
+        global.menu{modmenuPostfix}_{configName} = global.modmenu{modmenuPostfix}.create({{
             title: ""My Mod's Menu"",
             ini_name: ""{configName}"",
             form: [
@@ -101,12 +101,16 @@ string example_config = @$"
             ]
         }});
     }}
-";
+"; }
 
 const bool useModularScripts = false;
 if (useModularScripts) {
-    // TODO how do we make menu only for one chapter in the demo?
-    importGroup.QueueAppend($"gml_GlobalScript_scr_modmenu_{configName}", example_config);
+    // This feature is WIP, don't use it
+    if (addToDemoChapter1)
+        importGroup.QueueAppend($"gml_GlobalScript_scr_modmenu_{configName}", example_config("_ch1"));
+    if (addToChapter)
+        importGroup.QueueAppend($"gml_GlobalScript_scr_modmenu_{configName}", example_config(""));
+
 } else {
     string[] gamestarts = {};
     if (addToChapter)
@@ -122,7 +126,7 @@ if (useModularScripts) {
     foreach (string gamestart in gamestarts)
     {
         importGroup.QueueFindReplace(gamestart, "global.litem[0] = 0;", @$"
-            {example_config}
+            {example_config("")}
 
             global.litem[0] = 0;
         ");

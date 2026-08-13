@@ -11,18 +11,44 @@ using System.Linq;
 EnsureDataLoaded();
 var displayName = Data?.GeneralInfo?.DisplayName?.Content;
 
-// check version
-UndertaleVariable alreadyInstalled = Data.Variables.ByName("installed_modmenu");
-if (alreadyInstalled != null) {
-    ScriptMessage($"Skiping ModMenu framework install for '{displayName}' as it is already installed.");
-    return;
-}
-
-// Prefire checks
+// Check .win is deltarune
 const string expectedDisplayName = "DELTARUNE \\S+ ([1-7](?:&2)?)";
 if (!Regex.IsMatch(displayName, expectedDisplayName, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(500)))
 {
     ScriptError($"Error 0: data file display name does not match expected: '{expectedDisplayName}', actual display name: '{displayName}'.");
+    return;
+}
+
+// detect version
+string[] checkVersions = {/*"v2_0_0", */"v2_0_beta_3"/*, "v2_0_beta_2", "v2_0_beta_1"*/};
+string latestVersion = checkVersions[0];
+string detectedVersion = "not-installed";
+bool freshInstall = true;
+foreach (string version in checkVersions) {
+    UndertaleVariable versionVar = Data.Variables.ByName($"installed_modmenu__{version}");
+    if (versionVar != null) {
+        detectedVersion = version;
+        freshInstall = false;
+        break;
+    }
+}
+// fallback for older versions with no version string
+if (freshInstall) {
+    UndertaleVariable versionVar = Data.Variables.ByName($"installed_modmenu");
+    if (versionVar != null) {
+        bool isV20beta2 = ScriptQuestion("Attempting upgrade of previous install, but no version string can be found.\n\nv2.0.beta-2 and below do not have version strings.\n\nIs previous install v2.0.beta-2?");
+        if (isV20beta2) {
+            detectedVersion = "v2_0_beta_2";
+            freshInstall = false;
+        } else {
+            ScriptMessage($"Aborting ModMenu framework {latestVersion} install for '{displayName}' as the previous install is too old to be upgraded.");
+            return;
+        }
+    }
+}
+// skip if version is already latest
+if (!freshInstall && detectedVersion == latestVersion) {
+    ScriptMessage($"Skiping ModMenu framework {latestVersion} install for '{displayName}' as it is already installed.");
     return;
 }
 
@@ -35,107 +61,136 @@ else
     ch_no = ushort.Parse(Regex.Match(displayName, expectedDisplayName, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(500)).Groups[1].Captures[0].Value);
 
 // Begin edit
-ScriptMessage($"Installing ModMenu framework to '{displayName}'...");
+if (freshInstall)
+    ScriptMessage($"Installing ModMenu framework {latestVersion} for '{displayName}'...");
+else
+    ScriptMessage($"Upgrading ModMenu framework from {detectedVersion} to {latestVersion} for '{displayName}'...");
+
+// if detected old version, prep for upgrade
+if (!freshInstall && detectedVersion != latestVersion) {
+    switch (detectedVersion) {
+        case "v2_0_beta_2":
+            UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
+                ThrowOnNoOpFindReplace = true
+            };
+            string[] gamestarts = {"gml_GlobalScript_scr_gamestart"};
+            if (ch_no == 0)
+            {
+                string[] demoGamestarts = {"gml_GlobalScript_scr_gamestart_ch1"};
+                gamestarts = gamestarts.Concat(demoGamestarts).ToArray();
+            }
+            foreach (string gamestart in gamestarts) {
+                importGroup.QueueRegexFindReplace(gamestart, @"var installed_modmenu = true;\s*global\.modmenu = [\s\S]*return menu;\s*}\s*};", "");
+            }
+            importGroup.Import();
+            break;
+        default:
+            break;
+    }
+}
 
 // Load texture file
-Dictionary<string, UndertaleEmbeddedTexture> textures = new Dictionary<string, UndertaleEmbeddedTexture>();
-
-UndertaleEmbeddedTexture modmenuTexturePage = new UndertaleEmbeddedTexture();
-modmenuTexturePage.TextureData.Image = GMImage.FromPng(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(ScriptPath), "modmenu.png")));
-Data.EmbeddedTextures.Add(modmenuTexturePage);
-textures.Add(Path.GetFileName(Path.Combine(Path.GetDirectoryName(ScriptPath), "modmenu.png")), modmenuTexturePage);
-
-UndertaleTexturePageItem AddNewTexturePageItem(ushort sourceX, ushort sourceY, ushort sourceWidth, ushort sourceHeight)
+if (freshInstall)
 {
-    ushort targetX = 0;
-    ushort targetY = 0;
-    ushort targetWidth = sourceWidth;
-    ushort targetHeight = sourceHeight;
-    ushort boundingWidth = sourceWidth;
-    ushort boundingHeight = sourceHeight;
-    var texturePage = textures["modmenu.png"];
+    Dictionary<string, UndertaleEmbeddedTexture> textures = new Dictionary<string, UndertaleEmbeddedTexture>();
 
-    UndertaleTexturePageItem tpItem = new() 
-    { 
-        SourceX = sourceX, 
-        SourceY = sourceY, 
-        SourceWidth = sourceWidth, 
-        SourceHeight = sourceHeight, 
-        TargetX = targetX, 
-        TargetY = targetY, 
-        TargetWidth = targetWidth, 
-        TargetHeight = targetHeight, 
-        BoundingWidth = boundingWidth, 
-        BoundingHeight = boundingHeight, 
-        TexturePage = texturePage,
-        Name = new UndertaleString($"PageItem {Data.TexturePageItems.Count}")
-    };
-    Data.TexturePageItems.Add(tpItem);
-    return tpItem;
-}
+    UndertaleEmbeddedTexture modmenuTexturePage = new UndertaleEmbeddedTexture();
+    modmenuTexturePage.TextureData.Image = GMImage.FromPng(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(ScriptPath), "modmenu.png")));
+    Data.EmbeddedTextures.Add(modmenuTexturePage);
+    textures.Add(Path.GetFileName(Path.Combine(Path.GetDirectoryName(ScriptPath), "modmenu.png")), modmenuTexturePage);
 
-UndertaleTexturePageItem pg_modsbt1 = AddNewTexturePageItem(0, 0, 33, 24);
-UndertaleTexturePageItem pg_modsbt2 = AddNewTexturePageItem(0, 24, 33, 24);
-UndertaleTexturePageItem pg_modsbt3 = AddNewTexturePageItem(0, 48, 33, 24);
-UndertaleTexturePageItem pg_modsdesc = AddNewTexturePageItem(33, 0, 35, 18);
-UndertaleTexturePageItem pg_modsfade = AddNewTexturePageItem(33, 18, 35, 35);
-
-// add 'mods' button
-{
-    UndertaleSprite referenceSprite = Data.Sprites.ByName("spr_darkconfigbt");
-    var name = Data.Strings.MakeString("spr_darkmodsbt");
-    uint width = referenceSprite.Width;
-    uint height = referenceSprite.Height;
-    ushort marginLeft = 0;
-    int marginRight = (int)width - 1;
-    ushort marginTop = 0;
-    int marginBottom = (int)height - 1;
-
-    var sItem = new UndertaleSprite { Name = name, Width = width, Height = height, MarginLeft = marginLeft, MarginRight = marginRight, MarginTop = marginTop, MarginBottom = marginBottom };
-
-    UndertaleTexturePageItem[] spriteTextures = { pg_modsbt1, pg_modsbt2, pg_modsbt3 };
-    foreach (var spriteTexture in spriteTextures)
+    UndertaleTexturePageItem AddNewTexturePageItem(ushort sourceX, ushort sourceY, ushort sourceWidth, ushort sourceHeight)
     {
-        sItem.Textures.Add(new UndertaleSprite.TextureEntry() { Texture = spriteTexture });
+        ushort targetX = 0;
+        ushort targetY = 0;
+        ushort targetWidth = sourceWidth;
+        ushort targetHeight = sourceHeight;
+        ushort boundingWidth = sourceWidth;
+        ushort boundingHeight = sourceHeight;
+        var texturePage = textures["modmenu.png"];
+
+        UndertaleTexturePageItem tpItem = new()
+        {
+            SourceX = sourceX,
+            SourceY = sourceY,
+            SourceWidth = sourceWidth,
+            SourceHeight = sourceHeight,
+            TargetX = targetX,
+            TargetY = targetY,
+            TargetWidth = targetWidth,
+            TargetHeight = targetHeight,
+            BoundingWidth = boundingWidth,
+            BoundingHeight = boundingHeight,
+            TexturePage = texturePage,
+            Name = new UndertaleString($"PageItem {Data.TexturePageItems.Count}")
+        };
+        Data.TexturePageItems.Add(tpItem);
+        return tpItem;
     }
-    Data.Sprites.Add(sItem);
-}
 
-// add 'mods' menu description
-if (ch_no == 0) {
-    UndertaleSprite spr_darkmenudesc = Data.Sprites.ByName("spr_darkmenudesc_ch1");
-    spr_darkmenudesc.Textures.Add(new UndertaleSprite.TextureEntry() { Texture = pg_modsdesc });
-}
-{
-    UndertaleSprite spr_darkmenudesc = Data.Sprites.ByName("spr_darkmenudesc");
-    spr_darkmenudesc.Textures.Add(new UndertaleSprite.TextureEntry() { Texture = pg_modsdesc });
-}
+    UndertaleTexturePageItem pg_modsbt1 = AddNewTexturePageItem(0, 0, 33, 24);
+    UndertaleTexturePageItem pg_modsbt2 = AddNewTexturePageItem(0, 24, 33, 24);
+    UndertaleTexturePageItem pg_modsbt3 = AddNewTexturePageItem(0, 48, 33, 24);
+    UndertaleTexturePageItem pg_modsdesc = AddNewTexturePageItem(33, 0, 35, 18);
+    UndertaleTexturePageItem pg_modsfade = AddNewTexturePageItem(33, 18, 35, 35);
 
-// add modtitles fade
-{
-    var name = Data.Strings.MakeString("spr_darkmodsfade");
-    uint width = 35;
-    uint height = 35;
-    ushort marginLeft = 0;
-    int marginRight = (int)width - 1;
-    ushort marginTop = 0;
-    int marginBottom = (int)height - 1;
-
-    var sItem = new UndertaleSprite { Name = name, Width = width, Height = height, MarginLeft = marginLeft, MarginRight = marginRight, MarginTop = marginTop, MarginBottom = marginBottom };
-
-    UndertaleTexturePageItem[] spriteTextures = { pg_modsfade };
-    foreach (var spriteTexture in spriteTextures)
+    // add 'mods' button
     {
-        sItem.Textures.Add(new UndertaleSprite.TextureEntry() { Texture = spriteTexture });
+        UndertaleSprite referenceSprite = Data.Sprites.ByName("spr_darkconfigbt");
+        var name = Data.Strings.MakeString("spr_darkmodsbt");
+        uint width = referenceSprite.Width;
+        uint height = referenceSprite.Height;
+        ushort marginLeft = 0;
+        int marginRight = (int)width - 1;
+        ushort marginTop = 0;
+        int marginBottom = (int)height - 1;
+
+        var sItem = new UndertaleSprite { Name = name, Width = width, Height = height, MarginLeft = marginLeft, MarginRight = marginRight, MarginTop = marginTop, MarginBottom = marginBottom };
+
+        UndertaleTexturePageItem[] spriteTextures = { pg_modsbt1, pg_modsbt2, pg_modsbt3 };
+        foreach (var spriteTexture in spriteTextures)
+        {
+            sItem.Textures.Add(new UndertaleSprite.TextureEntry() { Texture = spriteTexture });
+        }
+        Data.Sprites.Add(sItem);
     }
-    Data.Sprites.Add(sItem);
+
+    // add 'mods' menu description
+    if (ch_no == 0) {
+        UndertaleSprite spr_darkmenudesc = Data.Sprites.ByName("spr_darkmenudesc_ch1");
+        spr_darkmenudesc.Textures.Add(new UndertaleSprite.TextureEntry() { Texture = pg_modsdesc });
+    }
+    {
+        UndertaleSprite spr_darkmenudesc = Data.Sprites.ByName("spr_darkmenudesc");
+        spr_darkmenudesc.Textures.Add(new UndertaleSprite.TextureEntry() { Texture = pg_modsdesc });
+    }
+
+    // add modtitles fade
+    {
+        var name = Data.Strings.MakeString("spr_darkmodsfade");
+        uint width = 35;
+        uint height = 35;
+        ushort marginLeft = 0;
+        int marginRight = (int)width - 1;
+        ushort marginTop = 0;
+        int marginBottom = (int)height - 1;
+
+        var sItem = new UndertaleSprite { Name = name, Width = width, Height = height, MarginLeft = marginLeft, MarginRight = marginRight, MarginTop = marginTop, MarginBottom = marginBottom };
+
+        UndertaleTexturePageItem[] spriteTextures = { pg_modsfade };
+        foreach (var spriteTexture in spriteTextures)
+        {
+            sItem.Textures.Add(new UndertaleSprite.TextureEntry() { Texture = spriteTexture });
+        }
+        Data.Sprites.Add(sItem);
+    }
 }
 
 // modmenu core init
-string modmenu_core_init = @$"
-    var installed_modmenu = true;
+string modmenu_core_init(string modmenuPostfix) { return @$"
+    var installed_modmenu{modmenuPostfix}__{latestVersion} = true;
 
-    global.modmenu = {{
+    global.modmenu{modmenuPostfix} = {{
         {(ch_no == 0 ? @"
             // The demo is on an old version of game maker that doesn't have the string_split, string_starts_with, string_ends_with, or string_trim functions so add (very) basic implementations
             // WARNING: only works for delimiters 1 char long
@@ -281,36 +336,29 @@ string modmenu_core_init = @$"
         // step/draw
         step_darkmenu: function() {{
             // override for deltaesp's spanish translation
-            if (lang_override != ""es"" && global.lang == ""en"" && variable_instance_exists(global, ""esp_names""))
-            {{
+            if (lang_override != ""es"" && global.lang == ""en"" && variable_instance_exists(global, ""esp_names"")) {{
                 lang_override = ""es"";
             }}
             // override for the Korean translation
             // TODO this doesn't work for chapter 2 as the dubbing feature hasn't been added
-            if (lang_override != ""ko"" && global.lang == ""ja"" && variable_instance_exists(global, ""krdub""))
-            {{
+            if (lang_override != ""ko"" && global.lang == ""ja"" && variable_instance_exists(global, ""krdub"")) {{
                 lang_override = ""ko"";
             }}
 
-            function scrolldownforcontent()
-            {{
+            function scrolldownforcontent() {{
                 var form_data = active_menu().form;
                 row_scroll = row_no + 1;
                 var menuscreenlength = 7 * 35;
                 var lastscreenlength = 0;
                 for (var i = row_no; i >= 0; i--) {{
                     var newlastscreenlength = lastscreenlength;
-                    if (i >= array_length(form_data))
-                    {{
+                    if (i >= array_length(form_data)) {{
                         newlastscreenlength += 35;
-                    }}
-                    else
-                    {{
+                    }} else {{
                         newlastscreenlength += ((form_data[i].type == ""Header"") ? 12 : 35);
                     }}
 
-                    if (newlastscreenlength > menuscreenlength)
-                    {{
+                    if (newlastscreenlength > menuscreenlength) {{
                         break;
                     }}
                     lastscreenlength = newlastscreenlength;
@@ -318,99 +366,80 @@ string modmenu_core_init = @$"
                 }}
             }}
 
-            function isneedscrolldown()
-            {{
+            function isneedscrolldown() {{
                 var form_data = active_menu().form;
                 var menuscreenlength = 7 * 35;
                 var currentscreenlength = 0;
                 var foundselected = false;
                 for (var i = row_scroll; i < array_length(form_data) + 1; i++) {{
                     var newcurrentscreenlength = currentscreenlength;
-                    if (i >= array_length(form_data))
-                    {{
+                    if (i >= array_length(form_data)) {{
                         newcurrentscreenlength += 35;
-                    }}
-                    else
-                    {{
+                    }} else {{
                         newcurrentscreenlength += ((form_data[i].type == ""Header"") ? 12 : 35);
                     }}
 
-                    if (newcurrentscreenlength > menuscreenlength)
-                    {{
+                    if (newcurrentscreenlength > menuscreenlength) {{
                         break;
                     }}
                     currentscreenlength = newcurrentscreenlength;
-                    if (i == row_no)
-                    {{
+                    if (i == row_no) {{
                         foundselected = true;
                     }}
                 }}
                 return !foundselected;
             }}
 
-            function modsubmenu_up(arg0)
-            {{
+            function modsubmenu_up(arg0) {{
                 row_no--;
 
-                if (row_no < 0)
-                {{
+                if (row_no < 0) {{
                     row_no = arg0 - 1;
 
                     scrolldownforcontent();
-                }}
-                else
-                {{
+                }} else {{
                     if (row_no < row_scroll)
                         row_scroll = row_no;
                 }}
             }}
 
-            function modsubmenu_down(arg0)
-            {{
+            function modsubmenu_down(arg0) {{
                 row_no++;
 
-                if (row_no >= arg0)
-                {{
+                if (row_no >= arg0) {{
                     row_no = 0;
                     row_scroll = 0;
-                }}
-                else if (isneedscrolldown())
-                {{
+                }} else if (isneedscrolldown()) {{
                     scrolldownforcontent();
                 }}
             }}
 
-            function issubmenucategory(arg0, arg1)
-            {{
+            function issubmenucategory(arg0, arg1) {{
                 if (row_no >= (arg0 - 1))
                     return false;
 
                 return (arg1[row_no].type == ""Header"");
             }}
 
-            function ishidden(arg0, arg1)
-            {{
+            function ishidden(arg0, arg1) {{
                 if (row_no >= (arg0 - 1))
                     return false;
 
                 return arg1[row_no].is_hidden();
             }}
 
-            function isdisabled(arg0, arg1)
-            {{
+            function isdisabled(arg0, arg1) {{
                 if (row_no >= (arg0 - 1))
                     return false;
 
                 return arg1[row_no].is_disabled();
             }}
 
-            function shouldskiprow(arg0, arg1)
-            {{
+            function shouldskiprow(arg0, arg1) {{
                 return issubmenucategory(arg0, arg1) || ishidden(arg0, arg1);
             }}
 
-            if (global.menuno == 6)
-            {{
+            if (global.menuno == 6) {{
                 var isSubmenu = (row_no >= 0);
 
                 if (!isSubmenu) {{
@@ -421,26 +450,22 @@ string modmenu_core_init = @$"
                         active_menu().open_func();
                     }}
 
-                    if (menu_dark_count > 0)
-                    {{
-                        if (left_p())
-                        {{
+                    if (menu_dark_count > 0) {{
+                        if (left_p()) {{
                             other.movenoise = 1;
 
                             menu_no--;
                             if (menu_no < 0)
                                 menu_no = menu_dark_count - 1;
                         }}
-                        if (right_p())
-                        {{
+                        if (right_p()) {{
                             other.movenoise = 1;
 
                             menu_no++;
                             if (menu_no >= menu_dark_count)
                                 menu_no = 0;
                         }}
-                        if ((button1_p() || down_p() || up_p()) && other.onebuffer < 0 && other.twobuffer < 0)
-                        {{
+                        if ((button1_p() || down_p() || up_p()) && other.onebuffer < 0 && other.twobuffer < 0) {{
                             other.onebuffer = 2;
                             other.selectnoise = 1;
 
@@ -474,8 +499,7 @@ string modmenu_core_init = @$"
                             active_menu().open_func();
                         }}
                     }}
-                    if (button2_p() && other.onebuffer < 0 && other.twobuffer < 0)
-                    {{
+                    if (button2_p() && other.onebuffer < 0 && other.twobuffer < 0) {{
                         other.cancelnoise = 1;
                         other.twobuffer = 2;
                         global.menuno = 0;
@@ -500,8 +524,7 @@ string modmenu_core_init = @$"
                     //     movecount++;
                     // }}
 
-                    if (up_p())
-                    {{
+                    if (up_p()) {{
                         other.movenoise = 1;
 
                         modsubmenu_up(form_length);
@@ -513,8 +536,7 @@ string modmenu_core_init = @$"
                             movecount++;
                         }}
                     }}
-                    if (down_p())
-                    {{
+                    if (down_p()) {{
                         other.movenoise = 1;
 
                         modsubmenu_down(form_length);
@@ -526,8 +548,7 @@ string modmenu_core_init = @$"
                             movecount++;
                         }}
                     }}
-                    if (button1_p() && other.onebuffer < 0 && other.twobuffer < 0 && !isdisabled(form_length, form_data))
-                    {{
+                    if (button1_p() && other.onebuffer < 0 && other.twobuffer < 0 && !isdisabled(form_length, form_data)) {{
                         other.onebuffer = 2;
                         other.selectnoise = 1;
 
@@ -535,8 +556,7 @@ string modmenu_core_init = @$"
                             row_no = -1;
                             row_scroll = 0;
 
-                            if (menu_dark_count == 1)
-                            {{
+                            if (menu_dark_count == 1) {{
                                 global.menuno = 0;
                                 global.submenu = 0;
                             }}
@@ -544,9 +564,7 @@ string modmenu_core_init = @$"
                             active_menu().close_func();
                             if (!is_undefined(active_menu().apply)) active_menu().apply.run_onclose();
                             if (active_menu().save_type != ""Never"") active_menu().save();
-                        }}
-                        else
-                        {{
+                        }} else {{
                             row_selected = true;
                             var row_data = form_data[row_no];
 
@@ -614,15 +632,13 @@ string modmenu_core_init = @$"
                             }}
                         }}
                     }}
-                    if (button2_p() && other.onebuffer < 0 && other.twobuffer < 0)
-                    {{
+                    if (button2_p() && other.onebuffer < 0 && other.twobuffer < 0) {{
                         other.cancelnoise = 1;
                         other.twobuffer = 2;
                         row_no = -1;
                         row_scroll = 0;
 
-                        if (menu_dark_count == 1)
-                        {{
+                        if (menu_dark_count == 1) {{
                             global.menuno = 0;
                             global.submenu = 0;
                         }}
@@ -640,8 +656,7 @@ string modmenu_core_init = @$"
 
                     var scroll_todo = slider_step div 1;
 
-                    if (right_h() && scroll_todo > 0)
-                    {{
+                    if (right_h() && scroll_todo > 0) {{
                         var isAllLabels = true;
 
                         for (var i = 0; i < array_length(ranges); i++) {{
@@ -696,9 +711,7 @@ string modmenu_core_init = @$"
                                     }}
                                 }}
                             }}
-                        }}
-                        else
-                        {{
+                        }} else {{
                             var value_adjust = 0;
                             if (value <= -2)
                                 value_adjust = 0.1;
@@ -760,8 +773,7 @@ string modmenu_core_init = @$"
                         slider_step = slider_step % 1;
                     }}
 
-                    if (left_h() && scroll_todo > 0)
-                    {{
+                    if (left_h() && scroll_todo > 0) {{
                         var isAllLabels = true;
 
                         for (var i = 0; i < array_length(ranges); i++) {{
@@ -816,9 +828,7 @@ string modmenu_core_init = @$"
                                     }}
                                 }}
                             }}
-                        }}
-                        else
-                        {{
+                        }} else {{
                             var value_adjust = 0;
                             if (value < -2)
                                 value_adjust = -0.1;
@@ -881,13 +891,10 @@ string modmenu_core_init = @$"
                         slider_step = slider_step % 1;
                     }}
 
-                    if (right_h() || left_h())
-                    {{
+                    if (right_h() || left_h()) {{
                         slider_step += slider_speed;
                         slider_speed = clamp(slider_speed + slider_accel, slider_speed_min, slider_speed_max);
-                    }}
-                    else
-                    {{
+                    }} else {{
                         slider_step = 1; // reset to 1 as first interaction should be instantaneous
                         slider_speed = slider_speed_min;
                     }}
@@ -901,8 +908,7 @@ string modmenu_core_init = @$"
                     if (button2_p() && other.twobuffer < 0)
                         other.se_cancel = 1;
 
-                    if (other.se_select == 1 || other.se_cancel == 1)
-                    {{
+                    if (other.se_select == 1 || other.se_cancel == 1) {{
                         other.selectnoise = 1;
                         other.onebuffer = 2;
                         other.twobuffer = 2;
@@ -927,25 +933,20 @@ string modmenu_core_init = @$"
             }}
         }},
         draw_darkmenu: function(arg0 /* back text (different localisation method in chapter 1) */) {{
-            if (global.menuno == 6)
-            {{
+            if (global.menuno == 6) {{
                 draw_set_color(c_black);
 
-                if (global.lang == ""ja"")
-                {{
+                if (global.lang == ""ja"") {{
                     draw_rectangle(other.xx + 60, other.yy + 85, other.xx + 580, other.yy + 412, false);
                     with (other) scr_darkbox(xx + 50, yy + 75, xx + 590,other.yy + 422);
-                }}
-                else
-                {{
+                }} else {{
                     draw_rectangle(other.xx + 60, other.yy + 90, other.xx + 580, other.yy + 410, false);
                     with (other) scr_darkbox(xx + 50, yy + 80, xx + 590, yy + 420);
                 }}
 
                 draw_set_color(c_white);
 
-                if (menu_dark_count > 0)
-                {{
+                if (menu_dark_count > 0) {{
                     // top row buttons
                     var isSubmenu = (row_no >= 0);
                     var isMenuLonely = menu_dark_count == 1;
@@ -953,8 +954,7 @@ string modmenu_core_init = @$"
                     var allmodmenus = """";
                     var prevmodmenu = """";
 
-                    for (var i = menu_no; i < menu_dark_count; i++)
-                    {{
+                    for (var i = menu_no; i < menu_dark_count; i++) {{
                         allmodmenus += string_upper(menus_dark[i].title_loc()) + (i + 1 < menu_dark_count ? ""        "" : """");
                     }}
                     if (menu_no > 0)
@@ -965,25 +965,19 @@ string modmenu_core_init = @$"
                     surface_set_target(get_surf_titles());
                     draw_clear_alpha(c_black, 0);
 
-                    if (isMenuLonely || !isSubmenu)
-                    {{
+                    if (isMenuLonely || !isSubmenu) {{
                         draw_set_color(c_white);
-                        if (isMenuLonely)
-                        {{
+                        if (isMenuLonely) {{
                             draw_set_halign(fa_center);
                             draw_text(205, 0, allmodmenus);
                             draw_set_halign(fa_left);
-                        }}
-                        else
-                        {{
+                        }} else {{
                             draw_text(heartscrolloffset, 0, allmodmenus);
                             draw_set_halign(fa_right);
                             draw_text(heartscrolloffset, 0, prevmodmenu);
                             draw_set_halign(fa_left);
                         }}
-                    }}
-                    else
-                    {{
+                    }} else {{
                         draw_set_color(c_gray);
                         draw_text(heartscrolloffset, 0, allmodmenus);
                         draw_set_halign(fa_right);
@@ -1018,14 +1012,11 @@ string modmenu_core_init = @$"
                     var form_data = active_menu().form;
 
                     var heartyprogress = 150;
-                    if (array_length(form_data) >= 0)
-                    {{
+                    if (array_length(form_data) >= 0) {{
                         var i = row_scroll;
                         var yprogress = 150;
-                        while ((yprogress <= 150 + 6 * 35) && (i < array_length(form_data) + 1))
-                        {{
-                            if (i >= array_length(form_data))
-                            {{
+                        while ((yprogress <= 150 + 6 * 35) && (i < array_length(form_data) + 1)) {{
+                            if (i >= array_length(form_data)) {{
                                 draw_set_color(c_white);
                                 draw_text(_xPos, other.yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(arg0)); // Back
                                 if (row_no == i)
@@ -1049,14 +1040,14 @@ string modmenu_core_init = @$"
 
                             var isCategory = (row_data.type == ""Header"");
                             draw_text_transformed(_xPos - (isCategory * 28), other.yy + yprogress - (isCategory * 5){(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.title_loc()), (isCategory ? 0.5 : 1), (isCategory ? 0.5 : 1), 0);
-                            if (isCategory){{
+                            if (isCategory) {{
                                 draw_line(_xPos - 28 - 3, other.yy + yprogress + 9, _xPos + 400, other.yy + yprogress + 9);
                             }}
 
                             if (row_data.type == ""Slider"" || row_data.type == ""Toggle"")
                                 draw_text(_selectXPos, other.yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.value_string()));
 
-                            if (row_no == i){{
+                            if (row_no == i) {{
                                 heartyprogress = yprogress;
                             }}
                             yprogress += (isCategory ? 12 : 35);
@@ -1068,16 +1059,15 @@ string modmenu_core_init = @$"
                         var totalmenulength = 0;
                         var scrollprogress = 0;
                         for (var i = 0; i < array_length(form_data) + 1; i++) {{
-                            if (i >= array_length(form_data))
-                            {{
-                                if (row_scroll == i){{
+                            if (i >= array_length(form_data)) {{
+                                if (row_scroll == i) {{
                                     scrollprogress = totalmenulength;
                                 }}
                                 totalmenulength += 35;
                                 continue;
                             }}
 
-                            if (row_scroll == i){{
+                            if (row_scroll == i) {{
                                 scrollprogress = totalmenulength;
                             }}
                             totalmenulength += ((form_data[i].type == ""Header"") ? 12 : 35);
@@ -1087,17 +1077,13 @@ string modmenu_core_init = @$"
                         var lastscreenlength = 0;
                         for (var i = array_length(form_data); i >= 0; i--) {{
                             var newlastscreenlength = lastscreenlength;
-                            if (i >= array_length(form_data))
-                            {{
+                            if (i >= array_length(form_data)) {{
                                 newlastscreenlength += 35;
-                            }}
-                            else
-                            {{
+                            }} else {{
                                 newlastscreenlength += ((form_data[i].type == ""Header"") ? 12 : 35);
                             }}
 
-                            if (newlastscreenlength > menuscreenlength)
-                            {{
+                            if (newlastscreenlength > menuscreenlength) {{
                                 break;
                             }}
                             lastscreenlength = newlastscreenlength;
@@ -1105,8 +1091,7 @@ string modmenu_core_init = @$"
                         totalmenulength += menuscreenlength - lastscreenlength;
 
                         // draw scroll bar based on previous calcs
-                        if (totalmenulength > menuscreenlength)
-                        {{
+                        if (totalmenulength > menuscreenlength) {{
                             var modscrollbary = 180;
                             var modscrollbarlength = 190;
                             var modscrollery = modscrollbarlength * (scrollprogress / totalmenulength);
@@ -1126,9 +1111,7 @@ string modmenu_core_init = @$"
 
                     if (isSubmenu)
                         draw_sprite(spr_heart, 0, _heartXPos, other.yy + 10 + heartyprogress);
-                }}
-                else
-                {{
+                }} else {{
                     draw_set_halign(fa_center);
                     draw_set_valign(fa_middle);
                     draw_text(other.xx + 320, other.yy + 250, string_hash_to_newline(""NO MOD MENUS FOUND""));
@@ -1681,7 +1664,7 @@ string modmenu_core_init = @$"
             return menu;
         }}
     }};
-";
+"; }
 
 // Code edits
 UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
@@ -1691,7 +1674,10 @@ UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
 // Add modmenu init code
 const bool useModularScripts = false;
 if (useModularScripts) {
-    importGroup.QueueAppend("gml_GlobalScript_scr_modmenu_init", modmenu_core_init);
+    if (ch_no == 0)
+        importGroup.QueueAppend("gml_GlobalScript_scr_modmenu_init_ch1", modmenu_core_init("_ch1"));
+    importGroup.QueueAppend("gml_GlobalScript_scr_modmenu_init", modmenu_core_init(""));
+    // TODO darkmenu, save, load, copy, delete - all need updating for _ch1
 } else {
     string[] gamestarts = {"gml_GlobalScript_scr_gamestart"};
     if (ch_no == 0)
@@ -1702,132 +1688,135 @@ if (useModularScripts) {
     foreach (string gamestart in gamestarts) {
         importGroup.QueueRegexFindReplace(gamestart, "function scr_gamestart(?:_ch1)?\\(\\)\\s*{", @$"
             function scr_gamestart{(gamestart.EndsWith("_ch1") ? "_ch1" : "")}(){{
-                {modmenu_core_init}
+                {modmenu_core_init("")}
         ");
     }
 }
 
-// Step & draw menu code
-string[] darkcons = {"gml_Object_obj_darkcontroller"};
-if (ch_no == 0)
+if (freshInstall)
 {
-    string[] demoDarkcons = {"gml_Object_obj_darkcontroller_ch1"};
-    darkcons = darkcons.Concat(demoDarkcons).ToArray();
-}
-foreach (string darkcon in darkcons)
-{
-    // Add menu draw code
-    importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Draw_0", $"msprite[4] = spr_darkconfigbt{(darkcon.EndsWith("_ch1") ? "_ch1" : "")};", @$"
-        msprite[4] = spr_darkconfigbt{(darkcon.EndsWith("_ch1") ? "_ch1" : "")};
-        msprite[5] = spr_darkmodsbt;
+    // Step & draw menu code
+    string[] darkcons = {"gml_Object_obj_darkcontroller"};
+    if (ch_no == 0)
+    {
+        string[] demoDarkcons = {"gml_Object_obj_darkcontroller_ch1"};
+        darkcons = darkcons.Concat(demoDarkcons).ToArray();
+    }
+    foreach (string darkcon in darkcons)
+    {
+        // Add menu draw code
+        importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Draw_0", $"msprite[4] = spr_darkconfigbt{(darkcon.EndsWith("_ch1") ? "_ch1" : "")};", @$"
+            msprite[4] = spr_darkconfigbt{(darkcon.EndsWith("_ch1") ? "_ch1" : "")};
+            msprite[5] = spr_darkmodsbt;
+            ");
+        importGroup.QueueFindReplace(darkcon + "_Draw_0", "i = 0; i < 5; i += 1)", "i = 0; i < 6; i += 1)");
+        importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Draw_0", "spritemx = -100;", "spritemx = -80;");
+        importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Draw_0",
+            "draw_sprite_ext(msprite[i], off, xx + 120 + (i * 100) + spritemx, (yy + tp) - 60, 2, 2, 0, c_white, 1);",
+            "draw_sprite_ext(msprite[i], off, xx + 110 + (i * 80) + spritemx, (yy + tp) - 60, 2, 2, 0, c_white, 1);");
+        string ch1_back_text = "scr_84_get_lang_string(\"obj_darkcontroller_slash_Draw_0_gml_96_0\")";
+        string back_text = (ch_no >= 2 || ch_no == 0) ? "back_text" : ch1_back_text;
+        importGroup.QueueAppend(darkcon + "_Draw_0", $"global.modmenu.draw_darkmenu({(darkcon.EndsWith("_ch1") ? ch1_back_text : back_text)});");
+
+        // Add menu step code
+        importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "global.menucoord[0] = 4;", "global.menucoord[0] = 5;");
+        importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "if (global.menucoord[0] == 4)", "if (global.menucoord[0] == 5)");
+        importGroup.QueueAppend(darkcon + "_Step_0", "global.modmenu.step_darkmenu();");
+    }
+
+    // Save menu data
+    string[] saveLikes = {"gml_GlobalScript_scr_saveprocess"};
+    if (ch_no == 0)
+    {
+        string[] demoSaveLikes = {"gml_GlobalScript_scr_saveprocess_ch1"};
+        saveLikes = saveLikes.Concat(demoSaveLikes).ToArray();
+    }
+    foreach (string scrName in saveLikes)
+    {
+        importGroup.QueueTrimmedLinesFindReplace(scrName, $"{(ch_no == 0 ? "var is_valid = " : "")}ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
+            {(ch_no == 0 ? "var is_valid = " : "")}ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);
+
+            global.modmenu.save();
+            ");
+    }
+
+    // Load menu data
+    (string script, string chapter) [] loadLikes = {("gml_GlobalScript_scr_load", "global.chapter")};
+    if (ch_no == 0)
+    {
+        (string script, string chapter) [] loadCh1 = {("gml_GlobalScript_scr_load_ch1", "global.chapter")};
+        loadLikes = loadLikes.Concat(loadCh1).ToArray();
+    }
+    if (ch_no > 1 || ch_no == 0)
+    {
+        (string script, string chapter) [] loadCh1 = {("gml_GlobalScript_scr_load_chapter1", "1")};
+        loadLikes = loadLikes.Concat(loadCh1).ToArray();
+    }
+    if (ch_no > 2)
+    {
+        (string script, string chapter) [] loadCh2 = {("gml_GlobalScript_scr_load_chapter2", "2")};
+        loadLikes = loadLikes.Concat(loadCh2).ToArray();
+    }
+    if (ch_no > 3)
+    {
+        (string script, string chapter) [] loadCh3 = {("gml_GlobalScript_scr_load_chapter3", "3")};
+        loadLikes = loadLikes.Concat(loadCh3).ToArray();
+    }
+    if (ch_no > 4)
+    {
+        (string script, string chapter) [] loadCh4 = {("gml_GlobalScript_scr_load_chapter4", "4")};
+        loadLikes = loadLikes.Concat(loadCh4).ToArray();
+    }
+    if (ch_no > 5)
+    {
+        (string script, string chapter) [] loadCh5 = {("gml_GlobalScript_scr_load_chapter5", "5")};
+        loadLikes = loadLikes.Concat(loadCh5).ToArray();
+    }
+    if (ch_no > 6)
+    {
+        (string script, string chapter) [] loadCh6 = {("gml_GlobalScript_scr_load_chapter6", "6")};
+        loadLikes = loadLikes.Concat(loadCh6).ToArray();
+    }
+    foreach ((string script, string chapter) loadLike in loadLikes)
+    {
+        importGroup.QueueTrimmedLinesFindReplace(loadLike.script, $"ossafe_file_text_close{(loadLike.script.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
+            ossafe_file_text_close{(loadLike.script.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);
+
+            global.modmenu.load({loadLike.chapter});
+            ");
+    }
+
+    // Copy menu data
+    string[] copyLikes = {"gml_Object_DEVICE_MENU_Other_15"};
+    if (ch_no == 0)
+    {
+        string[] demoCopyLikes = {"gml_Object_DEVICE_MENU_ch1_Other_15"};
+        copyLikes = copyLikes.Concat(demoCopyLikes).ToArray();
+    }
+    foreach (string scrName in copyLikes)
+    {
+        importGroup.QueueTrimmedLinesFindReplace(scrName, @"file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");", @$"
+            file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");
+
+            global.modmenu.copy(MENUCOORD[2], MENUCOORD[3]);
         ");
-    importGroup.QueueFindReplace(darkcon + "_Draw_0", "i = 0; i < 5; i += 1)", "i = 0; i < 6; i += 1)");
-    importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Draw_0", "spritemx = -100;", "spritemx = -80;");
-    importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Draw_0",
-        "draw_sprite_ext(msprite[i], off, xx + 120 + (i * 100) + spritemx, (yy + tp) - 60, 2, 2, 0, c_white, 1);",
-        "draw_sprite_ext(msprite[i], off, xx + 110 + (i * 80) + spritemx, (yy + tp) - 60, 2, 2, 0, c_white, 1);");
-    string ch1_back_text = "scr_84_get_lang_string(\"obj_darkcontroller_slash_Draw_0_gml_96_0\")";
-    string back_text = (ch_no >= 2 || ch_no == 0) ? "back_text" : ch1_back_text;
-    importGroup.QueueAppend(darkcon + "_Draw_0", $"global.modmenu.draw_darkmenu({(darkcon.EndsWith("_ch1") ? ch1_back_text : back_text)});");
+    }
 
-    // Add menu step code
-    importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "global.menucoord[0] = 4;", "global.menucoord[0] = 5;");
-    importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "if (global.menucoord[0] == 4)", "if (global.menucoord[0] == 5)");
-    importGroup.QueueAppend(darkcon + "_Step_0", "global.modmenu.step_darkmenu();");
-}
+    // Delete menu data
+    string[] deleteLikes = {"gml_Object_DEVICE_MENU_Step_0"};
+    if (ch_no == 0)
+    {
+        string[] demoDeleteLikes = {"gml_Object_DEVICE_MENU_ch1_Step_0"};
+        copyLikes = deleteLikes.Concat(demoDeleteLikes).ToArray();
+    }
+    foreach (string scrName in deleteLikes)
+    {
+        importGroup.QueueTrimmedLinesFindReplace(scrName, @"TIME_STRING[MENUCOORD[5]] = ""--:--"";", @"
+            TIME_STRING[MENUCOORD[5]] = ""--:--"";
 
-// Save menu data
-string[] saveLikes = {"gml_GlobalScript_scr_saveprocess"};
-if (ch_no == 0)
-{
-    string[] demoSaveLikes = {"gml_GlobalScript_scr_saveprocess_ch1"};
-    saveLikes = saveLikes.Concat(demoSaveLikes).ToArray();
-}
-foreach (string scrName in saveLikes)
-{
-    importGroup.QueueTrimmedLinesFindReplace(scrName, $"{(ch_no == 0 ? "var is_valid = " : "")}ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
-        {(ch_no == 0 ? "var is_valid = " : "")}ossafe_file_text_close{(scrName.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);
-
-        global.modmenu.save();
+            global.modmenu.del(MENUCOORD[5]);
         ");
-}
-
-// Load menu data
-(string script, string chapter) [] loadLikes = {("gml_GlobalScript_scr_load", "global.chapter")};
-if (ch_no == 0)
-{
-    (string script, string chapter) [] loadCh1 = {("gml_GlobalScript_scr_load_ch1", "global.chapter")};
-    loadLikes = loadLikes.Concat(loadCh1).ToArray();
-}
-if (ch_no > 1 || ch_no == 0)
-{
-    (string script, string chapter) [] loadCh1 = {("gml_GlobalScript_scr_load_chapter1", "1")};
-    loadLikes = loadLikes.Concat(loadCh1).ToArray();
-}
-if (ch_no > 2)
-{
-    (string script, string chapter) [] loadCh2 = {("gml_GlobalScript_scr_load_chapter2", "2")};
-    loadLikes = loadLikes.Concat(loadCh2).ToArray();
-}
-if (ch_no > 3)
-{
-    (string script, string chapter) [] loadCh3 = {("gml_GlobalScript_scr_load_chapter3", "3")};
-    loadLikes = loadLikes.Concat(loadCh3).ToArray();
-}
-if (ch_no > 4)
-{
-    (string script, string chapter) [] loadCh4 = {("gml_GlobalScript_scr_load_chapter4", "4")};
-    loadLikes = loadLikes.Concat(loadCh4).ToArray();
-}
-if (ch_no > 5)
-{
-    (string script, string chapter) [] loadCh5 = {("gml_GlobalScript_scr_load_chapter5", "5")};
-    loadLikes = loadLikes.Concat(loadCh5).ToArray();
-}
-if (ch_no > 6)
-{
-    (string script, string chapter) [] loadCh6 = {("gml_GlobalScript_scr_load_chapter6", "6")};
-    loadLikes = loadLikes.Concat(loadCh6).ToArray();
-}
-foreach ((string script, string chapter) loadLike in loadLikes)
-{
-    importGroup.QueueTrimmedLinesFindReplace(loadLike.script, $"ossafe_file_text_close{(loadLike.script.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);", @$"
-        ossafe_file_text_close{(loadLike.script.EndsWith("_ch1") ? "_ch1" : "")}(myfileid);
-
-        global.modmenu.load({loadLike.chapter});
-        ");
-}
-
-// Copy menu data
-string[] copyLikes = {"gml_Object_DEVICE_MENU_Other_15"};
-if (ch_no == 0)
-{
-    string[] demoCopyLikes = {"gml_Object_DEVICE_MENU_ch1_Other_15"};
-    copyLikes = copyLikes.Concat(demoCopyLikes).ToArray();
-}
-foreach (string scrName in copyLikes)
-{
-    importGroup.QueueTrimmedLinesFindReplace(scrName, @"file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");", @$"
-        file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");
-
-        global.modmenu.copy(MENUCOORD[2], MENUCOORD[3]);
-    ");
-}
-
-// Delete menu data
-string[] deleteLikes = {"gml_Object_DEVICE_MENU_Step_0"};
-if (ch_no == 0)
-{
-    string[] demoDeleteLikes = {"gml_Object_DEVICE_MENU_ch1_Step_0"};
-    copyLikes = deleteLikes.Concat(demoDeleteLikes).ToArray();
-}
-foreach (string scrName in deleteLikes)
-{
-    importGroup.QueueTrimmedLinesFindReplace(scrName, @"TIME_STRING[MENUCOORD[5]] = ""--:--"";", @"
-        TIME_STRING[MENUCOORD[5]] = ""--:--"";
-
-        global.modmenu.del(MENUCOORD[5]);
-    ");
+    }
 }
 
 // Finish edit

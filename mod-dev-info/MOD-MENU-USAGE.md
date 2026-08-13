@@ -4,6 +4,11 @@ Mod Menu is a mod framework that can be used to quickly add settings menus for y
 For an example of this mod in action see the [Custom Difficulty mod](https://gamebanana.com/mods/613308).
 For reference, you can see the exact code that this mod uses to configure its menu [here](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/blob/190-release/src/customdifficulty_ch1to5.csx#L587-L816) (although this is a very complex example).
 
+### Migrating From 1.X
+If you're migrating to v2, you'll need to:
+- move your menu config from `obj_darkcontroller(_ch1)_create_0` to the bottom of `function scr_gamestart(_ch1)()`
+- refactor your menu config from the old 'ds_map_' format, to the new struct/json-style format
+
 ## Adding the mod tool to your game
 
 1. Open the data.win for any chapter (or demo) in [UndertaleModTool](https://github.com/UnderminersTeam/UndertaleModTool/releases)
