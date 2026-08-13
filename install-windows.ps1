@@ -284,3 +284,4 @@ foreach ($f in $targets) {
 }
 
 Log 'Done. Launch DELTARUNE and open the Mods menu to configure difficulty.'
+Read-Host -Prompt "Press any key to exit"

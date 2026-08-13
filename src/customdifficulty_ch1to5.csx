@@ -2814,7 +2814,7 @@ if (ch_no == 0) {
 }
 
 // Run import groups
-ScriptMessage($"Adding custom difficulty to '{displayName}'...\n\n_Modules to import_ \n{string.Join("\n", codeGroups.Select(codeGroup => $"{codeGroup.category} - {codeGroup.name}"))}");
+ScriptMessage($"Adding custom difficulty to '{displayName}'..."); //\n\n_Modules to import_ \n{string.Join("\n", codeGroups.Select(codeGroup => $"{codeGroup.category} - {codeGroup.name}"))}");
 int groupCount = codeGroups.Count();
 bool anyFailed = false;
 StringBuilder resultMessageBuilder = new StringBuilder("", 25);
