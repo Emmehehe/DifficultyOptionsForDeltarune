@@ -938,7 +938,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
 
                 if (global.lang == ""ja"") {{
                     draw_rectangle(other.xx + 60, other.yy + 85, other.xx + 580, other.yy + 412, false);
-                    with (other) scr_darkbox(xx + 50, yy + 75, xx + 590,other.yy + 422);
+                    with (other) scr_darkbox(xx + 50, yy + 75, xx + 590, yy + 422);
                 }} else {{
                     draw_rectangle(other.xx + 60, other.yy + 90, other.xx + 580, other.yy + 410, false);
                     with (other) scr_darkbox(xx + 50, yy + 80, xx + 590, yy + 420);
@@ -1196,16 +1196,16 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
             // Menu - mandatory
             try {{ var check = menu; if (is_undefined(check)) throw ""menu data is undefined""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but menu data was not supplied.""; }}
             if (!is_struct(menu)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but menu data is not a struct. "";
-            try {{ var check = menu.title; if (!is_string(check)) check = check[0]; if (!is_string(check)) throw ""title[0] is not a string""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu without a title; or title is not a string.""; }}
+            try {{ var check = menu.title; if (!is_string(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""title[0] is not a string""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu without a title; or title is not a string.""; }}
             try {{ var check = menu.form[0]; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu without any form element.""; }}
 
             // Menu - optional
             try {{ var check = menu.style; if (is_undefined(check)) throw ""style not found""; }} catch (_e) {{ menu.style = {{ dark: {{ left_margin: 0, left_value_pos: 240 }} }}; }}
             try {{ var check = menu.style.dark; if (is_undefined(check)) throw ""style.dark not found""; }} catch (_e) {{ menu.style.dark = {{ left_margin: 0, left_value_pos: 240 }}; }}
             try {{ var check = menu.style.dark.left_margin; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.style.dark.left_margin = 0; }}
-            try {{ var check = menu.style.dark.left_margin; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""style.dark.left_margin is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but style.dark.left_margin is not numeric.""; }}
+            try {{ var check = menu.style.dark.left_margin; if (!is_numeric(check)) {{ check = check[0]; if (!is_numeric(check.val)) throw ""style.dark.left_margin is not numeric""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but style.dark.left_margin is not numeric.""; }}
             try {{ var check = menu.style.dark.left_value_pos; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ menu.style.dark.left_value_pos = 240; }}
-            try {{ var check = menu.style.dark.left_value_pos; if (!is_numeric(check)) check = check[0]; if (!is_numeric(check)) throw ""style.dark.left_value_pos is not numeric""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but style.dark.left_value_pos is not numeric.""; }}
+            try {{ var check = menu.style.dark.left_value_pos; if (!is_numeric(check)) {{ check = check[0]; if (!is_numeric(check.val)) throw ""style.dark.left_value_pos is not numeric""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but style.dark.left_value_pos is not numeric.""; }}
             menu.style.dark = {{
                 left_margin: menu.style.dark.left_margin,
                 left_value_pos: menu.style.dark.left_value_pos,
@@ -1224,7 +1224,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
             // TODO auto generation for ini_name not work, haven't tested it
             try {{ var check = menu.ini_name; }} catch (_e) {{ menu.ini_name = string_savename(find_loc(menu.title)); }}
             {{ var check = menu.ini_name; if (is_string(check) && !is_savenamestring(check)) menu.ini_name = string_savename_addini(menu.ini_name); }}
-            try {{ var check = menu.ini_name; if (!is_string(check) || !is_savenamestring(check)) throw ""ini_name isn't a string or contains invalid characters or no .ini""; }} catch (_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but ini_name is missing; or is not a lower-case alphanumerical string. ini_name = '"" + string(menu.ini_name) + ""'""); }}
+            try {{ var check = menu.ini_name; if (!is_string(check) || !is_savenamestring(check)) throw ""ini_name isn't a string or contains invalid characters or no .ini""; }} catch (_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but ini_name is missing; or contains invalid characters. ini_name = '"" + string(menu.ini_name) + ""'""); }}
             try {{ var check = menu.save_type; }} catch (_e) {{ menu.save_type = ""Never""; }}
             try {{ var check = menu.save_type; if (check != ""Never"" && check != ""Single"" && check != ""PerSlot"" && check != ""PerFile"") throw ""save_type failed validation""; }} catch (_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but save_type is not in set: Never, Single, PerSlot, PerFile.""); }}
             try {{ var check = menu.world; }} catch (_e) {{ menu.world = ""Dark""; }}
@@ -1307,9 +1307,9 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
 
                 // Slider/Toggle/Button - mandatory | Header - optional
                 if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Button"") {{
-                    try {{ var check = row.title; if (!is_string(check) && !is_array(check)) throw ""row title must be of type string or array""; if (is_array(check)) check = check[0]; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle/Button does not have a title.""; }}
+                    try {{ var check = row.title; if (!is_string(check) && !is_array(check)) throw ""row title must be of type string or array""; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row title must be a string""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle/Button does not have a title.""; }}
                 }} else if (row.type == ""Header"") {{
-                    try {{ var check = row.title; if (is_array(check)) check = check[0]; }} catch (_e) {{ row.title = """"; }}
+                    try {{ var check = row.title; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row title must be a string""; }} }} catch (_e) {{ row.title = """"; }}
                 }} else throw (""Unsupported row type: "" + row.type);
 
                 // Button - mandatory | Slider/Toggle - optional | Header - invalid
@@ -1324,7 +1324,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                 if (row.type == ""Slider"" || row.type == ""Toggle"") {{
                     try {{ var check = row.data_ref; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a data_ref.""; }}
                     row.data_ref = init_data_ref(row.data_ref);
-                    try {{ var check = row.value_range; if (!is_string(check) && !is_array(check)) throw ""row value_range must be of type string or array""; if (is_array(check)) check = check[0]; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a value_range.""; }}
+                    try {{ var check = row.value_range; if (!is_string(check) && !is_array(check)) throw ""row value_range must be of type string or array""; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row value range must be a string""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a value_range.""; }}
                 }} else if (row.type == ""Button"" || row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
 
                 // Slider/Toggle - optional | Button/Header - invalid
