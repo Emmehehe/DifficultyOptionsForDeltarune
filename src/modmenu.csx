@@ -20,7 +20,7 @@ if (!Regex.IsMatch(displayName, expectedDisplayName, RegexOptions.IgnoreCase, Ti
 }
 
 // detect version
-string[] checkVersions = {/*"v2_0_0", */"v2_0_beta_3"/*, "v2_0_beta_2", "v2_0_beta_1"*/};
+string[] checkVersions = {"v2_0_0"/*, "v2_0_beta_2"*/};
 string latestVersion = checkVersions[0];
 string detectedVersion = "not-installed";
 bool freshInstall = true;
@@ -81,6 +81,16 @@ if (!freshInstall && detectedVersion != latestVersion) {
             }
             foreach (string gamestart in gamestarts) {
                 importGroup.QueueRegexFindReplace(gamestart, @"var installed_modmenu = true;\s*global\.modmenu = [\s\S]*return menu;\s*}\s*};", "");
+            }
+            string[] copyLikes = {"gml_Object_DEVICE_MENU_Other_15"};
+            if (ch_no == 0)
+            {
+                string[] demoCopyLikes = {"gml_Object_DEVICE_MENU_ch1_Other_15"};
+                copyLikes = copyLikes.Concat(demoCopyLikes).ToArray();
+            }
+            foreach (string scrName in copyLikes)
+            {
+                importGroup.QueueTrimmedLinesFindReplace(scrName, @"global.modmenu.copy(MENUCOORD[2], MENUCOORD[3]);", "");
             }
             importGroup.Import();
             break;
@@ -1785,7 +1795,10 @@ if (freshInstall)
             global.modmenu.load({loadLike.chapter});
             ");
     }
+}
 
+if (freshInstall || detectedVersion == "v2_0_beta_2")
+{
     // Copy menu data
     string[] copyLikes = {"gml_Object_DEVICE_MENU_Other_15"};
     if (ch_no == 0)
@@ -1795,19 +1808,27 @@ if (freshInstall)
     }
     foreach (string scrName in copyLikes)
     {
-        importGroup.QueueTrimmedLinesFindReplace(scrName, @"file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");", @$"
-            file_copy(""keyconfig_"" + string(MENUCOORD[2]) + "".ini"", ""keyconfig_"" + string(MENUCOORD[3]) + "".ini"");
-
+        importGroup.QueueFindReplace(scrName, @"if (file_exists(""keyconfig_"" + string(MENUCOORD[2]) + "".ini""))", @"
             global.modmenu.copy(MENUCOORD[2], MENUCOORD[3]);
+
+            if (file_exists(""keyconfig_"" + string(MENUCOORD[2]) + "".ini""))
         ");
     }
+}
 
+if (freshInstall || detectedVersion == "v2_0_beta_2")
+{
     // Delete menu data
-    string[] deleteLikes = {"gml_Object_DEVICE_MENU_Step_0"};
+    string[] deleteLikes = {};
+    if (detectedVersion != "v2_0_beta_2")
+    {
+        string[] chapterDeleteLikes = {"gml_Object_DEVICE_MENU_Step_0"};
+        deleteLikes = deleteLikes.Concat(chapterDeleteLikes).ToArray();
+    }
     if (ch_no == 0)
     {
         string[] demoDeleteLikes = {"gml_Object_DEVICE_MENU_ch1_Step_0"};
-        copyLikes = deleteLikes.Concat(demoDeleteLikes).ToArray();
+        deleteLikes = deleteLikes.Concat(demoDeleteLikes).ToArray();
     }
     foreach (string scrName in deleteLikes)
     {
