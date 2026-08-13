@@ -5,8 +5,9 @@ For an example of this mod in action see the [Custom Difficulty mod](https://gam
 For reference, you can see the exact code that this mod uses to configure its menu [here](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/blob/190-release/src/customdifficulty_ch1to5.csx#L587-L816) (although this is a very complex example).
 
 #### Migrating From 1.X to v2:
-- move your menu config from `obj_darkcontroller(_ch1)_create_0` to the bottom of `function scr_gamestart(_ch1)()`
-- refactor your menu config from the old 'ds_map_' format, to the new struct/json-style format
+- Move your menu config from `obj_darkcontroller(_ch1)_create_0` to the bottom of `function scr_gamestart(_ch1)()`
+- Refactor your menu config from the old 'ds_map_' format, to the new struct/json-style format
+- [Migration examples](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/pull/119/changes)
 
 ## Adding the mod tool to your game
 
