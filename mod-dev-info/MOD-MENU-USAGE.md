@@ -21,7 +21,7 @@ For reference, you can see the exact code that this mod uses to configure its me
 Either: run the script `add_modmenu.csx`.
 
 Or; add this code to the end of the `scr_gamestart(_ch1)` function, found at gml_GlobalScript_scr_gamestart(_ch1):
-```
+```js
 if (variable_instance_exists(global, "modmenu")) {
   global.menu_my_mods_menu = global.modmenu.create({
     title: "My Mod's Menu",
@@ -63,7 +63,7 @@ There are also a multitude of optional properties that you can add to your [conf
 ## Some common examples of how you can customize your menu:
 
 **Save settings between play sessions:**
-```
+```js
 global.modmenu.create({
   title: "My Mod's Menu",
   ini_name: "my-mods-menu",
@@ -75,7 +75,7 @@ global.modmenu.create({
 ```
 
 **Make adjustments to game state based on settings (apply your settings):**
-```
+```js
 global.modmenu.create({
   title: "My Mod's Menu",
   apply: { type: "OnClose", func: global.cool_function_that_runs_on_close_of_menu }, // other options: OnChange
@@ -84,7 +84,7 @@ global.modmenu.create({
 ```
 
 **The above can be combined, the apply function will also run when the settings are loaded from file:**
-```
+```js
 global.modmenu.create({
   title: "My Mod's Menu",
   apply: { type: "OnClose", func: global.cool_function_that_runs_on_close_of_menu_and_on_load_from_file }, // other options: OnChange
@@ -95,7 +95,7 @@ global.modmenu.create({
 ```
 
 **Disabling save for a menu-item:**
-```
+```js
 {
   type: "Toggle",
   title: "Example Toggle",
@@ -106,7 +106,7 @@ global.modmenu.create({
 ```
 
 **Adding extra save file data without affecting the menu:**
-```
+```js
 global.modmenu.create({
   title: "My Mod's Menu",
   ini_name: "my-mods-menu",
@@ -121,7 +121,7 @@ global.modmenu.create({
 ```
 
 **Revert slider value on cancel [X]/(B):**
-```
+```js
 {
   type: "Slider",
   title: "Example Slider",
@@ -132,7 +132,7 @@ global.modmenu.create({
 ```
 
 **Adjust the positioning of menu-items:**
-```
+```js
 global.modmenu.create({
   title: "My Mod's Menu",
   style: {
@@ -146,7 +146,7 @@ global.modmenu.create({
 ```
 
 **[Intermediate] Disable menu-items when a toggle is set to OFF:**
-```
+```js
 {
   type: "Toggle",
   title: "Mod Toggle",
@@ -171,7 +171,7 @@ global.modmenu.create({
 ```
 
 **[Intermediate] Localize to Japanese or to languages added by translation mods (see [Localisation](#Localisation)):**
-```
+```js
 global.modmenu.create({
   title: [{lang: "en", val: "Hello"}, {lang: "fr", val: "Bonjour"}], // if language not found (e.g. "ja":japanese), uses first entry ("Hello" in this case)
   style: {
@@ -191,7 +191,7 @@ global.modmenu.create({
 ```
 
 **[Advanced] Add function callbacks (listeners) for various events:**
-```
+```js
 global.modmenu.create({
   title: "My Mod's Menu",
   open_func: global.runs_when_user_opens_this_menu,
@@ -223,7 +223,7 @@ global.modmenu.create({
 ```
 
 **[Advanced] Get reference to a menu-item, so that you can add any dynamic behaviour that isn't already covered by the config:**
-```
+```js
 {
   type: "Toggle",
   title: "Example Toggle",
@@ -253,7 +253,7 @@ for (var i = 0; i < array_length(my_ref_arr); i++) {
 ```
 
 ## All Config Options
-```
+```js
 {
   title: localised string,
   style: { // optional
@@ -338,7 +338,7 @@ Multiple ranges can be combined using `;`.
 
 These tell your menu what variables to get/set/save/load when it is interacted with (or when the game saves/loads).
 
-```
+```js
 {
   handle: handle, // optional - instance id (or global scope) for the variable (default=global)
   var_name: string, // name of the variable e.g. global.fun_time -> var_name: "fun_time" - this can also be an array entry e.g. global.some_arr[0] -> var_name: "some_arr[0]"
