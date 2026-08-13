@@ -10,18 +10,18 @@ using System.Globalization;
 EnsureDataLoaded();
 var displayName = Data?.GeneralInfo?.DisplayName?.Content;
 
-// check version
-UndertaleVariable alreadyInstalled = Data.Variables.ByName("installed_customdifficulty");
-if (alreadyInstalled != null) {
-    ScriptMessage($"Skiping custom difficulty install for '{displayName}' as it is already installed.");
-    return;
-}
-
 // Prefire checks
 const string expectedDisplayName = "DELTARUNE \\S+ ([1-5](?:&2)?)";
 if (!Regex.IsMatch(displayName, expectedDisplayName, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(500)))
 {
     ScriptError($"Error 0: data file display name does not match expected: '{expectedDisplayName}', actual display name: '{displayName}'.");
+    return;
+}
+
+// check version
+UndertaleVariable alreadyInstalled = Data.Variables.ByName("installed_customdifficulty");
+if (alreadyInstalled != null) {
+    ScriptMessage($"Skiping custom difficulty install for '{displayName}' as it is already installed.");
     return;
 }
 
@@ -32,14 +32,6 @@ if (ch_no_str == "1&2")
     ch_no = 0; // 0 = demo
 else
     ch_no = ushort.Parse(Regex.Match(displayName, expectedDisplayName, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(500)).Groups[1].Captures[0].Value);
-
-// Begin edit
-ScriptMessage($"Adding custom difficulty to '{displayName}'...");
-
-// Code edits
-UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
-    ThrowOnNoOpFindReplace = true
-};
 
 // Hide Reward Ranking from the menu to reduce clutter as it's not that useful. Users can still adjust Reward Ranking from the .ini file if needed.
 readonly bool hide_rewardrank = true;
@@ -118,6 +110,28 @@ presets.Add(
         damagemulti   = 2147483647,
         hitall        = true
     });
+
+// Gather all code imports to be done
+readonly struct CodeGroup {
+    public CodeGroup (UndertaleData Data, string _category, string _name, bool _mandatory, bool failOnNoOp = true, bool _throwCompileError = true) { 
+        category = _category; name = _name; mandatory = _mandatory; throwCompileError = _throwCompileError; importGroup = new(Data){ ThrowOnNoOpFindReplace = failOnNoOp };
+    }
+    public readonly string category { get; init; }
+    public readonly string name { get; init; }
+    public readonly bool mandatory { get; init; }
+    public readonly bool throwCompileError { get; init; }
+    public readonly UndertaleModLib.Compiler.CodeImportGroup importGroup;
+}
+List<CodeGroup> codeGroups = new List<CodeGroup>();
+UndertaleModLib.Compiler.CodeImportGroup startCodeGroup(string _category, string _name, bool _mandatory, bool failOnNoOp = true, bool _throwCompileError = true) {
+    CodeGroup codeGroup = new CodeGroup(Data, _category, _name, _mandatory, failOnNoOp, _throwCompileError);
+    UndertaleModLib.Compiler.CodeImportGroup importGroup = codeGroup.importGroup;
+    codeGroups.Add(codeGroup);
+    return importGroup;
+}
+
+// Core code
+UndertaleModLib.Compiler.CodeImportGroup importGroup = startCodeGroup("Core", "Core", true);
 
 // Add globals & menu
 string[] gamestartLikes = {"gml_GlobalScript_scr_gamestart"};
@@ -833,6 +847,7 @@ if (ch_no == 3)
 }
 
 // Apply damage multiplier
+importGroup = startCodeGroup("Battle", "Damage Multi", false);
 foreach (string scrName in damageLikes)
 {   
     importGroup.QueueTrimmedLinesFindReplace(scrName, "hpdiff = tdamage;", @"
@@ -947,6 +962,7 @@ if (ch_no == 4)
 }
 
 // Apply Game Board damage multiplier
+importGroup = startCodeGroup("Battle", "Gameboard Dmg X", false);
 if (ch_no == 3)
 {
     const string gameboarddmgmulti = "(global.diff_gameboarddmgx < 0 ? global.diff_damagemulti : global.diff_gameboarddmgx)";
@@ -969,6 +985,7 @@ if (ch_no == 3)
 }
 
 // Apply down deficit
+importGroup = startCodeGroup("Down", "Down Deficit", false);
 foreach (string scrName in damageLikes)
 {   
     importGroup.QueueFindReplace(scrName, "global.maxhp[chartarget] / 2", "max(-999, global.maxhp[chartarget] * global.diff_downdeficit)");
@@ -986,6 +1003,7 @@ if (ch_no == 4) {
 }
 
 // Apply victory res - if VictoryRes is 0 then don't heal; additionally ensure the heal brings the character to at least 1 hp for low values of VictoryRes
+importGroup = startCodeGroup("Down", "Victory Res", false);
 if (ch_no == 0)
 {
     importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_ch1_Step_0", "global.maxhp[i] / 8", "global.diff_victoryres >= 0 ? max(1, global.maxhp[i] * global.diff_victoryres) : global.hp[i]");
@@ -999,6 +1017,7 @@ if (ch_no >= 5)
 }
 
 // Downed Regen
+importGroup = startCodeGroup("Down", "Downed Regen", false);
 if (ch_no == 0)
 {
     importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_mnendturn_ch1", "healamt = ceil(global.maxhp[hptarget] / 8);", "healamt = ceil(global.maxhp[hptarget] * global.diff_downedregen);");
@@ -1006,6 +1025,7 @@ if (ch_no == 0)
 importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_mnendturn", "healamt = ceil(global.maxhp[hptarget] / 8);", "healamt = ceil(global.maxhp[hptarget] * global.diff_downedregen);");
 
 // Hit.All
+importGroup = startCodeGroup("Battle", "Hit.All", false);
 string[] singleHits = {"gml_Object_obj_overworldbulletparent_Other_15", "gml_Object_obj_collidebullet_Other_15", "gml_Object_obj_checkers_leap_Other_15"};
 if (ch_no == 0) {
     string[] demoSingleHits = {"gml_Object_obj_regularbullet_permanent_ch1_Other_15", "gml_Object_obj_lancerbike_ch1_Other_15", "gml_Object_obj_lancerbike_neo_ch1_Other_15"};
@@ -1219,6 +1239,7 @@ if (ch_no == 3) {
 
 
 // I-Frames
+importGroup = startCodeGroup("Battle", "I-Frames", false);
 string[] iFramers = {"gml_GlobalScript_scr_damage", "gml_GlobalScript_scr_damage_all", "gml_GlobalScript_scr_damage_all_overworld"};
 if (ch_no == 0) {
     string[] demoIFramers = {"gml_GlobalScript_scr_damage_ch1", "gml_GlobalScript_scr_damage_all_ch1", "gml_GlobalScript_scr_damage_all_overworld_ch1", "gml_Object_obj_laserscythe_ch1_Other_15"};
@@ -1274,6 +1295,7 @@ if (ch_no == 5) {
 }
 
 // Apply Battle Rewards
+importGroup = startCodeGroup("Battle", "Battle Rewards", false);
 if (ch_no == 0)
 {
     importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_battlecontroller_ch1_Step_0", "global.xp += global.monsterexp[3];", @"
@@ -1301,6 +1323,7 @@ if (ch_no == 3) {
 }
 
 // Apply Reward Ranking
+importGroup = startCodeGroup("Battle", "Reward Ranking", false);
 if (ch_no == 3) {
     importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_gameshow_battlemanager_Draw_0", "global.flag[1116] += real(totalstring);", @"
         global.flag[1116] += global.diff_rewardranking > 0 ? round(global.diff_battlerewards * real(totalstring)) : real(totalstring);
@@ -1308,6 +1331,7 @@ if (ch_no == 3) {
 }
 
 // Apply Extra Enemies
+importGroup = startCodeGroup("Battle", "Extra Enemies", false);
 {
     string[] basicenemies = {};
     if (ch_no == 0) {
@@ -1610,6 +1634,7 @@ if (ch_no == 5) {
 }
 
 // Apply TP Gain
+importGroup = startCodeGroup("Player", "TP Gain", false);
 string[] tensionHeals = {"gml_Object_obj_grazebox_Collision_obj_collidebullet"};
 if (ch_no == 0) {
     importGroup.QueueFindReplace("gml_Object_obj_heroparent_ch1_Alarm_1", "scr_tensionheal_ch1(", "scr_tensionheal_ch1(global.diff_tpgain * ");
@@ -1662,6 +1687,7 @@ if (ch_no == 5) {
 }
 
 // Apply Mercy Build-up
+importGroup = startCodeGroup("Player", "Mercy", false);
 {
     importGroup.QueueFindReplace("gml_GlobalScript_scr_mercyadd", "global.mercymod[arg0] += arg1;", @"
         var toadd = ceil(global.diff_mercy * arg1);
@@ -1774,6 +1800,7 @@ if (ch_no == 5) {
 }
 
 // Apply Player Damage
+importGroup = startCodeGroup("Player", "Damage", false);
 {
     importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_damage_enemy", "arg1(?!\\))", "ceil(global.diff_plrdmg * arg1)");
 }
@@ -1827,6 +1854,7 @@ if (ch_no == 1 || ch_no == 0) {
 }
 
 // Apply Game Board Player Damage
+importGroup = startCodeGroup("Player", "Gmbrd Damage", false);
 if (ch_no == 3)
 {
     const string gmbrdplrdmg = "(global.diff_gmbrdplrdmg < 0 ? global.diff_plrdmg : global.diff_gmbrdplrdmg)";
@@ -1844,6 +1872,7 @@ if (ch_no == 3)
 }
 
 // Apply Player Healing
+importGroup = startCodeGroup("Player", "Healing", false);
 {
     importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell", "scr_heal\\((\\S+), healnum\\);", "scr_heal($1, ceil(global.diff_plrheal * healnum));");
 }
@@ -1855,6 +1884,7 @@ if (ch_no >= 5) {
 }
 
 // Apply Game Board Player Healing
+importGroup = startCodeGroup("Player", "Gmbrd Healing", false);
 if (ch_no == 3)
 {
     const string gmbrdplrheal = "(global.diff_gmbrdplrheal < 0 ? global.diff_plrheal : global.diff_gmbrdplrheal)";
@@ -1863,6 +1893,7 @@ if (ch_no == 3)
 }
 
 // Apply SAVE Point Heal
+importGroup = startCodeGroup("Player", "SAVE Point Heal", false);
 {
     importGroup.QueueFindReplace("gml_Object_obj_savepoint_Other_10", "if (global.hp[i] < global.maxhp[i])", "if (global.diff_saveheal && global.hp[i] < global.maxhp[i])");
 }
@@ -1870,22 +1901,10 @@ if (ch_no == 0) {
     importGroup.QueueFindReplace("gml_Object_obj_savepoint_ch1_Other_10", "if (global.hp[i] < global.maxhp[i])", "if (global.diff_saveheal && global.hp[i] < global.maxhp[i])");
 }
 
-// Finish edit
-try {
-    importGroup.Import();
-} catch (Exception e) {
-    ScriptMessage($"Error occured during script execution: {e.Message}");
-    ScriptMessage($"Attempting script run in no-throw mode, can't guaruntee the script will be completely applied.");
-    importGroup.ThrowOnNoOpFindReplace = false;
-    importGroup.Import();
-}
-
-// No throw code edits
-importGroup = new(Data){
-    ThrowOnNoOpFindReplace = false
-};
-
 // Enemy Cooldowns
+// utmt keeps throwing out exceptions for gml compile errors w\ swatchling(ch2&demo)&sneo(demo)&laserattack(ch1) but on inspection nothing looks wrong and utmt saves changes without issue
+    // seems to be inconsistent issue with utmt - exceptions appeared and dissappeared after completely irrelevant changes
+importGroup = startCodeGroup("Battle", "Enemy Cooldowns", false, false, false);
 string one_over_cd = "(global.diff_enemycd <= 0 ? 1 : (1/global.diff_enemycd))";
 // some attacks rely on the heart existing so have it fly out onto the box sooner
 importGroup.QueueFindReplace("gml_Object_obj_moveheart_Create_0", "flytime = 8", "flytime = min(8, floor(global.diff_enemycd * 8))");
@@ -2756,6 +2775,7 @@ if (ch_no == 5) {
 }
 
 // Apply Game Board Enemy Cooldowns
+importGroup = startCodeGroup("Battle", "Gmbrd Enemy CDs", false, false, false);
 if (ch_no == 3)
 {
     const string gmbrdenemycd = "(global.diff_gmbrdenemycd < 0 ? global.diff_enemycd : global.diff_gmbrdenemycd)";
@@ -2794,8 +2814,41 @@ if (ch_no == 3)
         $"timer == ceil({gmbrdenemycd} * ($1))");
 }
 
-// Finish edit
-// utmt keeps throwing out exceptions for gml compile errors w\ swatchling(ch2&demo)&sneo(demo)&laserattack(ch1) but on inspection nothing looks wrong and utmt saves changes without issue
-    // seems to be inconsistent issue with utmt - exceptions appeared and dissappeared after completely irrelevant changes
-importGroup.Import(false);
-ScriptMessage($"Success: Custom difficulty added to '{displayName}'!");
+// Run import groups
+ScriptMessage($"Adding custom difficulty to '{displayName}'...\n\n_Modules to import_ \n{string.Join("\n", codeGroups.Select(codeGroup => $"{codeGroup.category} - {codeGroup.name}"))}");
+int groupCount = codeGroups.Count();
+bool anyFailed = false;
+StringBuilder resultMessageBuilder = new StringBuilder("", 25);
+// TODO progress bar would be awesome - it shows but doesn't update at all so useless
+// SetProgressBar(null, "Importing modules...", 0, groupCount);
+// StartProgressBarUpdater();
+// await execCodeGroups();
+// await StopProgressBarUpdater();
+// HideProgressBar();
+// async Task execCodeGroups() {
+    foreach (CodeGroup codeGroup in codeGroups) {
+        // UpdateProgressStatus($"{codeGroup.category} - {codeGroup.name}");
+        try {
+            resultMessageBuilder.Append($"{codeGroup.category} - {codeGroup.name}");
+            codeGroup.importGroup.Import(codeGroup.throwCompileError);
+        } catch (Exception e) {
+            if (codeGroup.mandatory) {
+                ScriptMessage($"Error occured during import of mandatory module: {e.Message}");
+                return;
+            }
+            anyFailed = true;
+            string errorAppend = $"* ({e.Message})";
+            // UpdateProgressStatus($"{codeGroup.category} - {codeGroup.name}{errorAppend}");
+            resultMessageBuilder.Append(errorAppend);
+            codeGroup.importGroup.ThrowOnNoOpFindReplace = false;
+            foreach (string scrName in gamestartLikes) {
+                codeGroup.importGroup.QueueFindReplace(scrName, @$"title: ""{codeGroup.name}""", @$"title: ""{codeGroup.name}*""");
+            }
+            codeGroup.importGroup.Import(codeGroup.throwCompileError);
+        } finally {
+            IncrementProgressParallel();
+            resultMessageBuilder.Append("\n");
+        }
+    }
+// }
+SimpleTextOutput($"Success: Custom difficulty added to '{displayName}'!", $"Imported Modules{(anyFailed ? " (* indicates partial install)" : "")}: ", resultMessageBuilder.ToString(), true);
