@@ -1,197 +1,150 @@
 // using .js as JavaScript syntax is similar to gml
 
 // ### Basic Example ###
-// @ gml_Object_obj_darkcontroller(_ch1)_Create_0
-if (!variable_instance_exists(global, "modmenu_data"))
-  global.modmenu_data = array_create(0);
-
-var menudata = ds_map_create();
-ds_map_add(menudata, "title_en", "My Mod's Menu");
-
-var formdata = array_create(0);
-
-var rowdata = ds_map_create();
-ds_map_add(rowdata, "title_en", "Example Toggle");
-ds_map_add(rowdata, "value_range_en", "OFF=false;ON=true");
-ds_map_add(rowdata, "value_name", "example_toggle");
-array_push(formdata, rowdata);
-
-var rowdata = ds_map_create();
-ds_map_add(rowdata, "title_en", "Example Slider");
-ds_map_add(rowdata, "value_range_en", "OFF=-1;0~1000%;INF=2147483647");
-ds_map_add(rowdata, "value_name", "example_slider");
-array_push(formdata, rowdata);
-
-var rowdata = ds_map_create();
-ds_map_add(rowdata, "title_en", "Example Header");
-array_push(formdata, rowdata);
-
-var rowdata = ds_map_create();
-ds_map_add(rowdata, "title_en", "Example Button");
-global.button_func = function () {};
-ds_map_add(rowdata, "func_name", "button_func");
-array_push(formdata, rowdata);
-
-ds_map_add(menudata, "form", formdata);
-array_push(global.modmenu_data, menudata);
-
-global.menu_my_mods_menu = menudata;
+// @ bottom of function scr_gamestart(_ch1)
+if (variable_instance_exists(global, "modmenu")) {
+  global.menu_my_mods_menu = global.modmenu.create({
+    title: "My Mod's Menu",
+    ini_name: "my_mods_menu",
+    form: [
+      {
+        type: "Toggle",
+        title: "Example Toggle",
+        data_ref: { var_name: "example_toggle", default_value: false },
+        value_range: "OFF=false;ON=true"
+      },{
+        type: "Slider",
+        title: "Example Slider",
+        data_ref: { var_name: "example_slider", default_value: -1 },
+        value_range: "OFF=-1;0~1000%;INF=2147483647"
+      },{
+        type: "Header",
+        title: "Example Header"
+      },{
+        type: "Button",
+        title: "Example Button",
+        trigger_func: function () {}
+      }
+    ]
+  });
+}
 
 // ### Menu with optional fields ###
-// @ gml_Object_obj_darkcontroller(_ch1)_Create_0
-if (!variable_instance_exists(global, "modmenu_data"))
-  global.modmenu_data = array_create(0);
+// @ bottom of function scr_gamestart(_ch1)
+if (variable_instance_exists(global, "modmenu")) {
+  global.on_menu_close = function () {};
 
-var menudata = ds_map_create();
-ds_map_add(menudata, "title_en", "My Mod's Menu");
-ds_map_add(menudata, "left_margin_en ", 20);
-ds_map_add(menudata, "left_value_pos_en ", 270);
-global.on_menu_close = function () {};
-ds_map_add(menudata, "on_close ", "on_menu_close");
-
-var formdata = array_create(0);
-
-// ...row definitions...
-
-ds_map_add(menudata, "form", formdata);
-array_push(global.modmenu_data, menudata);
-
-global.menu_my_mods_menu = menudata;
+  global.menu_my_mods_menu = global.modmenu.create({
+    title: "My Mod's Menu",
+    ini_name: "my_mods_menu",
+	style: { dark: { left_margin: 20, left_value_pos: 270 } },
+	close_func: global.on_menu_close,
+    form: [
+      // ...row definitions...
+    ]
+  });
+}
 
 // ### Menu with forced slider (force_scroll=true) ###
-// @ gml_Object_obj_darkcontroller(_ch1)_Create_0
-if (!variable_instance_exists(global, "modmenu_data"))
-  global.modmenu_data = array_create(0);
-
-var menudata = ds_map_create();
-ds_map_add(menudata, "title_en", "My Mod's Menu");
-
-var formdata = array_create(0);
-
-var rowdata = ds_map_create();
-ds_map_add(rowdata, "title_en", "Example Slider");
-ds_map_add(rowdata, "value_range_en", "SMALL=50%;MEDIUM=100%;LARGE=200%");
-ds_map_add(rowdata, "value_name", "example_slider");
-ds_map_add(rowdata, "force_scroll", true);
-array_push(formdata, rowdata);
-
-// ...other row definitions...
-
-ds_map_add(menudata, "form", formdata);
-array_push(global.modmenu_data, menudata);
-
-global.menu_my_mods_menu = menudata;
+// @ bottom of function scr_gamestart(_ch1)
+if (variable_instance_exists(global, "modmenu")) {
+  global.menu_my_mods_menu = global.modmenu.create({
+    title: "My Mod's Menu",
+    ini_name: "my_mods_menu",
+    form: [
+	  {
+        type: "Slider",
+        title: "Example Slider",
+        data_ref: { var_name: "example_slider", default_value: 1 },
+        value_range: "SMALL=50%;MEDIUM=100%;LARGE=200%"
+      },
+      // ...other row definitions...
+    ]
+  });
+}
 
 // ### Menu with row that has optional fields ###
-// @ gml_Object_obj_darkcontroller(_ch1)_Create_0
-if (!variable_instance_exists(global, "modmenu_data"))
-  global.modmenu_data = array_create(0);
+// @ bottom of function scr_gamestart(_ch1)
+if (variable_instance_exists(global, "modmenu")) {
+  global.menu_on_change = function () {};
+  global.menu_on_accept = function () {}; // confirmed [Z]/(A)
+  global.menu_on_cancel = function () {}; // cancelled [X]/(B)
 
-var menudata = ds_map_create();
-ds_map_add(menudata, "title_en", "My Mod's Menu");
-
-var formdata = array_create(0);
-
-var rowdata = ds_map_create();
-ds_map_add(rowdata, "title_en", "Example Slider");
-ds_map_add(rowdata, "value_range_en", "OFF=-1;0~1000%;INF=2147483647");
-ds_map_add(rowdata, "value_name", "example_slider");
-ds_map_add(rowdata, "disabled", true);
-ds_map_add(rowdata, "hidden", false);
-global.menu_on_change = function () {};
-ds_map_add(rowdata, "on_change", menu_on_change);
-global.menu_on_func = function (arg0) {
-	if (arg0) { // confirmed [Z]/(A)
-		// ...do stuff...
-	} else { //  cancelled [X]/(B)
-		// ...do stuff...
-	}
-};
-ds_map_add(rowdata, "func_name", menu_on_func);
-array_push(formdata, rowdata);
-
-// ...other row definitions...
-
-ds_map_add(menudata, "form", formdata);
-array_push(global.modmenu_data, menudata);
-
-global.menu_my_mods_menu = menudata;
+  global.menu_my_mods_menu = global.modmenu.create({
+    title: "My Mod's Menu",
+    ini_name: "my_mods_menu",
+    form: [
+      {
+        type: "Slider",
+        title: "Example Slider",
+        data_ref: { var_name: "example_slider", default_value: -1 },
+        value_range: "OFF=-1;0~1000%;INF=2147483647",
+		disbled: true,
+		hidden: false,
+		change_func: global.menu_on_change,
+		cancel_func: global.menu_on_cancel,
+		accept_func: global.menu_on_accept
+      },
+      // ...other row definitions...
+    ]
+  });
+}
 
 // ### Menu that dynamically disables row ###
-// @ gml_Object_obj_darkcontroller(_ch1)_Create_0
-if (!variable_instance_exists(global, "modmenu_data"))
-  global.modmenu_data = array_create(0);
-
-var menudata = ds_map_create();
-ds_map_add(menudata, "title_en", "My Mod's Menu");
-
-var formdata = array_create(0);
-
-var rowdata = ds_map_create();
-ds_map_add(rowdata, "title_en", "Toggle Mod");
-ds_map_add(rowdata, "value_range_en", "OFF=false;ON=true");
-ds_map_add(rowdata, "value_name", "toggle_mod");
-global.do_toggle_mod = function() {
-	ds_map_set(global.row_to_toggle, "disabled", !global.toggle_mod);
+// @ bottom of function scr_gamestart(_ch1)
+if (variable_instance_exists(global, "modmenu")) {
+  global.menu_my_mods_menu = global.modmenu.create({
+    title: "My Mod's Menu",
+    ini_name: "my_mods_menu",
+    form: [
+      {
+        type: "Toggle",
+        title: "Toggle Mod",
+        data_ref: { var_name: "toggle_mod", default_value: false },
+        value_range: "OFF=false;ON=true"
+      },{
+        type: "Slider",
+        title: "Example Slider",
+        data_ref: { var_name: "example_slider", default_value: -1 },
+        value_range: "OFF=-1;0~1000%;INF=2147483647",
+		disabled: function() { return !global.toggle_mod; }
+      },
+	  // ...other row definitions...
+    ]
+  });
 }
-ds_map_add(rowdata, "on_change", "do_toggle_mod");
-array_push(formdata, rowdata);
-
-var rowdata = ds_map_create();
-ds_map_add(rowdata, "title_en", "Example Slider");
-ds_map_add(rowdata, "value_range_en", "OFF=-1;0~1000%;INF=2147483647");
-ds_map_add(rowdata, "value_name", "example_slider");
-ds_map_add(rowdata, "disabled", !global.toggle_mod);
-array_push(formdata, rowdata);
-global.row_to_toggle = rowdata;
-
-// ...other row definitions...
-
-ds_map_add(menudata, "form", formdata);
-array_push(global.modmenu_data, menudata);
-
-global.menu_my_mods_menu = menudata;
 
 // ### Menu that dynamically edits multiple rows ###
-// @ gml_Object_obj_darkcontroller(_ch1)_Create_0
-if (!variable_instance_exists(global, "modmenu_data"))
-  global.modmenu_data = array_create(0);
-
-var menudata = ds_map_create();
-ds_map_add(menudata, "title_en", "My Mod's Menu");
-
-var formdata = array_create(0);
-global.dynamic_rows = array_create(0);
-
-var rowdata = ds_map_create();
-ds_map_add(rowdata, "title_en", "Example Toggle");
-ds_map_add(rowdata, "value_range_en", "OFF=false;ON=true");
-ds_map_add(rowdata, "value_name", "example_toggle");
-array_push(formdata, rowdata);
-array_push(dynamic_rows, rowdata);
-
-var rowdata = ds_map_create();
-ds_map_add(rowdata, "title_en", "Example Slider");
-ds_map_add(rowdata, "value_range_en", "OFF=-1;0~1000%;INF=2147483647");
-ds_map_add(rowdata, "value_name", "example_slider");
-array_push(formdata, rowdata);
-array_push(dynamic_rows, rowdata);
-
-var rowdata = ds_map_create();
-ds_map_add(rowdata, "title_en", "Example Header");
-array_push(formdata, rowdata);
-
-var rowdata = ds_map_create();
-ds_map_add(rowdata, "title_en", "Example Button");
-global.button_func = function () {};
-ds_map_add(rowdata, "func_name", "button_func");
-array_push(formdata, rowdata);
-array_push(dynamic_rows, rowdata);
-
-ds_map_add(menudata, "form", formdata);
-array_push(global.modmenu_data, menudata);
-
-global.menu_my_mods_menu = menudata;
+// @ bottom of function scr_gamestart(_ch1)
+if (variable_instance_exists(global, "modmenu")) {
+  global.menu_my_mods_menu = global.modmenu.create({
+    title: "My Mod's Menu",
+    ini_name: "my_mods_menu",
+    form: [
+      {
+        type: "Toggle",
+        title: "Example Toggle",
+        data_ref: { var_name: "example_toggle", default_value: false },
+        value_range: "OFF=false;ON=true",
+		ref: { var_name: "dynamic_rows[0]" }
+      },{
+        type: "Slider",
+        title: "Example Slider",
+        data_ref: { var_name: "example_slider", default_value: -1 },
+        value_range: "OFF=-1;0~1000%;INF=2147483647",
+		ref: { var_name: "dynamic_rows[1]" }
+      },{
+        type: "Header",
+        title: "Example Header"
+      },{
+        type: "Button",
+        title: "Example Button",
+        trigger_func: function () {},
+		ref: { var_name: "dynamic_rows[2]" }
+      }
+    ]
+  });
+}
 
 if (/* something happens*/) {
 	for (var i = 0; i < array_length(global.dynamic_rows); i++) {
