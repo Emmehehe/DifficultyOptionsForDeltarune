@@ -211,7 +211,7 @@ global.modmenu.create({
       value_range: "OFF=-1;0~1000%;INF=2147483647",
       trigger_func: global.runs_when_user_clicks_into_this_menu_item,
       change_func: global.runs_when_value_is_changed_by_the_user,
-      cancel_func: global.runs_when_user_cancels_out_of_this_slide, // [X]/(B)
+      cancel_func: global.runs_when_user_cancels_out_of_this_slider, // [X]/(B)
       accept_func: global.runs_when_user_accepts_this_slider // [Z]/(A)
     },{
       type: "Button",
@@ -340,7 +340,7 @@ These tell your menu what variables to get/set/save/load when it is interacted w
 
 ```js
 {
-  handle: handle, // optional - instance id (or global scope) for the variable (default=global)
+  handle: handle, // optional - instance id (or global scope) for the variable (default=global) NOTE: If using instance id instead of global - unlikely that the menu will be able to load data from ini, as the instance may not have been created yet
   var_name: string, // name of the variable e.g. global.fun_time -> var_name: "fun_time" - this can also be an array entry e.g. global.some_arr[0] -> var_name: "some_arr[0]"
   default_value: any, // default value to use if the variable doesn't exist, or is not found in save data (if using save feature); this also helps ModMenu understand what data type to use when reading/writing to the save file
   ini_key: string  // optional - the ini key to use when saving/loading this data (defaults to the var_name)
