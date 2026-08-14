@@ -211,7 +211,7 @@ global.modmenu.create({
       value_range: "OFF=-1;0~1000%;INF=2147483647",
       trigger_func: global.runs_when_user_clicks_into_this_menu_item,
       change_func: global.runs_when_value_is_changed_by_the_user,
-      cancel_func: global.runs_when_user_cancels_out_of_this_slide, // [X]/(B)
+      cancel_func: global.runs_when_user_cancels_out_of_this_slider, // [X]/(B)
       accept_func: global.runs_when_user_accepts_this_slider // [Z]/(A)
     },{
       type: "Button",
