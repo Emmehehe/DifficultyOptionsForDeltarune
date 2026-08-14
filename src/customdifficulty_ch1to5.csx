@@ -1674,6 +1674,9 @@ if (ch_no == 2 || ch_no == 0) {
     // include Berdly's tornados (Queen fight)
     importGroup.QueueFindReplace("gml_Object_obj_berdly_tornadomaker_Step_0", "timer >= ", "timer >= global.diff_enemycd * ");
 
+    // fix unreachable code in thrash machine laser attack
+    importGroup.QueueFindReplace("gml_Object_obj_thrash_laserattack_Step_0", "if (btimer <= (global.diff_enemycd * (difficulty ? 8 : 15)))", "if (btimer <= ceil(global.diff_enemycd * (difficulty ? 8 : 15)))");
+
     // these legs gotta wait their turn
     importGroup.QueueFindReplace("gml_Object_obj_queen_bulletcontroller_Step_0", "if (stomplocation[0] == 1 && stomplocation[1] == 1 && stomplocation[2] == 1)", @"
         var waitDont = false;
@@ -2182,7 +2185,7 @@ importGroup = startCodeGroup("Battle", "Extra Enemies", false);
     }
     if (ch_no == 2) {
         string[] ch2basicenemies = {"obj_ponman_enemy", "obj_rudinnranger", "obj_omawaroid_enemy", "obj_poppup_enemy", "obj_tasque_enemy", "obj_werewire_enemy", "obj_maus_enemy", "obj_virovirokun_enemy",
-            "obj_swatchling_enemy", "obj_werewerewire_enemy"/* TODO , "obj_mauswheel_enemy"*/};
+            "obj_swatchling_enemy", "obj_werewerewire_enemy"/*, classifying as boss but a bit borderline "obj_mauswheel_enemy"*/};
         basicenemies = basicenemies.Concat(ch2basicenemies).ToArray();
     }
     if (ch_no == 3) {
@@ -2283,7 +2286,11 @@ if (ch_no == 2 || ch_no == 0) {
     // virovirokun
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "for (var i = 0; i < ((monstercount == 1) ? 2 : 3); i++)", "for (var i = 0; i < (monstercount + 1); i++)");
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "d.fleetsize = sameattack;", "d.fleetsize = min(sameattack, 2);");
-    // TODO mauswheel
+    // TODO fix these if ever reclassifying mauswheel as a basic enemy
+    // TODO catch mercies all but only catch x should do that
+    // TODO is cooldown ratio being adjusted?
+    // TODO catch + action on other mauswheels sometimes just doesn't work
+    // TODO tasque manager mercy cutscene overlaps (and maybe doesn't wait for all to be mercied to trigger?)
     // importGroup.QueueFindReplace("gml_Object_obj_mauswheel_enemy_Other_19", "dc.target = mytarget;", "dc.target = mytarget; dc.creator = myself;");
     // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "instance_exists(obj_mauswheel_enemy) && obj_mauswheel_enemy.cursor_count > 1",
     //     "instance_exists(global.monsterinstance[creator]) && global.monsterinstance[creator].cursor_count > 1");
@@ -2536,10 +2543,40 @@ importGroup = startCodeGroup("Down", "Victory Res", false);
 if (ch_no == 0)
 {
     importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_ch1_Step_0", "global.maxhp[i] / 8", "global.diff_victoryres >= 0 ? max(1, global.maxhp[i] * global.diff_victoryres) : global.hp[i]");
+    // give 1 pity hit point to poor Kris, why do they all keep leaving? ;(
     importGroup.QueueFindReplace("gml_GlobalScript_scr_losechar_ch1", "global.char[2] = 0;", "if (global.hp[1] <= 0) global.hp[1] = 1; global.char[2] = 0;");
+    // Check if character should be dead (hp<=0) at start of battle - vanilla game doesn't do this as it's impossible to go down outside of battle and not gameover
+    importGroup.QueueAppend("gml_Object_obj_battlecontroller_ch1_Create_0", @"
+        var got_a_live_one = false;
+        for (var i = 0; i < 3; i++) {
+            if (global.char[i] != 0) {
+                if (global.hp[global.char[i]] <= 0) {
+                    scr_dead(i);
+                    if (!got_a_live_one)
+                        global.charturn++;
+                } else
+                    got_a_live_one = true;
+            }
+        }
+    ");
 }
 importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "global.maxhp[i] / 8", "global.diff_victoryres >= 0 ? max(1, global.maxhp[i] * global.diff_victoryres) : global.hp[i]");
+// give 1 pity hit point to poor Kris, why do they all keep leaving? ;(
 importGroup.QueueFindReplace("gml_GlobalScript_scr_losechar", "global.char[2] = 0;", "if (global.hp[1] <= 0) global.hp[1] = 1; global.char[2] = 0;");
+// Check if character should be dead (hp<=0) at start of battle - vanilla game doesn't do this as it's impossible to go down outside of battle and not gameover
+importGroup.QueueAppend("gml_Object_obj_battlecontroller_Create_0", @"
+    var got_a_live_one = false;
+    for (var i = 0; i < 3; i++) {
+        if (global.char[i] != 0) {
+            if (global.hp[global.char[i]] <= 0) {
+                scr_dead(i);
+                if (!got_a_live_one)
+                    global.charturn++;
+            } else
+                got_a_live_one = true;
+        }
+    }
+");
 if (ch_no >= 5)
 {
     importGroup.QueueFindReplace("gml_GlobalScript_scr_endcombat_instant", "global.maxhp[i] / 8", "global.diff_victoryres >= 0 ? max(1, global.maxhp[i] * global.diff_victoryres) : global.hp[i]");
