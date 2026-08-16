@@ -2,7 +2,7 @@ deltaruneTargetVersion = "1.04"
 
 [metadata]
 name = "Custom Difficulty"
-version = "1.8.6"
+version = "1.9.0"
 description = "Difficulty options for DELTARUNE. Make the game Easy, Hard, or Nightmare. No-hit options included."
 author = [ "Emmahaha" ]
 packageID = "com.emmahaha.customdiffdemo"

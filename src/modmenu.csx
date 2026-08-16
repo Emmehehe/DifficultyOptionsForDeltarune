@@ -20,7 +20,7 @@ if (!Regex.IsMatch(displayName, expectedDisplayName, RegexOptions.IgnoreCase, Ti
 }
 
 // detect version
-string[] checkVersions = {"v2_0_0"/*, "v2_0_beta_2"*/};
+string[] checkVersions = {"v2_0_1", "v2_0_0"/*, "v2_0_beta_2"*/};
 string latestVersion = checkVersions[0];
 string detectedVersion = "not-installed";
 bool freshInstall = true;
@@ -69,30 +69,49 @@ else
 // if detected old version, prep for upgrade
 if (!freshInstall && detectedVersion != latestVersion) {
     switch (detectedVersion) {
+        case "v2_0_0":
+            {
+                UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
+                    ThrowOnNoOpFindReplace = true
+                };
+                string[] gamestarts = {"gml_GlobalScript_scr_gamestart"};
+                if (ch_no == 0)
+                {
+                    string[] demoGamestarts = {"gml_GlobalScript_scr_gamestart_ch1"};
+                    gamestarts = gamestarts.Concat(demoGamestarts).ToArray();
+                }
+                foreach (string gamestart in gamestarts) {
+                    importGroup.QueueRegexFindReplace(gamestart, @"var installed_modmenu__v2_0_0 = true;\s*global\.modmenu = [\s\S]*return menu;\s*}\s*};", "");
+                }
+                importGroup.Import();
+            }
+            break;
         case "v2_0_beta_2":
-            UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
-                ThrowOnNoOpFindReplace = true
-            };
-            string[] gamestarts = {"gml_GlobalScript_scr_gamestart"};
-            if (ch_no == 0)
             {
-                string[] demoGamestarts = {"gml_GlobalScript_scr_gamestart_ch1"};
-                gamestarts = gamestarts.Concat(demoGamestarts).ToArray();
+                UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
+                    ThrowOnNoOpFindReplace = true
+                };
+                string[] gamestarts = {"gml_GlobalScript_scr_gamestart"};
+                if (ch_no == 0)
+                {
+                    string[] demoGamestarts = {"gml_GlobalScript_scr_gamestart_ch1"};
+                    gamestarts = gamestarts.Concat(demoGamestarts).ToArray();
+                }
+                foreach (string gamestart in gamestarts) {
+                    importGroup.QueueRegexFindReplace(gamestart, @"var installed_modmenu = true;\s*global\.modmenu = [\s\S]*return menu;\s*}\s*};", "");
+                }
+                string[] copyLikes = {"gml_Object_DEVICE_MENU_Other_15"};
+                if (ch_no == 0)
+                {
+                    string[] demoCopyLikes = {"gml_Object_DEVICE_MENU_ch1_Other_15"};
+                    copyLikes = copyLikes.Concat(demoCopyLikes).ToArray();
+                }
+                foreach (string scrName in copyLikes)
+                {
+                    importGroup.QueueTrimmedLinesFindReplace(scrName, @"global.modmenu.copy(MENUCOORD[2], MENUCOORD[3]);", "");
+                }
+                importGroup.Import();
             }
-            foreach (string gamestart in gamestarts) {
-                importGroup.QueueRegexFindReplace(gamestart, @"var installed_modmenu = true;\s*global\.modmenu = [\s\S]*return menu;\s*}\s*};", "");
-            }
-            string[] copyLikes = {"gml_Object_DEVICE_MENU_Other_15"};
-            if (ch_no == 0)
-            {
-                string[] demoCopyLikes = {"gml_Object_DEVICE_MENU_ch1_Other_15"};
-                copyLikes = copyLikes.Concat(demoCopyLikes).ToArray();
-            }
-            foreach (string scrName in copyLikes)
-            {
-                importGroup.QueueTrimmedLinesFindReplace(scrName, @"global.modmenu.copy(MENUCOORD[2], MENUCOORD[3]);", "");
-            }
-            importGroup.Import();
             break;
         default:
             break;
@@ -723,26 +742,28 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                             }}
                         }} else {{
                             var value_adjust = 0;
-                            if (value <= -2)
-                                value_adjust = 0.1;
-                            else if (value <= -1)
-                                value_adjust = 0.05;
-                            else if (value <= -0.5)
-                                value_adjust = 0.02;
-                            else if (value <= -0.2)
-                                value_adjust = 0.01;
-                            else if (value < 0.2)
-                                value_adjust = 0.005;
-                            else if (value < 0.5)
-                                value_adjust = 0.01;
-                            else if (value < 1)
-                                value_adjust = 0.02;
-                            else if (value < 2)
-                                value_adjust = 0.05;
-                            else
-                                value_adjust = 0.1;
+                            for (var i = 0; i < scroll_todo; i++) {{
+                                if (value <= -2)
+                                    value_adjust = 0.1;
+                                else if (value <= -1)
+                                    value_adjust = 0.05;
+                                else if (value <= -0.5)
+                                    value_adjust = 0.02;
+                                else if (value <= -0.2)
+                                    value_adjust = 0.01;
+                                else if (value < 0.2)
+                                    value_adjust = 0.005;
+                                else if (value < 0.5)
+                                    value_adjust = 0.01;
+                                else if (value < 1)
+                                    value_adjust = 0.02;
+                                else if (value < 2)
+                                    value_adjust = 0.05;
+                                else
+                                    value_adjust = 0.1;
+                            }}
 
-                            value += value_adjust * scroll_todo;
+                            value += value_adjust;
 
                             for (var i = 0; i < array_length(ranges); i++) {{
                                 var range = ranges[i];
@@ -840,27 +861,29 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                             }}
                         }} else {{
                             var value_adjust = 0;
-                            if (value < -2)
-                                value_adjust = -0.1;
-                            else if (value < -1)
-                                value_adjust = -0.05;
-                            else if (value < -0.5)
-                                value_adjust = -0.02;
-                            else if (value < -0.2)
-                                value_adjust = -0.01;
-                            else if (value <= 0.2)
-                                value_adjust = -0.005;
-                            else if (value <= 0.5)
-                                value_adjust = -0.01;
-                            else if (value <= 1)
-                                value_adjust = -0.02;
-                            else if (value <= 2)
-                                value_adjust = -0.05;
-                            else
-                                value_adjust = -0.1;
-
                             var scroll_todo = slider_step div 1;
-                            value += value_adjust * scroll_todo;
+                            for (var i = 0; i < scroll_todo; i++) {{
+                                if (value < -2)
+                                    value_adjust = -0.1;
+                                else if (value < -1)
+                                    value_adjust = -0.05;
+                                else if (value < -0.5)
+                                    value_adjust = -0.02;
+                                else if (value < -0.2)
+                                    value_adjust = -0.01;
+                                else if (value <= 0.2)
+                                    value_adjust = -0.005;
+                                else if (value <= 0.5)
+                                    value_adjust = -0.01;
+                                else if (value <= 1)
+                                    value_adjust = -0.02;
+                                else if (value <= 2)
+                                    value_adjust = -0.05;
+                                else
+                                    value_adjust = -0.1;
+                            }}
+
+                            value += value_adjust;
 
                             for (var i = array_length(ranges) - 1; i >= 0; i--) {{
                                 var range = ranges[i];

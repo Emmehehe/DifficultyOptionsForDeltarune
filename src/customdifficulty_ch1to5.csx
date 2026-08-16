@@ -2001,22 +2001,11 @@ if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_Object_obj_sheary_smashcut_attack_Step_0", "timer2 == ((25 + (10 * type)) - ((3 + type) * difficulty))",
         "timer2 == ceil(global.diff_enemycd * ((25 + (10 * type)) - ((3 + type) * difficulty)))");
 
-    // revert this change so that netskie fake rabbick bullets can work properly: preserve original timing and add new, variably timed attacks
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer >= (global.diff_enemycd * bmax)", "btimer >= bmax");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer == special && i_ex(obj_netskie_enemy))", @"
-        if (btimer >= (global.diff_enemycd * bmax))
-        {
-            rab = instance_create(obj_growtangle.x + obj_growtangle.sprite_width + 10, obj_growtangle.y, obj_rabbitbullet);
-            rab.hspeed = choose(3 + random(1), 3 + random(1), 6) * -1;
-
-            if (rab.hspeed == -6)
-                rab.x += 50 + random(30);
-
-            scr_bullet_inherit(rab);
-        }
-
-        if (btimer == special && i_ex(obj_netskie_enemy))
-    ");
+    // netskie fake rabbick attack
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (special == 0 || btimer >= (global.diff_enemycd * bmax))", "if (special == 0 || (btimer % bmax) == 0)");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer >= (global.diff_enemycd * bmax)", "btimer % ceil(global.diff_enemycd * bmax) == 0");
+    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "special = 10 + irandom(20);", "special = btimer + 10 + irandom(20);");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_dbulletcontroller_Step_0", @"rab\.timepoints = 1;\s*btimer = 0;", "rab.timepoints = 1;");
     // netskie shadowman attack
     importGroup.QueueFindReplace("gml_Object_obj_shadowman_tommygun_Step_0", "bullet_timer = 4;", "bullet_timer = ceil(global.diff_enemycd * 4);");
     importGroup.QueueFindReplace("gml_Object_obj_shadowman_tommygun_Step_0", "bullet_timer += (10 + (irandom(1) * 5) + (4 * sameattack));", "bullet_timer += ceil(global.diff_enemycd * (10 + (irandom(1) * 5) + (4 * sameattack)));");
@@ -2067,24 +2056,35 @@ if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "((btimer - 12) % ceil(25 * ratio)) == (17 * sameattacker)",
         "((btimer - floor(global.diff_enemycd * 12)) % ceil(global.diff_enemycd * 25 * ratio)) == floor(global.diff_enemycd * 17 * sameattacker)");
 
-    // green & orange
-    importGroup.QueueFindReplace("gml_Object_obj_attack_green_cookingtime_Draw_0", "timer == (timermax - 3)", "timer == ceil(global.diff_enemycd * (timermax - 3))");
-    importGroup.QueueFindReplace("gml_Object_obj_attack_green_cookingtime_Draw_0", "(timer >= timermax)", "(timer >= global.diff_enemycd * timermax)");
-    importGroup.QueueFindReplace("gml_Object_obj_attack_green_cookingtime_Draw_0", "timer = -2;", "timer = floor(global.diff_enemycd * -2);");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 1", "(mytimer % ceil(global.diff_enemycd * 56)) == 1");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(other.mytimer > 5)", "(other.mytimer > global.diff_enemycd * 5)");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 15", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 15)");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 22", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 22)");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 29", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 29)");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 25", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 25)");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 30", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 30)");
-    // TODO be nice to include the omega attack
+    // // green & orange
+    // importGroup.QueueFindReplace("gml_Object_obj_attack_green_cookingtime_Draw_0", "timer == (timermax - 3)", "timer == ceil(global.diff_enemycd * (timermax - 3))");
+    // importGroup.QueueFindReplace("gml_Object_obj_attack_green_cookingtime_Draw_0", "(timer >= timermax)", "(timer >= global.diff_enemycd * timermax)");
+    // importGroup.QueueFindReplace("gml_Object_obj_attack_green_cookingtime_Draw_0", "timer = -2;", "timer = floor(global.diff_enemycd * -2);");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 1", "(mytimer % ceil(global.diff_enemycd * 56)) == 1");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(other.mytimer > 5)", "(other.mytimer > global.diff_enemycd * 5)");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 15", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 15)");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 22", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 22)");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 29", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 29)");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 25", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 25)");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(mytimer % 56) == 30", "(mytimer % ceil(global.diff_enemycd * 56)) == floor(global.diff_enemycd * 30)");
+    // // Orange omega attack
+    // importGroup.QueueFindReplace("gml_Object_obj_attack_orange_superattack_Draw_0", "loops = 9;", $"loops = ceil({one_over_cd} * 9);");
+    // importGroup.QueueFindReplace("gml_Object_obj_attack_orange_superattack_Draw_0", "max(0, loops - 4)", $"max(0, loops - ({one_over_cd} * 4))");
+    // importGroup.QueueFindReplace("gml_Object_obj_attack_orange_superattack_Draw_0", "rate = 1.75 - ((min(5, 10 - other.loops) * 2) / 30);", $"rate = 1.75 - ((min(({one_over_cd} * 5), ({one_over_cd} * 10) - other.loops) * global.diff_enemycd * 2) / 30);");
+    // importGroup.QueueFindReplace("gml_Object_obj_attack_orange_superattack_Draw_0", "if (counter < 24)", "if (counter < ceil(max(1, global.diff_enemycd * 25))-1)");
+    // importGroup.QueueFindReplace("gml_Object_obj_attack_orange_superattack_Draw_0", "if (counter == 25)", "if (counter == ceil(max(1, global.diff_enemycd * 25)))");
+    // importGroup.QueueFindReplace("gml_Object_obj_attack_orange_superattack_Draw_0", "counter > 25", "counter > ceil(max(1, global.diff_enemycd * 25))");
+    // importGroup.QueueFindReplace("gml_Object_obj_attack_orange_superattack_Draw_0", "if (counter == (38 + (5 * max(0, loops - (((global.diff_enemycd <= 0) ? 1 : (1 / global.diff_enemycd)) * 4))) + (24 * (loops == 1))))", "if (counter == ceil(max(2, global.diff_enemycd * (38 + (5 * max(0, loops - (((global.diff_enemycd <= 0) ? 1 : (1 / global.diff_enemycd)) * 4))) + (24 * (loops == 1))))))");
+    // // Green omega attack
+    // importGroup.QueueFindReplace("gml_Object_obj_omega_pan_manager_Create_0", "timer = -8;", "counter > global.diff_enemycd * 25");
+    // importGroup.QueueFindReplace("gml_Object_obj_omega_pan_manager_Step_0", "if (timer == 25)", "if (timer == ceil(global.diff_enemycd * 25))");
+    // importGroup.QueueFindReplace("gml_Object_obj_omega_pan_manager_Step_0", "if (timer == 35)", "if (timer == ceil(global.diff_enemycd * 35))");
 
     // yellow hat shooter
     importGroup.QueueFindReplace("gml_Object_obj_dw_fcastle_dangerous_platforming_Step_0", "hat_timer = -1;", "hat_timer = round(global.diff_enemycd * -1);");
 
-    // blue + yellow boss
-    // TODO this stuff is giga scripted and doesn't play ball well
+    // // blue + yellow boss
+    // // TODO this stuff is giga scripted and doesn't play ball well
     // importGroup.QueueFindReplace("gml_Object_obj_blue_guidelines_Step_0", "(timer % 3)", "(timer % ceil(global.diff_enemycd * 3))");
     // importGroup.QueueFindReplace("gml_Object_obj_blue_guidelines_Step_0", "(timer == 32)", "(timer == ceil(global.diff_enemycd * 32))");
     // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Alarm_0", "alarm[0] = 64;", "alarm[0] = ceil(global.diff_enemycd * 64);");
@@ -2102,25 +2102,25 @@ if (ch_no == 5) {
     // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "timer == 48", "timer == (43 + ceil(global.diff_enemycd * 5))");
     // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "timer == 72", "timer == (43 + ceil(global.diff_enemycd * 29))");
     // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_boxspin_Step_0", "timer == 106", "timer == (43 + ceil(global.diff_enemycd * 63))");
-    importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_flower_aim_Other_10", "alarm[0] = attack_speed;", "alarm[0] = ceil(global.diff_enemycd * attack_speed);");
-    importGroup.QueueFindReplace("gml_Object_obj_blue_singing2_Step_0", "timer % (20 + offset)", "timer % ceil(global.diff_enemycd * (20 + offset))");
-    importGroup.QueueFindReplace("gml_Object_obj_blue_singing2_Step_0", "sin(timer / 19)", $"sin({one_over_cd} * timer / 19)");
-    importGroup.QueueFindReplace("gml_Object_obj_blue_singing2_Draw_0", "timer * 7", $"{one_over_cd} * timer * 7");
+    // importGroup.QueueFindReplace("gml_Object_obj_enemy_blue_flower_aim_Other_10", "alarm[0] = attack_speed;", "alarm[0] = ceil(global.diff_enemycd * attack_speed);");
+    // importGroup.QueueFindReplace("gml_Object_obj_blue_singing2_Step_0", "timer % (20 + offset)", "timer % ceil(global.diff_enemycd * (20 + offset))");
+    // importGroup.QueueFindReplace("gml_Object_obj_blue_singing2_Step_0", "sin(timer / 19)", $"sin({one_over_cd} * timer / 19)");
+    // importGroup.QueueFindReplace("gml_Object_obj_blue_singing2_Draw_0", "timer * 7", $"{one_over_cd} * timer * 7");
 
-    // Mad Mew Mew
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer >= (global.diff_enemycd * (btimer_start + 15)))", "if (btimer >= (btimer_start + 15))");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer -= ceil(global.diff_enemycd * round(0.5 + ((13 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 2)) / _bullet_interval_modifier)));",
-        "btimer -= round(0.5 + ((13 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 2)) / _bullet_interval_modifier));");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "until (btimer < (global.diff_enemycd * (btimer_start + 15)));", "until (btimer < (btimer_start + 15));");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer == ceil(global.diff_enemycd * -173))", "if (btimer == -173)");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer = floor(global.diff_enemycd * 32);", "btimer = 32;");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer >= (global.diff_enemycd * 40))", "if (btimer >= 40)");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer = floor(global.diff_enemycd * (40 - floor(0.5 + (40 * _binterval))));", "btimer = (40 - floor(0.5 + (40 * _binterval)));");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "until (btimer < (global.diff_enemycd * 40));", "until (btimer < 40);");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer >= (global.diff_enemycd * (btimer_start + _startdelay)))", "if (btimer >= (btimer_start + _startdelay))");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer -= ceil(global.diff_enemycd * round(0.5 + ((45 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 1)) / _bullet_interval_modifier)));",
-        "btimer -= round(0.5 + ((45 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 1)) / _bullet_interval_modifier));");
-    importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "until (btimer < (global.diff_enemycd * (btimer_start + _startdelay)));", "until (btimer < (btimer_start + _startdelay));");
+    // // Mad Mew Mew
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer >= (global.diff_enemycd * (btimer_start + 15)))", "if (btimer >= (btimer_start + 15))");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer -= ceil(global.diff_enemycd * round(0.5 + ((13 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 2)) / _bullet_interval_modifier)));",
+    //     "btimer -= round(0.5 + ((13 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 2)) / _bullet_interval_modifier));");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "until (btimer < (global.diff_enemycd * (btimer_start + 15)));", "until (btimer < (btimer_start + 15));");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer == ceil(global.diff_enemycd * -173))", "if (btimer == -173)");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer = floor(global.diff_enemycd * 32);", "btimer = 32;");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer >= (global.diff_enemycd * 40))", "if (btimer >= 40)");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer = floor(global.diff_enemycd * (40 - floor(0.5 + (40 * _binterval))));", "btimer = (40 - floor(0.5 + (40 * _binterval)));");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "until (btimer < (global.diff_enemycd * 40));", "until (btimer < 40);");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "if (btimer >= (global.diff_enemycd * (btimer_start + _startdelay)))", "if (btimer >= (btimer_start + _startdelay))");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "btimer -= ceil(global.diff_enemycd * round(0.5 + ((45 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 1)) / _bullet_interval_modifier)));",
+    //     "btimer -= round(0.5 + ((45 * ds_list_find_value(obj_purplecontrols.ds_bullet_list, 1)) / _bullet_interval_modifier));");
+    // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "until (btimer < (global.diff_enemycd * (btimer_start + _startdelay)));", "until (btimer < (btimer_start + _startdelay));");
 
     // Final Flowery
     // importGroup.QueueFindReplace("gml_Object_obj_debug_orangeheartcontroller_Step_0", "= abs((fakecamxspeedbase + fakecamxspeedadditional) / ", $"= abs({one_over_cd} * (fakecamxspeedbase + fakecamxspeedadditional) / ");
