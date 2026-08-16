@@ -193,3 +193,4 @@ for f in "${TARGETS[@]}"; do
 done
 
 log "Done. Launch DELTARUNE and open the Mods menu to configure difficulty."
+read -r -n 1 -s -p $'Press any key to exit\n'
