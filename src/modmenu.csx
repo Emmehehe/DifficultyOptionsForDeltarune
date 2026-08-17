@@ -20,7 +20,7 @@ if (!Regex.IsMatch(displayName, expectedDisplayName, RegexOptions.IgnoreCase, Ti
 }
 
 // detect version
-string[] checkVersions = {"v2_0_1", "v2_0_0"/*, "v2_0_beta_2"*/};
+string[] checkVersions = {/* TODO */"WIP3", "WIP2", "WIP", "v2_0_1", "v2_0_0"/*, "v2_0_beta_2"*/};
 string latestVersion = checkVersions[0];
 string detectedVersion = "not-installed";
 bool freshInstall = true;
@@ -68,38 +68,26 @@ else
 
 // if detected old version, prep for upgrade
 if (!freshInstall && detectedVersion != latestVersion) {
+    UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
+        ThrowOnNoOpFindReplace = true
+    };
+    string[] gamestarts = {"gml_GlobalScript_scr_gamestart"};
+    if (ch_no == 0)
+    {
+        string[] demoGamestarts = {"gml_GlobalScript_scr_gamestart_ch1"};
+        gamestarts = gamestarts.Concat(demoGamestarts).ToArray();
+    }
+    foreach (string gamestart in gamestarts) {
+        importGroup.QueueRegexFindReplace(gamestart, @$"var installed_modmenu__{detectedVersion} = true;\s*global\.modmenu = [\s\S]*return menu;\s*}}\s*}};", "");
+    }
+
     switch (detectedVersion) {
+        case "v2_0_1":
         case "v2_0_0":
-            {
-                UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
-                    ThrowOnNoOpFindReplace = true
-                };
-                string[] gamestarts = {"gml_GlobalScript_scr_gamestart"};
-                if (ch_no == 0)
-                {
-                    string[] demoGamestarts = {"gml_GlobalScript_scr_gamestart_ch1"};
-                    gamestarts = gamestarts.Concat(demoGamestarts).ToArray();
-                }
-                foreach (string gamestart in gamestarts) {
-                    importGroup.QueueRegexFindReplace(gamestart, @"var installed_modmenu__v2_0_0 = true;\s*global\.modmenu = [\s\S]*return menu;\s*}\s*};", "");
-                }
-                importGroup.Import();
-            }
+            // no other changes needed
             break;
         case "v2_0_beta_2":
             {
-                UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
-                    ThrowOnNoOpFindReplace = true
-                };
-                string[] gamestarts = {"gml_GlobalScript_scr_gamestart"};
-                if (ch_no == 0)
-                {
-                    string[] demoGamestarts = {"gml_GlobalScript_scr_gamestart_ch1"};
-                    gamestarts = gamestarts.Concat(demoGamestarts).ToArray();
-                }
-                foreach (string gamestart in gamestarts) {
-                    importGroup.QueueRegexFindReplace(gamestart, @"var installed_modmenu = true;\s*global\.modmenu = [\s\S]*return menu;\s*}\s*};", "");
-                }
                 string[] copyLikes = {"gml_Object_DEVICE_MENU_Other_15"};
                 if (ch_no == 0)
                 {
@@ -110,12 +98,13 @@ if (!freshInstall && detectedVersion != latestVersion) {
                 {
                     importGroup.QueueTrimmedLinesFindReplace(scrName, @"global.modmenu.copy(MENUCOORD[2], MENUCOORD[3]);", "");
                 }
-                importGroup.Import();
             }
             break;
         default:
             break;
     }
+
+    importGroup.Import();
 }
 
 // Load texture file
@@ -363,6 +352,23 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
         }},
 
         // step/draw
+        cur_jewel_dt: 0, // used in place of cur_jewel so that modmenu can respond to framerate changes properly
+        // delta_seconds is the actual time between now and last frame. Accounts for frame drops, but could cause buggy behaviour for code that assumes every frame is the same speed (all vanilla code).
+        delta_seconds: function() {{
+            return delta_time / 1000000;
+        }},
+        // delta as multiplier of vanilla game speed
+        delta_multi: function() {{
+            return 30 * delta_time / 1000000;
+        }},
+        // frame_seconds is the target time between frames. Doesn't account for frame drops, but works better with code that assumes every frame is the same speed (all vanilla code).
+        frame_seconds: function() {{
+            return 1 / game_get_speed(gamespeed_fps);
+        }},
+        // frame timing as multiplier of vanilla game speed
+        frame_multi: function() {{
+            return 30 / game_get_speed(gamespeed_fps);
+        }},
         step_darkmenu: function() {{
             // override for deltaesp's spanish translation
             if (lang_override != ""es"" && global.lang == ""en"" && variable_instance_exists(global, ""esp_names"")) {{
@@ -457,11 +463,11 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                 return arg1[row_no].is_hidden();
             }}
 
-            function isdisabled(arg0, arg1) {{
+            function isselectable(arg0, arg1) {{
                 if (row_no >= (arg0 - 1))
-                    return false;
+                    return true;
 
-                return arg1[row_no].is_disabled();
+                return !arg1[row_no].is_disabled() && !arg1[row_no].is_hidden() && arg1[row_no].type != ""Header"";
             }}
 
             function shouldskiprow(arg0, arg1) {{
@@ -546,13 +552,6 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     // back button
                     form_length++;
 
-                    // TODO freezes game :/ // state change could leave us stranded on a non-selectable row, so need to check
-                    // var movecount = 0;
-                    // while ((movecount < form_length + 1) && shouldskiprow(form_length, form_data)) {{
-                    //     modsubmenu_down(form_length);
-                    //     movecount++;
-                    // }}
-
                     if (up_p()) {{
                         other.movenoise = 1;
 
@@ -577,7 +576,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                             movecount++;
                         }}
                     }}
-                    if (button1_p() && other.onebuffer < 0 && other.twobuffer < 0 && !isdisabled(form_length, form_data)) {{
+                    if (button1_p() && other.onebuffer < 0 && other.twobuffer < 0 && isselectable(form_length, form_data)) {{
                         other.onebuffer = 2;
                         other.selectnoise = 1;
 
@@ -606,7 +605,6 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                                 slider_orig_value = row_data.data_ref.get();
 
                             if (row_data.type == ""Toggle"") {{
-                                // TODO does this handle spread ranges properly?
                                 var value_range = row_data.value_range_loc();
                                 var ranges = global.modmenu.string_split(value_range, "";"");
                                 var value = row_data.data_ref.get();
@@ -925,8 +923,8 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     }}
 
                     if (right_h() || left_h()) {{
-                        slider_step += slider_speed;
-                        slider_speed = clamp(slider_speed + slider_accel, slider_speed_min, slider_speed_max);
+                        slider_step += slider_speed * delta_multi();
+                        slider_speed = clamp(slider_speed + slider_accel * delta_multi(), slider_speed_min, slider_speed_max);
                     }} else {{
                         slider_step = 1; // reset to 1 as first interaction should be instantaneous
                         slider_speed = slider_speed_min;
@@ -976,6 +974,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     draw_rectangle(other.xx + 60, other.yy + 90, other.xx + 580, other.yy + 410, false);
                     with (other) scr_darkbox(xx + 50, yy + 80, xx + 590, yy + 420);
                 }}
+                cur_jewel_dt += 1 * delta_multi();
 
                 draw_set_color(c_white);
 
@@ -1027,7 +1026,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     draw_surface(get_surf_titles(), other.xx + 110, other.yy + 110);
 
                     if (!isSubmenu) {{
-                        other.menusiner += 1;
+                        other.menusiner += 1 * frame_multi();
                         draw_sprite_part(spr_heart_harrows, other.menusiner / 20, 8 - 8 * (menu_no > 0), 0, 16 + 8 * (menu_no > 0) + 8 * (menu_no < (menu_dark_count - 1)), 16, other.xx + 85 + heartscrolloffset - 8 * (menu_no > 0), other.yy + 120);
                     }}
 
@@ -1135,10 +1134,10 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                             draw_rectangle(other.xx + 85, other.yy + modscrollbary + modscrollery, other.xx + 90, other.yy + modscrollbary + modscrollerlength + modscrollery, false);
 
                             if (row_scroll > 0)
-                                draw_sprite_ext(spr_morearrow, 0, other.xx + 81, (other.yy + modscrollbary) - 10 - (sin(other.cur_jewel / 12) * 3), 1, -1, 0, c_white, 1);
+                                draw_sprite_ext(spr_morearrow, 0, other.xx + 81, (other.yy + modscrollbary) - 10 - (sin(cur_jewel_dt / 12) * 3), 1, -1, 0, c_white, 1);
 
                             if ((row_scroll + 7) < (array_length(form_data) + 1))
-                                draw_sprite_ext(spr_morearrow, 0, other.xx + 81, other.yy + 10 + modscrollbary + modscrollbarlength + (sin(other.cur_jewel / 12) * 3), 1, 1, 0, c_white, 1);
+                                draw_sprite_ext(spr_morearrow, 0, other.xx + 81, other.yy + 10 + modscrollbary + modscrollbarlength + (sin(cur_jewel_dt / 12) * 3), 1, 1, 0, c_white, 1);
                         }}
                     }}
 
@@ -1254,7 +1253,6 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                 run_onclose: function() {{ if (type == ""OnClose"") func(); }},
                 run_onload: function() {{ func(); }}
             }};
-            // TODO auto generation for ini_name not work, haven't tested it
             try {{ var check = menu.ini_name; }} catch (_e) {{ menu.ini_name = string_savename(find_loc(menu.title)); }}
             {{ var check = menu.ini_name; if (is_string(check) && !is_savenamestring(check)) menu.ini_name = string_savename_addini(menu.ini_name); }}
             try {{ var check = menu.ini_name; if (!is_string(check) || !is_savenamestring(check)) throw ""ini_name isn't a string or contains invalid characters or no .ini""; }} catch (_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but ini_name is missing; or contains invalid characters. ini_name = '"" + string(menu.ini_name) + ""'""); }}
