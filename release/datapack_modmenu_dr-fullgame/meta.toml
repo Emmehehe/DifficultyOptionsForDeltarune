@@ -2,7 +2,7 @@ deltaruneTargetVersion = "1.05"
 
 [metadata]
 name = "ModMenu"
-version = "2.0.1"
+version = "2.0.2"
 description = "ModMenu for DELTARUNE. Framework for mods to add settings menus."
 author = [ "Emmahaha" ]
 packageID = "com.emmahaha.modmenu"
