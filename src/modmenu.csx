@@ -20,7 +20,7 @@ if (!Regex.IsMatch(displayName, expectedDisplayName, RegexOptions.IgnoreCase, Ti
 }
 
 // detect version
-string[] checkVersions = {/* TODO */"WIP3", "WIP2", "WIP", "v2_0_1", "v2_0_0"/*, "v2_0_beta_2"*/};
+string[] checkVersions = {"v2_0_2", "v2_0_1", "v2_0_0"/*, "v2_0_beta_2"*/};
 string latestVersion = checkVersions[0];
 string detectedVersion = "not-installed";
 bool freshInstall = true;
