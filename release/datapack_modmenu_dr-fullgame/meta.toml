@@ -1,0 +1,37 @@
+deltaruneTargetVersion = "1.05"
+
+[metadata]
+name = "ModMenu"
+version = "2.0.1"
+description = "ModMenu for DELTARUNE. Framework for mods to add settings menus."
+author = [ "Emmahaha" ]
+packageID = "com.emmahaha.modmenu"
+game = "toby.deltarune"
+url = "https://gamebanana.com/tools/20839"
+mergeSupport = true
+tags = [ "other" ]
+
+[color]
+r = 255
+g = 0
+b = 0
+
+[[neededFiles]]
+file = "./chapter1_windows/data.win"
+checksum = "82c2bb61b8d78cd287120f6301588fecba34ec5a890bac711b7a8774c760ec70"
+
+[[neededFiles]]
+file = "./chapter2_windows/data.win"
+checksum = "047c5ab003e3e017a709c02757e119c81e0327760169512110fd276b19241e68"
+
+[[neededFiles]]
+file = "./chapter3_windows/data.win"
+checksum = "c1a0925343694ec9b9adcbf2f916a720b02fd1b999286cfe8fe6a52f3320f714"
+
+[[neededFiles]]
+file = "./chapter4_windows/data.win"
+checksum = "ed64789586238b52375e994e1c1cf13694dd2d0dab57d13e639b9c892e37d8f2"
+
+[[neededFiles]]
+file = "./chapter5_windows/data.win"
+checksum = "370dfd141d2955d5a1960122919b16e4092b52ffbb85fda541bc4680c6b3b85c"
