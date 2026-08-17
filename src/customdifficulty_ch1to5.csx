@@ -924,34 +924,25 @@ if (ch_no == 4) {
 // Apply damage multiplier (Damage Over Time)
 if (ch_no >= 2 || ch_no == 0)
 {
-    importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_battlecontroller_Step_0", "t_siner++;", "");
+    // importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_battlecontroller_Step_0", "t_siner++;", "");
     importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_battlecontroller_Step_0", "if (global.charweapon[4] == 13)", @"
         if (global.charweapon[4] == 13)
         {
+            var multi_t_siner = t_siner * global.diff_damagemulti;
             if (global.hp[4] > round(global.maxhp[4] / 3))
-                global.hp[4] = max(round(global.maxhp[4] / 3), global.hp[4] - floor(t_siner / 6));
+                global.hp[4] = max(round(global.maxhp[4] / 3), global.hp[4] - floor(multi_t_siner / 6));
             
-            t_siner = t_siner % 6;
-            t_siner += global.diff_damagemulti;
+            t_siner = (multi_t_siner % 6) / global.diff_damagemulti;
         }
 
         if (false)
     ");
+    // poison in greater amounts, and acts faster - as multi increases
     string poisonScrName = (ch_no == 2 || ch_no == 0) ? "gml_Object_obj_heroparent_Draw_0" : "gml_Object_obj_heroparent_Step_0";
-    importGroup.QueueTrimmedLinesFindReplace(poisonScrName, "poisontimer++;", @"
-        poisontimer++;
-        poisondmgtimer += global.diff_damagemulti;
-    ");
-    importGroup.QueueTrimmedLinesFindReplace(poisonScrName, "global.hp[global.char[myself]]--;", 
-        "global.hp[global.char[myself]] = max(1, global.hp[global.char[myself]] - floor(poisondmgtimer / 10));");
-    importGroup.QueueTrimmedLinesFindReplace(poisonScrName, "poisonamount = 0;", @"
-        poisonamount = 0;
-        poisondmgtimer = 0;
-    ");
-    importGroup.QueueTrimmedLinesFindReplace(poisonScrName, "poisontimer = 0;", @"
-        poisontimer = 0;
-        poisondmgtimer = poisondmgtimer % 10;
-    ");
+    importGroup.QueueTrimmedLinesFindReplace(poisonScrName, "if (poisontimer >= 10)",
+        "if ((global.diff_damagemulti * poisontimer) >= 10)");
+    importGroup.QueueTrimmedLinesFindReplace("gml_GlobalScript_scr_spell", "global.charinstance[star].poisonamount = 60;",
+        "global.charinstance[star].poisonamount = global.diff_damagemulti * 60;");
 }
 if (ch_no == 4)
 {
@@ -1771,7 +1762,7 @@ if (ch_no == 3) {
     // include shadowman tommy gun
     importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_tommygun_Step_0", "(?<!turn)timer <(=?) ([0-9|\\.]+)", "timer <$1 global.diff_enemycd * ($2)");
     importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_tommygun_Step_0", "(?<!_|turn)timer == ([0-9|\\.]+)", "timer == ceil(global.diff_enemycd * ($1))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_tommygun_Step_0", "bullet_timer (\\+?-?)= ([^;]+)", "bullet_timer $1= floor(global.diff_enemycd * ($2))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shadowman_tommygun_Step_0", "bullet_timer (\\+?)= ([^;]+)", "bullet_timer $1= floor(global.diff_enemycd * ($2))");
 
     // include Lanino & Elnina
     importGroup.QueueFindReplace("gml_Object_obj_elnina_mascotattack_Step_0", "shottimer[i] >= shotrate[i]", "shottimer[i] >= global.diff_enemycd * shotrate[i]");
@@ -1780,7 +1771,7 @@ if (ch_no == 3) {
     importGroup.QueueFindReplace("gml_Object_obj_watercooler_bullet_rainball_Step_0", "timer >= threshold", "timer >= (global.diff_enemycd * threshold)");
 
     // include zaper
-    importGroup.QueueRegexFindReplace("gml_Object_obj_zapper_laser_manager_Alarm_0", "alarm\\[(0|1)\\] (\\+?-?)= ([^;]+)", "alarm[$1] $2= ceil(global.diff_enemycd * ($3))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_zapper_laser_manager_Alarm_0", "alarm\\[(0|1)\\] = ([^;]+)", "alarm[$1] = ceil(global.diff_enemycd * ($2))");
 
     // Fix shutta crash
     importGroup.QueueFindReplace("gml_Object_obj_shutta_rotation_attack_Other_10", "other.afterimage_count", "min(other.afterimage_count, array_length(afterimage))");
@@ -1789,8 +1780,8 @@ if (ch_no == 3) {
 
     // include Tenna
     importGroup.QueueRegexFindReplace("gml_Object_obj_tenna_smashcut_attack_Step_0", "timer == ([0-9|\\.]+)", "timer == ceil(global.diff_enemycd * ($1))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_tenna_smashcut_attack_Step_0", "timer (\\+?-?)= ([^;]+)", "timer $1= floor(global.diff_enemycd * ($2))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_tenna_allstars_manager_Create_0", "(?<!turn)timer (\\+?-?)= ([^;]+)", "timer $1= floor(global.diff_enemycd * ($2))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_tenna_smashcut_attack_Step_0", "timer = ([^;]+)", "timer = floor(global.diff_enemycd * ($1))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_tenna_allstars_manager_Create_0", "(?<!turn)timer = ([^;]+)", "timer = floor(global.diff_enemycd * ($1))");
     importGroup.QueueFindReplace("gml_Object_obj_tenna_allstars_manager_Step_0", "(timer % 13) == 0", "(timer % ceil(global.diff_enemycd * 13)) == 0");
     importGroup.QueueFindReplace("gml_Object_obj_tenna_allstars_manager_Step_0", "(timer % 32) == 16", "(timer % (2 * ceil(global.diff_enemycd * 16))) == ceil(global.diff_enemycd * 16)");
     importGroup.QueueFindReplace("gml_Object_obj_tenna_allstars_manager_Step_0", "(timer % 32) == 0", "(timer % (2 * ceil(global.diff_enemycd * 16))) == 0");
@@ -1798,7 +1789,7 @@ if (ch_no == 3) {
     importGroup.QueueFindReplace("gml_Object_obj_tenna_rimshot_star_Step_0", "laugh_timer += 0.25;", $"laugh_timer += {one_over_cd} * 0.25;");
     importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "rimshot_timer = 74;", "rimshot_timer = ceil(global.diff_enemycd * 74);");
     // importGroup.QueueFindReplace("gml_Object_obj_dbulletcontroller_Step_0", "(btimer % rate1) == rate2", "(btimer % ceil(global.diff_enemycd * rate1)) == floor(global.diff_enemycd * rate2)");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_actor_tenna_Create_0", "(?<=lightemup|bullet_)timer (\\+?-?)= ([^;]+)", "timer $1= floor(global.diff_enemycd * ($2))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_actor_tenna_Create_0", "(?<=lightemup|bullet_)timer = ([^;]+)", "timer = floor(global.diff_enemycd * ($1))");
     importGroup.QueueFindReplace("gml_Object_obj_actor_tenna_Draw_0", "bullet_timer > (_rate - _jumpspeed)", "bullet_timer > (global.diff_enemycd * (_rate - _jumpspeed))");
     importGroup.QueueFindReplace("gml_Object_obj_actor_tenna_Draw_0", "(bullet_timer + _movespeed + _waitspeed) > (_rate - _jumpspeed)",
         $"(({one_over_cd} * bullet_timer) + _movespeed + _waitspeed) > (_rate - _jumpspeed)");
@@ -1819,7 +1810,7 @@ if (ch_no == 3) {
     importGroup.QueueFindReplace("gml_Object_obj_actor_tenna_Draw_0", "lightemuptimer == round(_graspspeed / 2)", "lightemuptimer == ceil(global.diff_enemycd * round(_graspspeed / 2))");
     importGroup.QueueFindReplace("gml_Object_obj_actor_tenna_Draw_0", "lightemuptimer >= _graspspeed", "lightemuptimer >= (global.diff_enemycd * _graspspeed)");
     importGroup.QueueRegexFindReplace("gml_Object_obj_actor_tenna_Draw_0", "lightemuptimer >(=?) ([0-9|\\.]+)", "lightemuptimer >$1 global.diff_enemycd * ($2)");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_actor_tenna_Draw_0", "lightemuptimer (\\+?-?)= ([^;]+)", "lightemuptimer $1= floor(global.diff_enemycd * ($2))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_actor_tenna_Draw_0", "lightemuptimer = ([^;]+)", "lightemuptimer = floor(global.diff_enemycd * ($1))");
 
     // include da knight
     importGroup.QueueFindReplace("gml_Object_obj_knight_roaring2_Step_0", "(roaring_timer % 5)", "(roaring_timer % ceil(max(0.25, global.diff_enemycd) * 5))");
@@ -1866,8 +1857,8 @@ if (ch_no == 3) {
     importGroup.QueueRegexFindReplace("gml_Object_obj_knight_tunnel_slasher_2_revised_Step_0", "(?<!turn|intro)timer == ([0-9|\\.]+)", "timer == ceil(global.diff_enemycd * ($1))");
     importGroup.QueueRegexFindReplace("gml_Object_obj_knight_tunnel_slasher_2_revised_Step_0", "(?<!turn|intro)timer <(=?) ([0-9|\\.]+)", "timer <$1 global.diff_enemycd * ($2)");
     importGroup.QueueFindReplace("gml_Object_obj_knight_tunnel_slasher_2_revised_Step_0", "((fake_timer + 8) % 4)", "(fake_timer % ceil(global.diff_enemycd * 4))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_knight_tunnel_slasher_2_revised_Step_0", "(?<!turn|intro)timer (\\+?-?)= ([^;]+)", "timer $1= floor(global.diff_enemycd * ($2))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_knight_tunnel_slasher_2_revised_Other_10", "(?<!turn|intro)timer (\\+?-?)= ([^;]+)", "timer $1= floor(global.diff_enemycd * ($2))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_knight_tunnel_slasher_2_revised_Step_0", "(?<!turn|intro)timer = ([^;]+)", "timer = floor(global.diff_enemycd * ($1))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_knight_tunnel_slasher_2_revised_Other_10", "(?<!turn|intro)timer = ([^;]+)", "timer = floor(global.diff_enemycd * ($1))");
     importGroup.QueueFindReplace("gml_Object_obj_sword_tunnel_manager_Create_0", "timer = -40 + irandom(10);", "timer = floor(global.diff_enemycd * -40 + irandom(10));");
     importGroup.QueueFindReplace("gml_Object_obj_sword_tunnel_manager_Step_0", "timer >= rate", "timer >= global.diff_enemycd * rate");
     importGroup.QueueFindReplace("gml_Object_obj_sword_tunnel_manager_Step_0", "timer = max(0, sin(tobytimer / 6) * 2);", "timer = floor(global.diff_enemycd * max(0, sin(tobytimer / 6) * 2));");
@@ -2135,34 +2126,34 @@ if (ch_no == 3)
 {
     const string gmbrdenemycd = "(global.diff_gmbrdenemycd < 0 ? global.diff_enemycd : global.diff_gmbrdenemycd)";
     // basic enemies
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_bluebird_Step_0", "bulletimer == (-?[0-9|\\.]+)", $"bulletimer == ceil({gmbrdenemycd} * ($1))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_bluebird_Step_0", "bulletimer (\\+?-?)= ([^;]+)", $"bullettimer $1= floor({gmbrdenemycd} * ($2))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_yellowflower_Create_0", "bubbletimer (\\+?-?)= ([^;]+)", $"bubbletimer $1= floor({gmbrdenemycd} * ($2))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_bluebird_Step_0", "bulletimer >= (-?[0-9|\\.]+)", $"bulletimer >= ({gmbrdenemycd} * ($1))");
+    // importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_bluebird_Step_0", "bulletimer = ([^;]+)", $"bullettimer = floor({gmbrdenemycd} * ($1))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_yellowflower_Create_0", "bubbletimer = ([^;]+)", $"bubbletimer = floor({gmbrdenemycd} * ($1))");
     importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_yellowflower_Step_0", "bubbletimer == (-?[0-9|\\.]+)", $"bubbletimer == ceil({gmbrdenemycd} * ($1))");
     importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_yellowflower_Step_0", "bubbletimer >(=?) (-?[0-9|\\.]+)", $"bubbletimer >$1 {gmbrdenemycd} * ($2)");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_yellowflower_Step_0", "bubbletimer (\\+?-?)= ([^;]+)", $"bubbletimer $1= floor({gmbrdenemycd} * ($2))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_yellowflower_Other_22", "bubbletimer (\\+?-?)= ([^;]+)", $"bubbletimer $1= floor({gmbrdenemycd} * ($2))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_yellowflower_Step_0", "bubbletimer = ([^;]+)", $"bubbletimer = floor({gmbrdenemycd} * ($1))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_yellowflower_Other_22", "bubbletimer = ([^;]+)", $"bubbletimer = floor({gmbrdenemycd} * ($1))");
     importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_offscreenevent_Step_0", "timer == (-?[0-9|\\.]+)", $"timer == ceil({gmbrdenemycd} * ($1))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_offscreenevent_Step_0", "timer (\\+?-?)= ([^;]+)", $"timer $1= floor({gmbrdenemycd} * ($2))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_lizard_Create_0", "bulletimer (\\+?-?)= ([^;]+)", $"bulletimer $1= floor({gmbrdenemycd} * ($2))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_offscreenevent_Step_0", "timer = ([^;]+)", $"timer = floor({gmbrdenemycd} * ($1))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_lizard_Create_0", "bulletimer = ([^;]+)", $"bulletimer = floor({gmbrdenemycd} * ($1))");
     importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_lizard_Step_0", "bulletimer >(=?) (-?[0-9|\\.]+)", $"bulletimer >$1 {gmbrdenemycd} * ($2)");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_lizard_Step_0", "bulletimer (\\+?-?)= ([^;]+)", $"bulletimer $1= floor({gmbrdenemycd} * ($2))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_lizard_Other_22", "bulletimer (\\+?-?)= ([^;]+)", $"bulletimer $1= floor({gmbrdenemycd} * ($2))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_lizard_Step_0", "bulletimer = ([^;]+)", $"bulletimer = floor({gmbrdenemycd} * ($1))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_lizard_Other_22", "bulletimer = ([^;]+)", $"bulletimer = floor({gmbrdenemycd} * ($1))");
     importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_singingcat_Step_0", "bubbletimer == (-?[0-9|\\.]+)", $"bubbletimer == ceil({gmbrdenemycd} * ($1))");
     importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_singingcat_Step_0", "bubbletimer >(=?) (-?[0-9|\\.]+)", $"bubbletimer >$1 {gmbrdenemycd} * ($2)");
     importGroup.QueueFindReplace("gml_Object_obj_board_enemy_silentcat_Step_0", "waketimer == 7", $"waketimer == ceil({gmbrdenemycd} * 7)");
     importGroup.QueueFindReplace("gml_Object_obj_board_enemy_silentcat_Step_0", "waketimer == 8", $"waketimer == ceil({gmbrdenemycd} * 7) + 1");
     importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_flower_Step_0", "timer == (-?[0-9|\\.]+)", $"timer == ceil({gmbrdenemycd} * ($1))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_flower_Step_0", "timer (\\+?-?)= ([^;]+)", $"timer $1= floor({gmbrdenemycd} * ($2))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_monster_Create_0", "bulletimer (\\+?-?)= ([^;]+)", $"bulletimer $1= floor({gmbrdenemycd} * ($2))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_flower_Step_0", "timer = ([^;]+)", $"timer = floor({gmbrdenemycd} * ($1))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_monster_Create_0", "bulletimer = ([^;]+)", $"bulletimer = floor({gmbrdenemycd} * ($1))");
     importGroup.QueueFindReplace("gml_Object_obj_board_enemy_monster_Step_0", "bulletimer > shoot_wait_time", $"bulletimer > ({gmbrdenemycd} * shoot_wait_time)");
     importGroup.QueueFindReplace("gml_Object_obj_board_enemy_monster_Step_0", "bulletimer <= shoot_wait_time", $"bulletimer <= ({gmbrdenemycd} * shoot_wait_time)");
     importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_monster_Step_0", "bulletimer >(=?) (-?[0-9|\\.]+)", $"bulletimer >$1 {gmbrdenemycd} * ($2)");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_monster_Step_0", "bulletimer (\\+?-?)= ([^;]+)", $"bulletimer $1= floor({gmbrdenemycd} * ($2))");
-    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_monster_Other_22", "bulletimer (\\+?-?)= ([^;]+)", $"bulletimer $1= floor({gmbrdenemycd} * ($2))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_monster_Step_0", "bulletimer = ([^;]+)", $"bulletimer = floor({gmbrdenemycd} * ($1))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_monster_Other_22", "bulletimer = ([^;]+)", $"bulletimer = floor({gmbrdenemycd} * ($1))");
     // John Mantleholder / Nightmare
-    importGroup.QueueRegexFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "(?<=burstwave|spawnenemies|flamewave|dash)timer (\\+?-?)= ([^;]+)",
-        $"timer $1= floor({gmbrdenemycd} * ($2))");
+    importGroup.QueueRegexFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "(?<=burstwave|spawnenemies|flamewave|dash)timer = ([^;]+)",
+        $"timer = floor({gmbrdenemycd} * ($1))");
     importGroup.QueueRegexFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "(?<=burstwave|spawnenemies|flamewave|dash)timer >(=?) (-?[0-9|\\.]+)",
         $"timer >$1 {gmbrdenemycd} * ($2)");
     importGroup.QueueRegexFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "(?<=burstwave|spawnenemies|flamewave|dash)timer == (-?[0-9|\\.]+)",
