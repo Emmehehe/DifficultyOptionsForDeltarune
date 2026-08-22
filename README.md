@@ -48,7 +48,8 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
 
 ***Player***
 - **Damage** — multiply outgoing damage by this value
-- **Healing** — multiply healing from spells & actions by this value
+- **Healing** — multiply healing from spells & actions by this value*
+  - *Items are not affected
 - **TP Gain** — multiply TP gain from all sources (except item use) by this value
 - **Mercy** — multiply mercy build-up by this value
 - **SAVE Point Heal** — toggle the healing from save points
