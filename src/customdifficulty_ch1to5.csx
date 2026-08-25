@@ -47,6 +47,7 @@ readonly struct Preset {
     public readonly float enemycd { get; init; }       = 1;
     public readonly float gmbrdenemycd { get; init; }  = -1;
     public readonly float tpgain { get; init; }        = 1;
+    public readonly float tpitems { get; init; }       = 1;
     public readonly int extraenemies { get; init; }    = 0;
     public readonly float battlerewards { get; init; } = 1;
     public readonly bool rewardranking { get; init; }  = false;
@@ -56,6 +57,7 @@ readonly struct Preset {
     public readonly float plrdmg { get; init; }        = 1;
     public readonly float gmbrdplrdmg { get; init; }   = -1;
     public readonly float plrheal { get; init; }       = 1;
+    public readonly float healitems { get; init; }     = 1;
     public readonly float gmbrdplrheal { get; init; }  = -1;
     public readonly float mercy { get; init; }         = 1;
     public readonly bool saveheal { get; init; }       = true;
@@ -212,6 +214,7 @@ foreach (string scrName in gamestartLikes)
             ds_map_add(presetdata, ""enemycd"", global.diff_enemycd);
             ds_map_add(presetdata, ""gmbrdenemycd"", global.diff_gmbrdenemycd);
             ds_map_add(presetdata, ""tpgain"", global.diff_tpgain);
+            ds_map_add(presetdata, ""tpitems"", global.diff_tpitems);
             ds_map_add(presetdata, ""extraenemies"", global.diff_extraenemies);
             ds_map_add(presetdata, ""battlerewards"", global.diff_battlerewards);
             ds_map_add(presetdata, ""rewardranking"", global.diff_rewardranking);
@@ -221,6 +224,7 @@ foreach (string scrName in gamestartLikes)
             ds_map_add(presetdata, ""plrdmg"", global.diff_plrdmg);
             ds_map_add(presetdata, ""gmbrdplrdmg"", global.diff_gmbrdplrdmg);
             ds_map_add(presetdata, ""plrheal"", global.diff_plrheal);
+            ds_map_add(presetdata, ""healitems"", global.diff_healitems);
             ds_map_add(presetdata, ""gmbrdplrheal"", global.diff_gmbrdplrheal);
             ds_map_add(presetdata, ""mercy"", global.diff_mercy);
             ds_map_add(presetdata, ""saveheal"", global.diff_saveheal);
@@ -426,6 +430,7 @@ foreach (string scrName in gamestartLikes)
                 ds_map_add(presetdata, ""enemycd"", ini_read_real(""preset_"" + userpresetnames[i], ""ENEMY_COOLDOWNS"", {presets[preset_default].enemycd.ToString("F10", CultureInfo.InvariantCulture)}));
                 ds_map_add(presetdata, ""gmbrdenemycd"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_ENEMY_CDS"", {presets[preset_default].gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}));
                 ds_map_add(presetdata, ""tpgain"", ini_read_real(""preset_"" + userpresetnames[i], ""TP_GAIN"", {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""tpitems"", ini_read_real(""preset_"" + userpresetnames[i], ""TP_ITEMS"", {presets[preset_default].tpitems.ToString("F10", CultureInfo.InvariantCulture)}));
                 ds_map_add(presetdata, ""extraenemies"", ini_read_real(""preset_"" + userpresetnames[i], ""EXTRA_ENEMIES"", {presets[preset_default].extraenemies.ToString()}));
                 ds_map_add(presetdata, ""battlerewards"", ini_read_real(""preset_"" + userpresetnames[i], ""BATTLE_REWARDS"", {presets[preset_default].battlerewards.ToString("F10", CultureInfo.InvariantCulture)}));
                 ds_map_add(presetdata, ""rewardranking"", ini_read_real(""preset_"" + userpresetnames[i], ""REWARD_RANKING"", {presets[preset_default].rewardranking.ToString().ToLower()}));
@@ -435,6 +440,7 @@ foreach (string scrName in gamestartLikes)
                 ds_map_add(presetdata, ""plrdmg"", ini_read_real(""preset_"" + userpresetnames[i], ""PLR_DMG"", {presets[preset_default].plrdmg.ToString("F10", CultureInfo.InvariantCulture)}));
                 ds_map_add(presetdata, ""gmbrdplrdmg"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_PLR_DMG"", {presets[preset_default].gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}));
                 ds_map_add(presetdata, ""plrheal"", ini_read_real(""preset_"" + userpresetnames[i], ""PLR_HEAL"", {presets[preset_default].plrheal.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""healitems"", ini_read_real(""preset_"" + userpresetnames[i], ""HEAL_ITEMS"", {presets[preset_default].healitems.ToString("F10", CultureInfo.InvariantCulture)}));
                 ds_map_add(presetdata, ""gmbrdplrheal"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_PLR_HEAL"", {presets[preset_default].gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}));
                 ds_map_add(presetdata, ""mercy"", ini_read_real(""preset_"" + userpresetnames[i], ""MERCY"", {presets[preset_default].mercy.ToString("F10", CultureInfo.InvariantCulture)}));
                 ds_map_add(presetdata, ""saveheal"", ini_read_real(""preset_"" + userpresetnames[i], ""SAVE_POINT_HEAL"", {presets[preset_default].saveheal.ToString().ToLower()}));
@@ -455,6 +461,7 @@ foreach (string scrName in gamestartLikes)
                         global.diff_enemycd = {pair.Value.enemycd.ToString("F10", CultureInfo.InvariantCulture)};
                         global.diff_gmbrdenemycd = {pair.Value.gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)};
                         global.diff_tpgain = {pair.Value.tpgain.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_tpitems = {pair.Value.tpitems.ToString("F10", CultureInfo.InvariantCulture)};
                         global.diff_extraenemies = {pair.Value.extraenemies.ToString()};
                         global.diff_battlerewards = {pair.Value.battlerewards.ToString("F10", CultureInfo.InvariantCulture)};
                         global.diff_rewardranking = {pair.Value.rewardranking.ToString().ToLower()};
@@ -464,6 +471,7 @@ foreach (string scrName in gamestartLikes)
                         global.diff_plrdmg = {pair.Value.plrdmg.ToString("F10", CultureInfo.InvariantCulture)};
                         global.diff_gmbrdplrdmg = {pair.Value.gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)};
                         global.diff_plrheal = {pair.Value.plrheal.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_healitems = {pair.Value.healitems.ToString("F10", CultureInfo.InvariantCulture)};
                         global.diff_gmbrdplrheal = {pair.Value.gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)};
                         global.diff_mercy = {pair.Value.mercy.ToString("F10", CultureInfo.InvariantCulture)};
                         global.diff_saveheal = {pair.Value.saveheal.ToString().ToLower()};
@@ -482,6 +490,7 @@ foreach (string scrName in gamestartLikes)
                         global.diff_enemycd = ds_map_find_value(presetdata, ""enemycd"");
                         global.diff_gmbrdenemycd = ds_map_find_value(presetdata, ""gmbrdenemycd"");
                         global.diff_tpgain = ds_map_find_value(presetdata, ""tpgain"");
+                        global.diff_tpitems = ds_map_find_value(presetdata, ""tpitems"");
                         global.diff_extraenemies = ds_map_find_value(presetdata, ""extraenemies"");
                         global.diff_battlerewards = ds_map_find_value(presetdata, ""battlerewards"");
                         global.diff_rewardranking = ds_map_find_value(presetdata, ""rewardranking"");
@@ -491,6 +500,7 @@ foreach (string scrName in gamestartLikes)
                         global.diff_plrdmg = ds_map_find_value(presetdata, ""plrdmg"");
                         global.diff_gmbrdplrdmg = ds_map_find_value(presetdata, ""gmbrdplrdmg"");
                         global.diff_plrheal = ds_map_find_value(presetdata, ""plrheal"");
+                        global.diff_healitems = ds_map_find_value(presetdata, ""healitems"");
                         global.diff_gmbrdplrheal = ds_map_find_value(presetdata, ""gmbrdplrheal"");
                         global.diff_mercy = ds_map_find_value(presetdata, ""mercy"");
                         global.diff_saveheal = ds_map_find_value(presetdata, ""saveheal"");
@@ -530,6 +540,8 @@ foreach (string scrName in gamestartLikes)
                 return ceil((global.diff_gmbrdenemycd < 0 ? global.diff_enemycd : global.diff_gmbrdenemycd) * arg1);
                 case ""DIFFOP_TPGAIN"":
                 return ceil(global.diff_tpgain * arg1);
+                case ""DIFFOP_TPITEMS"":
+                return ceil(global.diff_tpitems * arg1);
                 case ""DIFFOP_EXTRAENEMIES"":
                 return global.diff_extraenemies;
                 case ""DIFFOP_REWARDS"":
@@ -548,6 +560,8 @@ foreach (string scrName in gamestartLikes)
                 return ceil(global.diff_gmbrdplrdmg * arg1);
                 case ""DIFFOP_PLRHEAL"":
                 return ceil(global.diff_plrheal * arg1);
+                case ""DIFFOP_HEALITEMS"":
+                return ceil(global.diff_healitems * arg1);
                 case ""DIFFOP_PLRHEAL_GB"":
                 return ceil(global.diff_gmbrdplrheal * arg1);
                 case ""DIFFOP_MERCY"":
@@ -610,6 +624,7 @@ foreach (string scrName in gamestartLikes)
                             && global.diff_enemycd == {pair.Value.enemycd.ToString("F10", CultureInfo.InvariantCulture)}
                             && global.diff_gmbrdenemycd == {pair.Value.gmbrdenemycd.ToString("F10", CultureInfo.InvariantCulture)}
                             && global.diff_tpgain == {pair.Value.tpgain.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_tpitems == {pair.Value.tpitems.ToString("F10", CultureInfo.InvariantCulture)}
                             && global.diff_extraenemies == {pair.Value.extraenemies.ToString()}
                             && global.diff_battlerewards == {pair.Value.battlerewards.ToString("F10", CultureInfo.InvariantCulture)}
                             && global.diff_rewardranking == {pair.Value.rewardranking.ToString().ToLower()}
@@ -619,6 +634,7 @@ foreach (string scrName in gamestartLikes)
                             && global.diff_plrdmg == {pair.Value.plrdmg.ToString("F10", CultureInfo.InvariantCulture)}
                             && global.diff_gmbrdplrdmg == {pair.Value.gmbrdplrdmg.ToString("F10", CultureInfo.InvariantCulture)}
                             && global.diff_plrheal == {pair.Value.plrheal.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_healitems == {pair.Value.healitems.ToString("F10", CultureInfo.InvariantCulture)}
                             && global.diff_gmbrdplrheal == {pair.Value.gmbrdplrheal.ToString("F10", CultureInfo.InvariantCulture)}
                             && global.diff_mercy == {pair.Value.mercy.ToString("F10", CultureInfo.InvariantCulture)}
                             && global.diff_saveheal == {pair.Value.saveheal.ToString().ToLower()}) {{
@@ -637,6 +653,7 @@ foreach (string scrName in gamestartLikes)
                                 && global.diff_enemycd == ds_map_find_value(presetdata, ""enemycd"")
                                 && global.diff_gmbrdenemycd == ds_map_find_value(presetdata, ""gmbrdenemycd"")
                                 && global.diff_tpgain == ds_map_find_value(presetdata, ""tpgain"")
+                                && global.diff_tpitems == ds_map_find_value(presetdata, ""tpitems"")
                                 && global.diff_extraenemies == ds_map_find_value(presetdata, ""extraenemies"")
                                 && global.diff_battlerewards == ds_map_find_value(presetdata, ""battlerewards"")
                                 && global.diff_rewardranking == ds_map_find_value(presetdata, ""rewardranking"")
@@ -646,6 +663,7 @@ foreach (string scrName in gamestartLikes)
                                 && global.diff_plrdmg == ds_map_find_value(presetdata, ""plrdmg"")
                                 && global.diff_gmbrdplrdmg == ds_map_find_value(presetdata, ""gmbrdplrdmg"")
                                 && global.diff_plrheal == ds_map_find_value(presetdata, ""plrheal"")
+                                && global.diff_healitems == ds_map_find_value(presetdata, ""healitems"")
                                 && global.diff_gmbrdplrheal == ds_map_find_value(presetdata, ""gmbrdplrheal"")
                                 && global.diff_mercy == ds_map_find_value(presetdata, ""mercy"")
                                 && global.diff_saveheal == ds_map_find_value(presetdata, ""saveheal"")) {{
@@ -780,10 +798,23 @@ foreach (string scrName in gamestartLikes)
                     hidden: {(ch_no == 3 ? "false" : "true")}
                 }}, {{
                     type: ""Slider"",
+                    title: ""Heal Items"",
+                    data_ref: {{var_name: ""diff_healitems"", default_value: {presets[preset_default].healitems.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""HEAL_ITEMS""}},
+                    value_range: ""0~1000%;INF=2147483647"",
+                    change_func: global.diff_usepreset_custom
+                }}, {{
+                    type: ""Slider"",
                     title: ""TP Gain"",
                     data_ref: {{var_name: ""diff_tpgain"", default_value: {presets[preset_default].tpgain.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""TP_GAIN""}},
                     value_range: ""0~1000%;INF=2147483647"",
                     change_func: global.diff_usepreset_custom
+                }}, {{
+                    type: ""Slider"",
+                    title: ""TP Items"",
+                    data_ref: {{var_name: ""diff_tpitems"", default_value: {presets[preset_default].tpitems.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""TP_ITEMS""}},
+                    value_range: ""0~1000%;INF=2147483647"",
+                    change_func: global.diff_usepreset_custom,
+                    hidden: {((ch_no >= 2 || ch_no == 0) ? "false" : "true")}
                 }}, {{
                     type: ""Slider"",
                     title: ""Mercy"",
@@ -2666,6 +2697,23 @@ if (ch_no == 3)
         $"myhealth += 2 * {gmbrdplrheal};");
 }
 
+// Apply Heal Items
+importGroup = startCodeGroup("Player", "Heal Items", false);
+{
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_itemuse", "scr_healitem\\((\\S+), (\\S+)\\);", "scr_healitem($1, ceil(global.diff_healitems * $2));");
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_itemuse", "scr_healitem_all\\((\\S+)\\);", "scr_healitem_all(ceil(global.diff_healitems * $1));");
+}
+if (ch_no == 0) {
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_itemuse_ch1", "scr_healitem_ch1\\((\\S+), (\\S+)\\);", "scr_healitem_ch1($1, ceil(global.diff_healitems * $2));");
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_itemuse_ch1", "scr_healitem_all_ch1\\((\\S+)\\);", "scr_healitem_all_ch1(ceil(global.diff_healitems * $1));");
+}
+{
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell", "scr_heal(all)?itemspell\\((\\S+)\\);", "scr_heal$1itemspell(ceil(global.diff_healitems * $2));");
+}
+if (ch_no == 0) {
+    importGroup.QueueRegexFindReplace("gml_GlobalScript_scr_spell_ch1", "scr_heal(all)?itemspell_ch1\\((\\S+)\\);", "scr_heal$1itemspell_ch1(ceil(global.diff_healitems * $2));");
+}
+
 // Apply TP Gain
 importGroup = startCodeGroup("Player", "TP Gain", false);
 string[] tensionHeals = {"gml_Object_obj_grazebox_Collision_obj_collidebullet"};
@@ -2717,6 +2765,13 @@ if (ch_no == 4) {
 if (ch_no == 5) {
     importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "scr_tensionheal(20", "scr_tensionheal(global.diff_tpgain * 20");
     importGroup.QueueFindReplace("gml_Object_obj_date_controller_Step_0", "scr_tensionheal(round(", "scr_tensionheal(round(global.diff_tpgain * ");
+}
+
+// Apply TP Items
+importGroup = startCodeGroup("Player", "TP Items", false);
+if (ch_no >= 2 || ch_no == 0) {
+    importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "scr_tensionheal(80", "scr_tensionheal(global.diff_tpitems * 80");
+    importGroup.QueueFindReplace("gml_Object_obj_battlecontroller_Step_0", "scr_tensionheal(ceil(global.maxtension", "scr_tensionheal(global.diff_tpitems * ceil(global.maxtension");
 }
 
 // Apply Mercy Build-up
