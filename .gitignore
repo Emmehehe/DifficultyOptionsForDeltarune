@@ -1,5 +1,10 @@
 # Ignore release output
-release/output
+release/output/*
+release/installer_difficulty_dr-both/*
+release/scripts_modmenu_dr-both/*
+!release/output/*.txt
+!release/installer_difficulty_dr-both/*.txt
+!release/scripts_modmenu_dr-both/*.txt
 *.xdelta
 *.win
 *.exe
