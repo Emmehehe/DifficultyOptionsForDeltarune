@@ -9,6 +9,7 @@ packageID = "com.emmahaha.modmenudemo"
 game = "toby.deltarune.demo"
 url = "https://gamebanana.com/tools/20839"
 mergeSupport = true
+ai = "no"
 tags = [ "other" ]
 
 [color]
