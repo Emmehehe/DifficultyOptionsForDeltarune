@@ -49,17 +49,29 @@ There are various difficulty options you can apply via the `diff_apply` function
 - **Victory Res** — `global.diff_apply("DIFFOP_VICRES", maxhp, hp)`
   - Get the HP to set the character to, based on their max HP & current HP.
   - This is 1/8 in vanilla Deltarune.
-- **Player Damage** — `global.diff_apply("DIFFOP_PLRDMG", maxhp, hp)`
+- **Player Damage** — `global.diff_apply("DIFFOP_PLRDMG", plrdmg)`
   - Apply player damage multiplier.
-- **Gameboard Player Damage** — `global.diff_apply("DIFFOP_PLRDMG_GB", maxhp, hp)`
+- **Gameboard Player Damage** — `global.diff_apply("DIFFOP_PLRDMG_GB", plrdmg)`
   - Apply gameboard player damage multiplier.
-- **Player Heal** — `global.diff_apply("DIFFOP_PLRHEAL", maxhp, hp)`
+- **Player Heal** — `global.diff_apply("DIFFOP_PLRHEAL", plrheal)`
   - Apply player healing multiplier.
-- **Gameboard Player Heal** — `global.diff_apply("DIFFOP_PLRHEAL_GB", maxhp, hp)`
+- **Gameboard Player Heal** — `global.diff_apply("DIFFOP_PLRHEAL_GB", plrheal)`
   - Apply gameboard player healing multiplier.
-- **TP Gain** — `global.diff_apply("DIFFOP_TPGAIN", maxhp, hp)`
+- **Heal Items** — `global.diff_apply("DIFFOP_HEALITEMS", healamount)`
+  - Apply item healing multiplier.
+- **TP Gain** — `global.diff_apply("DIFFOP_TPGAIN", tpadd)`
   - Apply TP gain multiplier.
-- **Mercy** — `global.diff_apply("DIFFOP_MERCY", maxhp, hp)`
+- **TP Items** — `global.diff_apply("DIFFOP_TPITEMS", tpadd)`
+  - Apply TP items multiplier.
+- **Mercy** — `global.diff_apply("DIFFOP_MERCY", mercyadd)`
   - Apply mercy multiplier.
 - **SAVE Point Heal** — `global.diff_apply("DIFFOP_SAVEHEAL", isHeal)`
   - Union of 'SAVE Point Heal' & input (= 'SAVE Point Heal' || isHeal)
+- **Enemy Scaling** — `global.diff_apply("DIFFOP_ENEMYSCALING", isScaling)`
+  - Union of 'Enemy Scaling' & input (= 'Enemy Scaling' || isScaling)
+- **Health (regular)** — `global.diff_apply("DIFFOP_HEALTHREGULAR", maxhp)`
+  - Apply health multiplier for Regular enemies.
+- **Health (miniboss)** — `global.diff_apply("DIFFOP_HEALTHMINIBOSS", maxhp)`
+  - Apply health multiplier for Mini-Boss enemies.
+- **Health (boss)** — `global.diff_apply("DIFFOP_HEALTHBOSS", maxhp)`
+  - Apply health multiplier for Boss enemies.
