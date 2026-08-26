@@ -39,7 +39,7 @@ This is an outline of my general development workflow for:
 - Copy all required files to `release/installer_difficulty_dr-both` and/or `release/scripts_modmenu_dr-both`
 - Zip all datapacks/installers/scripts to output, append _v#-#-# (version string) to zips
 - Test data-packs on G3M or Deltamod for full game & demo
-- Push branch, create pr
+- Push branch, create pr, check pr files
 - Draft release
   - copy title and description format from last release
   - upload all deployment files
