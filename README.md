@@ -54,6 +54,7 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
 - **TP Items** — multiply TP gain from items by this value
 - **Mercy** — multiply mercy build-up by this value
 - **SAVE Point Heal** — toggle the healing from save points
+
 ***Enemy Scaling***
 - **Enemy Scaling** — enable/disable enemy scaling options
 - **Health (regular)** — multiply health of regular enemies by this value
