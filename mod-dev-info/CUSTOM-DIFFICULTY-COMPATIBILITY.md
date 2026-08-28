@@ -75,3 +75,11 @@ There are various difficulty options you can apply via the `diff_apply` function
   - Apply health multiplier for Mini-Boss enemies.
 - **Health (boss)** — `global.diff_apply("DIFFOP_HEALTHBOSS", maxhp)`
   - Apply health multiplier for Boss enemies.
+- **Gameboard Scaling** — `global.diff_apply("DIFFOP_ENEMYSCALING_GB", isScaling)`
+  - Union of 'Gameboard Scaling' & input (= 'Gameboard Scaling' || isScaling)
+- **GB HP (regular)** — `global.diff_apply("DIFFOP_HEALTHREGULAR_GB", maxhp)`
+  - Apply health multiplier for Regular gameboard enemies.
+- **GB HP (miniboss)** — `global.diff_apply("DIFFOP_HEALTHMINIBOSS_GB", maxhp)`
+  - Apply health multiplier for Mini-Boss gameboard enemies.
+- **GB HP (boss)** — `global.diff_apply("DIFFOP_HEALTHBOSS_GB", maxhp)`
+  - Apply health multiplier for Boss gameboard enemies.

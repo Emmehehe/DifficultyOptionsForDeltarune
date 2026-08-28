@@ -4,7 +4,7 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
 <img src="https://github.com/user-attachments/assets/9e9be8b9-0c3c-4b28-9a12-3aa2d328189c" width="480" />
 
 ## Download
-**[Latest release](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/releases/tag/1.10.0)**
+**[Latest release](https://github.com/Emmehehe/CustomDifficultyModForDeltarune/releases/tag/1.10.1)**
 
 ## What you can change
 - **Presets** — Select from various difficulty presets
@@ -64,24 +64,26 @@ Difficulty options for DELTARUNE. Make the game easy, hard, or nightmare! ( or n
   <summary><strong>CHAPTER 3 SPOILERS...</strong></summary>
 
 
-  ***Battle***
-  - **Gameboard Dmg X** — multiplier for the incoming damage in the chapter 3 game boards
-    - Only shows up in the menu in chapter 3.
-    - INHERIT - Can be set to inherit from the 'Damage Multi' setting by reducing past 0%.
-    - Attacks that are scripted to leave a character at 1 HP, or other threshold, still do so.
+  ### *Game board settings*
+  - *Only show up in the menu in chapter 3 & apply only to the game boards.*
+  - *INHERIT - Can be set to inherit from the standard equivalent by reducing past 0%.*
 
-  - **Gmbrd Enemy CDs** — multiplier for the enemy attack cooldowns in the chapter 3 game boards
-    - Only shows up in the menu in chapter 3.
-    - INHERIT - Can be set to inherit from the 'Enemy Cooldowns' setting by reducing past 0%.
+  ***Battle***
+  - **Gameboard Dmg X** — multiplier for incoming damage
+    - Attacks that are scripted to leave a character at 1 HP, or other threshold, still do so.
+  - **Gmbrd Enemy CDs** — multiplier for enemy attack cooldowns
 
   ***Player***
-  - **Gmbrd Damage** — multiplier for outgoing damage in the chapter 3 game boards
-    - Only shows up in the menu in chapter 3.
-    - INHERIT - Can be set to inherit from the 'Damage' setting by reducing past 0%.
+  - **Gmbrd Damage** — multiplier for outgoing damage
+  - **Gmbrd Healing** — multiplier for healing from collecting candy
 
-  - **Gmbrd Healing** — multiplier for healing from collecting candy in the chapter 3 game boards
-    - Only shows up in the menu in chapter 3.
-    - INHERIT - Can be set to inherit from the 'Healing' setting by reducing past 0%.
+  ***Enemy Scaling***
+  - **Gameboard Scaling** — enable/disable enemy scaling options
+  - **Health (regular)** — multiply health of regular enemies by this value
+  - **Health (miniboss)** — multiply health of miniboss enemies by this value
+    - Blue bird, yellow monster (board 3), and silver fish (board 3)
+  - **Health (boss)** — multiply health of boss enemies by this value
+
 </details>
 
 ## How to use
