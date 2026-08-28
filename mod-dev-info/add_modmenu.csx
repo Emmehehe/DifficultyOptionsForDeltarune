@@ -91,6 +91,11 @@ string example_config(string modmenuPostfix) { return @$"
                     data_ref: {{ var_name: ""example_slider"", default_value: -1 }},
                     value_range: ""OFF=-1;0~1000%;INF=2147483647""
                 }},{{
+                    type: ""UserInput"",
+                    title: ""Example UserInput"",
+                    data_ref: {{ var_name: ""example_userinput"", default_value: ""USERONE"" }},
+                    max_length: 12
+                }},{{
                     type: ""Header"",
                     title: ""Example Header""
                 }},{{
