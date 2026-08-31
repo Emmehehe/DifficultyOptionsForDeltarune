@@ -1,7 +1,8 @@
 var _snap_post = "__snapch" + string(global.chapter);
 var _debug = global.debug;
 var _room_id_list = [];
-array_copy(_room_id_list, 0, global.room_id_list, 0, array_length(global.room_id_list));
+if (variable_instance_exists(global, "room_id_list"))
+    array_copy(_room_id_list, 0, global.room_id_list, 0, array_length(global.room_id_list));
 try {
     display_mouse_set(display_get_width() / 2, display_get_height() / 2);
     if show_question("SAVE (yes), or LOAD (no)?\n\nNote: won't remember position, progress through battles, or progress through cutscenes/dialogues.") {
@@ -40,11 +41,14 @@ try {
         if (_file != "") {
             // bypass dogcheck and room list lookup
             global.debug = 1;
-            global.room_id_list = [];
-            var _room = room_first;
-            while (_room >= 0) {
-                array_push(global.room_id_list, new scr_room(_room, _room + (global.chapter * 10000)));
-                _room = room_next(_room);
+
+            if (variable_instance_exists(global, "room_id_list")) {
+                global.room_id_list = [];
+                var _room = room_first;
+                while (_room >= 0) {
+                    array_push(global.room_id_list, new scr_room(_room, _room + (global.chapter * 10000)));
+                    _room = room_next(_room);
+                }
             }
 
             /*file <- */scr_tempsave();
@@ -54,6 +58,8 @@ try {
     }
 } catch (_e) { display_mouse_set(display_get_width() / 2, display_get_height() / 2); show_message(_e.longMessage); } finally {
     global.debug = _debug;
-    global.room_id_list = [];
-    array_copy(global.room_id_list, 0, _room_id_list, 0, array_length(_room_id_list));
+    if (variable_instance_exists(global, "room_id_list")) {
+        global.room_id_list = [];
+        array_copy(global.room_id_list, 0, _room_id_list, 0, array_length(_room_id_list));
+    }
 }
