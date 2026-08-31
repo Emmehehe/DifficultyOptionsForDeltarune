@@ -3099,15 +3099,25 @@ importGroup = startCodeGroup("Enemy Scaling", "Enemy Scaling", false);
         importGroup.QueueFindReplace("gml_Object_o_boxinghud_Draw_0", "o_boxingqueen.health_count_max = 1800;", "o_boxingqueen.health_count_max = ceil(global.diff_healthboss * 1800);");
         importGroup.QueueFindReplace("gml_Object_o_boxing_wireframe_Draw_0", "health_count = 1000;", "health_count = ceil(global.diff_healthboss * 1000);");
     }
+    if (ch_no == 3) {
+        // roaring knight
+        importGroup.QueueFindReplace("gml_GlobalScript_scr_damage_enemy", "if (global.monsterhp[arg0] <= 0 && a == 0)", @"
+            if (i_ex(obj_knight_enemy) && global.monsterhp[arg0] <= 0 && a == 0) {
+                with (obj_knight_enemy) { blockanim = 1; haveusedroaring = true; end_cutscene_version = 0; global.monsterhp[arg0] = global.monstermaxhp[myself] * 0.1; endcon = 0; }
+            }
+
+            if (global.monsterhp[arg0] <= 0 && a == 0)
+        ");
+    }
 }
 
 // Apply Game Board Enemy Scaling
 if (ch_no == 3)
 {
     importGroup = startCodeGroup("Enemy Scaling", "Gameboard Scaling", false);
-    string gmbrdhealthregular = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthregular   < 0) ? (global.enemyscaling ? global.healthregular  : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthregular  : 1))";
-    string gmbrdhealthminiboss = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthminiboss < 0) ? (global.enemyscaling ? global.healthminiboss : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthminiboss : 1))";
-    string gmbrdhealthboss = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthboss         < 0) ? (global.enemyscaling ? global.healthboss     : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthboss     : 1))";
+    string gmbrdhealthregular  = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthregular  < 0) ? (global.diff_enemyscaling ? global.diff_healthregular  : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthregular  : 1))";
+    string gmbrdhealthminiboss = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthminiboss < 0) ? (global.diff_enemyscaling ? global.diff_healthminiboss : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthminiboss : 1))";
+    string gmbrdhealthboss     = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthboss     < 0) ? (global.diff_enemyscaling ? global.diff_healthboss     : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthboss     : 1))";
     importGroup.QueueAppend("gml_Object_obj_board_enemy_spawner_Other_10", @$"
         switch (image_index) {{
             case 2: // monster
