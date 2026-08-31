@@ -2345,8 +2345,8 @@ Func<string, string> checkregularenemyblock = constructEnemyClassificationBlock(
     new string[] {"obj_ponman_enemy", "obj_rudinnranger"}
 );
 Func<string, string> checkminibossenemyblock = constructEnemyClassificationBlock(
-    new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_lancerboss", "obj_smallcheckers_enemy", "obj_lancerboss2", "obj_susieenemy", "obj_lancerboss3"},
-    new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_berdlyb_enemy", "obj_spamton_enemy", "obj_sweet_enemy", "obj_kk_enemy", "obj_hatguy_enemy", "obj_rouxls_enemy", "obj_mauswheel_enemy"},
+    new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_lancerboss", "obj_smallcheckers_enemy", /* softlock "obj_lancerboss2",*/ "obj_susieenemy", "obj_lancerboss3"},
+    new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_berdlyb_enemy", "obj_berdlyb2_enemy", "obj_spamton_enemy", "obj_sweet_enemy", "obj_kk_enemy", "obj_hatguy_enemy", "obj_rouxls_enemy", "obj_mauswheel_enemy"},
     new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_shutta_enemy", "obj_lanino_enemy", "obj_elnina_enemy", "obj_rouxls_ch3_enemy", "obj_tenna_board4_enemy", "obj_watercooler_enemy",
         "obj_lanino_rematch_enemy", "obj_elnina_rematch_enemy"},
     new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_jackenstein_enemy", "obj_sound_of_justice_enemy", "obj_lanino_rematch_enemy", "obj_elnina_rematch_enemy", "obj_holywatercooler_enemy"},
@@ -3085,6 +3085,19 @@ importGroup = startCodeGroup("Enemy Scaling", "Enemy Scaling", false);
                 }}
             }}
         ");
+    }
+    if (ch_no == 2 || ch_no == 0) {
+        // giga queen
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Create_0", "health_count = 1500;", "health_count = ceil(global.diff_healthboss * 1500);");
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Create_0", "health_count_max = 1500;", "health_count_max = ceil(global.diff_healthboss * 1500);");
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Create_0", "health_count_prev = 1500;", "health_count_prev = ceil(global.diff_healthboss * 1500);");
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Create_0", "health_count = 1000;", "health_count = ceil(global.diff_healthboss * 1000);");
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Create_0", "health_count_max = 1000;", "health_count_max = ceil(global.diff_healthboss * 1000);");
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Create_0", "health_count_prev = 1000;", "health_count_prev = ceil(global.diff_healthboss * 1000);");
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Other_12", "health_count_max = 1800;", "health_count_max = ceil(global.diff_healthboss * 1800);");
+        importGroup.QueueFindReplace("gml_Object_obj_boxing_loss_controller_Draw_0", "health_count = 1500;", "health_count = ceil(global.diff_healthboss * 1500);");
+        importGroup.QueueFindReplace("gml_Object_o_boxinghud_Draw_0", "o_boxingqueen.health_count_max = 1800;", "o_boxingqueen.health_count_max = ceil(global.diff_healthboss * 1800);");
+        importGroup.QueueFindReplace("gml_Object_o_boxing_wireframe_Draw_0", "health_count = 1000;", "health_count = ceil(global.diff_healthboss * 1000);");
     }
 }
 
