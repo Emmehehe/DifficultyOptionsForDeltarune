@@ -2349,7 +2349,7 @@ Func<string, string> checkminibossenemyblock = constructEnemyClassificationBlock
     new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_berdlyb_enemy", "obj_berdlyb2_enemy", "obj_spamton_enemy", "obj_sweet_enemy", "obj_kk_enemy", "obj_hatguy_enemy", "obj_rouxls_enemy", "obj_mauswheel_enemy"},
     new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_shutta_enemy", "obj_lanino_enemy", "obj_elnina_enemy", "obj_rouxls_ch3_enemy", "obj_tenna_board4_enemy", "obj_watercooler_enemy",
         "obj_lanino_rematch_enemy", "obj_elnina_rematch_enemy"},
-    new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_jackenstein_enemy", "obj_sound_of_justice_enemy", "obj_lanino_rematch_enemy", "obj_elnina_rematch_enemy", "obj_holywatercooler_enemy"},
+    new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", /* "obj_jackenstein_enemy", */"obj_sound_of_justice_enemy", "obj_lanino_rematch_enemy", "obj_elnina_rematch_enemy", "obj_holywatercooler_enemy"},
     new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_netskie_enemy", "obj_terracota_enemy", "obj_aqua_enemy", "obj_orange_enemy", "obj_green_enemy", "obj_blue_enemy", "obj_yellow_enemy",
         "obj_purple_enemy", "obj_trashy_trio"},
     new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy"},
@@ -3099,15 +3099,62 @@ importGroup = startCodeGroup("Enemy Scaling", "Enemy Scaling", false);
         importGroup.QueueFindReplace("gml_Object_o_boxinghud_Draw_0", "o_boxingqueen.health_count_max = 1800;", "o_boxingqueen.health_count_max = ceil(global.diff_healthboss * 1800);");
         importGroup.QueueFindReplace("gml_Object_o_boxing_wireframe_Draw_0", "health_count = 1000;", "health_count = ceil(global.diff_healthboss * 1000);");
     }
+    if (ch_no == 3) {
+        // roaring knight
+        importGroup.QueueFindReplace("gml_GlobalScript_scr_damage_enemy", "if (global.monsterhp[arg0] <= 0 && a == 0)", @"
+            if (i_ex(obj_knight_enemy) && global.monsterhp[arg0] <= 0 && a == 0) {
+                with (obj_knight_enemy) { blockanim = 1; haveusedroaring = true; end_cutscene_version = 0; global.monsterhp[arg0] = global.monstermaxhp[myself] * 0.1; endcon = 0; }
+            }
+
+            if (global.monsterhp[arg0] <= 0 && a == 0)
+        ");
+    }
+    if (ch_no == 5) {
+        // platforming bullet patterns
+        (string ScrName, string HealthField, bool DoLessGreater) [] platstodo = {
+            ("gml_Object_obj_plat_enm_yellow_miniboss_Create_0", "diff_healthminiboss", false), ("gml_Object_obj_plat_enm_yellow_miniboss_Step_0", "diff_healthminiboss", true),
+            ("gml_Object_obj_plat_enm_sethglasses_miniboss_Create_0", "diff_healthminiboss", true), ("gml_Object_obj_plat_enm_sethglasses_miniboss_Step_0", "diff_healthminiboss", true),
+            ("gml_Object_obj_plat_enm_sethglasses_miniboss_Collision_obj_plat_susieaxe_hbx", "diff_healthminiboss", true), ("gml_Object_obj_plat_enm_gun_Create_0", "diff_healthregular", true),
+            ("gml_Object_obj_plat_enm_aqua_small_Create_0", "diff_healthregular", false), ("gml_Object_obj_plat_enm_aqua_miniboss_Create_0", "diff_healthminiboss", true),
+            ("gml_Object_obj_plat_enm_orange_miniboss_Create_0", "diff_healthminiboss", false), ("gml_Object_obj_plat_enm_orange_miniboss_Step_0", "diff_healthminiboss", true),
+            ("gml_Object_obj_plat_enm_aqua_sword_Create_0", "diff_healthregular", false), ("gml_Object_obj_plat_enm_bigtome_Create_0", "diff_healthregular", false),
+            ("gml_Object_obj_plat_enm_aqua_bouncer_Create_0", "diff_healthregular", true), ("gml_Object_obj_plat_enm_seth_book_Create_0", "diff_healthregular", false)
+        };
+        foreach((string ScrName, string HealthField, bool DoLessGreater) script in platstodo) {
+            importGroup.QueueRegexFindReplace(script.ScrName, "hp (=|==|%) (\\S+);", $"hp $1 ceil(global.{script.HealthField} * $2);");
+            if (script.DoLessGreater)
+                importGroup.QueueRegexFindReplace(script.ScrName, "hp (<|>|<=|>=) (\\S+)", $"hp $1 global.{script.HealthField} * $2");
+        }
+        // yellow miniboss
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_yellow_miniboss_Step_0", "hp = min(hp, 20);", "hp = min(hp, global.diff_healthminiboss * 20);");
+        // seth miniboss
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_sethglasses_miniboss_Create_0", "if (arg1 < (30 - (10 * simple)))", "if (arg1 < global.diff_healthminiboss * (30 - (10 * simple)))");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_sethglasses_miniboss_Create_0", "hp_thereshold_reached = floor((lefthp + righthp) / 30) < floor(hp / 30);",
+            "hp_thereshold_reached = floor((lefthp + righthp) / (global.diff_healthminiboss * 30)) < floor(hp / (global.diff_healthminiboss * 30));");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_sethglasses_miniboss_Draw_0", "< (30 - (10 * simple)))", "< global.diff_healthminiboss * (30 - (10 * simple)))");
+        // yellow punishment gun
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_yellow_punishmentgun_Create_0", "hp = 28;", "hp = max(6, ceil(global.diff_healthminiboss * 28));");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_yellow_punishmentgun_Create_0", "next_phase_hp = [25, 22, 17, 12, 5, -1];",
+            "next_phase_hp = [max(5, ceil(global.diff_healthminiboss * 25)), max(4, ceil(global.diff_healthminiboss * 22)), max(3, ceil(global.diff_healthminiboss * 17)), max(2, ceil(global.diff_healthminiboss * 12)), max(1, ceil(global.diff_healthminiboss * 5)), -1];");
+        // aqua miniboss
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_aqua_miniboss_Destroy_0", "(max(0, hp - 3) * 10)", "(max(0, floor(hp/global.diff_healthminiboss) - 3) * 10)");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_aqua_miniboss_Step_0", "knifecount = 12 - hp;", "knifecount = 12 - floor(hp/global.diff_healthminiboss);");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_aqua_miniboss_Step_0", "var timerlimit = 45 + (2 * hp);", "var timerlimit = 45 + (2 * floor(hp/global.diff_healthminiboss));");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_aqua_miniboss_Step_0", "var attacklimit = 2 + floor(hp / 2);", "var attacklimit = 2 + floor(floor(hp/global.diff_healthminiboss) / 2);");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_aqua_miniboss_Step_0", "knifecount = floor(6 - (0.5 * hp));", "knifecount = floor(6 - (0.5 * floor(hp/global.diff_healthminiboss)));");
+        // orange miniboss
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_orange_miniboss_Destroy_0", "(max(0, hp - 3) * 10)", "(max(0, floor(hp/global.diff_healthminiboss) - 3) * 10)");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_orange_miniboss_Step_0", "hp = max(hp, 5);", "hp = max(hp, ceil(global.diff_healthminiboss * 5));");
+    }
 }
 
 // Apply Game Board Enemy Scaling
 if (ch_no == 3)
 {
     importGroup = startCodeGroup("Enemy Scaling", "Gameboard Scaling", false);
-    string gmbrdhealthregular = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthregular   < 0) ? (global.enemyscaling ? global.healthregular  : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthregular  : 1))";
-    string gmbrdhealthminiboss = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthminiboss < 0) ? (global.enemyscaling ? global.healthminiboss : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthminiboss : 1))";
-    string gmbrdhealthboss = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthboss         < 0) ? (global.enemyscaling ? global.healthboss     : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthboss     : 1))";
+    string gmbrdhealthregular  = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthregular  < 0) ? (global.diff_enemyscaling ? global.diff_healthregular  : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthregular  : 1))";
+    string gmbrdhealthminiboss = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthminiboss < 0) ? (global.diff_enemyscaling ? global.diff_healthminiboss : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthminiboss : 1))";
+    string gmbrdhealthboss     = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthboss     < 0) ? (global.diff_enemyscaling ? global.diff_healthboss     : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthboss     : 1))";
     importGroup.QueueAppend("gml_Object_obj_board_enemy_spawner_Other_10", @$"
         switch (image_index) {{
             case 2: // monster
