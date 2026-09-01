@@ -3118,7 +3118,8 @@ importGroup = startCodeGroup("Enemy Scaling", "Enemy Scaling", false);
             ("gml_Object_obj_plat_enm_aqua_small_Create_0", "diff_healthregular", false), ("gml_Object_obj_plat_enm_aqua_miniboss_Create_0", "diff_healthminiboss", true),
             ("gml_Object_obj_plat_enm_orange_miniboss_Create_0", "diff_healthminiboss", false), ("gml_Object_obj_plat_enm_orange_miniboss_Step_0", "diff_healthminiboss", true),
             ("gml_Object_obj_plat_enm_aqua_sword_Create_0", "diff_healthregular", false), ("gml_Object_obj_plat_enm_bigtome_Create_0", "diff_healthregular", false),
-            ("gml_Object_obj_plat_enm_aqua_bouncer_Create_0", "diff_healthregular", true), ("gml_Object_obj_plat_enm_seth_book_Create_0", "diff_healthregular", false)
+            ("gml_Object_obj_plat_enm_aqua_bouncer_Create_0", "diff_healthregular", true), ("gml_Object_obj_plat_enm_seth_book_Create_0", "diff_healthregular", false),
+            ("gml_Object_obj_plat_enm_yellow_ufohat_Create_0", "diff_healthminiboss", false)
         };
         foreach((string ScrName, string HealthField, bool DoLessGreater) script in platstodo) {
             importGroup.QueueRegexFindReplace(script.ScrName, "hp (=|==|%) (\\S+);", $"hp $1 ceil(global.{script.HealthField} * $2);");
