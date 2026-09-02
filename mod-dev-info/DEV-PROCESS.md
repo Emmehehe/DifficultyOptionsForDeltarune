@@ -23,7 +23,8 @@ This is an outline of my general development workflow for:
   - revert changes: check `ModBackups\` in the content folder for backups, simply copy paste the `chapter#_windows` folders
 - Debugging
   - make manual edits to the data.win code to test scenarios/print debug info
-  - or; could try [GameMakerMem](https://gamebanana.com/tools/22912) (I've not given it a go yet but looks cool)
+  - or even better; use [GameMakerMem](https://gamebanana.com/tools/22912) to run arbitrary scripts
+    - Can save & load snapshots for testing, see `save_load_snapshot.gml` & `test-snapshots\`
 
 **Deployment:**
 - Update version strings

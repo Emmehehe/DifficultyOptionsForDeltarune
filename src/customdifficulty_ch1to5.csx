@@ -40,31 +40,35 @@ readonly bool hide_rewardrank = true;
 readonly struct Preset {
     public Preset () {}
     // default to values from vanilla Deltarune
-    public readonly float damagemulti { get; init; }    = 1;
-    public readonly float gameboarddmgx { get; init; }  = -1;
-    public readonly bool hitall { get; init; }          = false;
-    public readonly float iframes { get; init; }        = 1;
-    public readonly float enemycd { get; init; }        = 1;
-    public readonly float gmbrdenemycd { get; init; }   = -1;
-    public readonly float tpgain { get; init; }         = 1;
-    public readonly float tpitems { get; init; }        = 1;
-    public readonly int extraenemies { get; init; }     = 0;
-    public readonly float battlerewards { get; init; }  = 1;
-    public readonly bool rewardranking { get; init; }   = false;
-    public readonly float downdeficit { get; init; }    = 1 / 2f;
-    public readonly float downedregen { get; init; }    = 1 / 8f;
-    public readonly float victoryres { get; init; }     = 1 / 8f;
-    public readonly float plrdmg { get; init; }         = 1;
-    public readonly float gmbrdplrdmg { get; init; }    = -1;
-    public readonly float plrheal { get; init; }        = 1;
-    public readonly float healitems { get; init; }      = 1;
-    public readonly float gmbrdplrheal { get; init; }   = -1;
-    public readonly float mercy { get; init; }          = 1;
-    public readonly bool saveheal { get; init; }        = true;
-    public readonly bool enemyscaling { get; init; }   = false;
-    public readonly float healthregular { get; init; }    = 1;
-    public readonly float healthminiboss { get; init; } = 1;
-    public readonly float healthboss { get; init; }     = 1;
+    public readonly float damagemulti { get; init; }         = 1;
+    public readonly float gameboarddmgx { get; init; }       = -1;
+    public readonly bool hitall { get; init; }               = false;
+    public readonly float iframes { get; init; }             = 1;
+    public readonly float enemycd { get; init; }             = 1;
+    public readonly float gmbrdenemycd { get; init; }        = -1;
+    public readonly float tpgain { get; init; }              = 1;
+    public readonly float tpitems { get; init; }             = 1;
+    public readonly int extraenemies { get; init; }          = 0;
+    public readonly float battlerewards { get; init; }       = 1;
+    public readonly bool rewardranking { get; init; }        = false;
+    public readonly float downdeficit { get; init; }         = 1 / 2f;
+    public readonly float downedregen { get; init; }         = 1 / 8f;
+    public readonly float victoryres { get; init; }          = 1 / 8f;
+    public readonly float plrdmg { get; init; }              = 1;
+    public readonly float gmbrdplrdmg { get; init; }         = -1;
+    public readonly float plrheal { get; init; }             = 1;
+    public readonly float healitems { get; init; }           = 1;
+    public readonly float gmbrdplrheal { get; init; }        = -1;
+    public readonly float mercy { get; init; }               = 1;
+    public readonly bool saveheal { get; init; }             = true;
+    public readonly bool enemyscaling { get; init; }         = false;
+    public readonly float healthregular { get; init; }       = 1;
+    public readonly float healthminiboss { get; init; }      = 1;
+    public readonly float healthboss { get; init; }          = 1;
+    public readonly int gmbrdenemyscaling { get; init; }     = -1;
+    public readonly float gmbrdhealthregular { get; init; }  = -1;
+    public readonly float gmbrdhealthminiboss { get; init; } = -1;
+    public readonly float gmbrdhealthboss { get; init; }     = -1;
 }
 const string preset_default = "Normal";
 Dictionary<string, Preset> presets = new Dictionary<string, Preset>();
@@ -235,6 +239,10 @@ foreach (string scrName in gamestartLikes)
             ds_map_add(presetdata, ""healthregular"", global.diff_healthregular);
             ds_map_add(presetdata, ""healthminiboss"", global.diff_healthminiboss);
             ds_map_add(presetdata, ""healthboss"", global.diff_healthboss);
+            ds_map_add(presetdata, ""gmbrdenemyscaling"", global.diff_gmbrdenemyscaling);
+            ds_map_add(presetdata, ""gmbrdhealthregular"", global.diff_gmbrdhealthregular);
+            ds_map_add(presetdata, ""gmbrdhealthminiboss"", global.diff_gmbrdhealthminiboss);
+            ds_map_add(presetdata, ""gmbrdhealthboss"", global.diff_gmbrdhealthboss);
             ds_map_set(global.diff_userpresets, global.diff_saveuserpresetname, presetdata);
 
             ossafe_ini_open(""difficulty.ini"");
@@ -416,6 +424,10 @@ foreach (string scrName in gamestartLikes)
                 ds_map_add(presetdata, ""healthregular"", ini_read_real(""preset_"" + userpresetnames[i], ""HEALTH_REGULAR"", {presets[preset_default].healthregular.ToString("F10", CultureInfo.InvariantCulture)}));
                 ds_map_add(presetdata, ""healthminiboss"", ini_read_real(""preset_"" + userpresetnames[i], ""HEALTH_MINIBOSS"", {presets[preset_default].healthminiboss.ToString("F10", CultureInfo.InvariantCulture)}));
                 ds_map_add(presetdata, ""healthboss"", ini_read_real(""preset_"" + userpresetnames[i], ""HEALTH_BOSS"", {presets[preset_default].healthboss.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""gmbrdenemyscaling"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_ENEMY_SCALING"", {presets[preset_default].gmbrdenemyscaling.ToString()}));
+                ds_map_add(presetdata, ""gmbrdhealthregular"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_HEALTH_REGULAR"", {presets[preset_default].gmbrdhealthregular.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""gmbrdhealthminiboss"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_HEALTH_MINIBOSS"", {presets[preset_default].gmbrdhealthminiboss.ToString("F10", CultureInfo.InvariantCulture)}));
+                ds_map_add(presetdata, ""gmbrdhealthboss"", ini_read_real(""preset_"" + userpresetnames[i], ""GMBRD_HEALTH_BOSS"", {presets[preset_default].gmbrdhealthboss.ToString("F10", CultureInfo.InvariantCulture)}));
                 ds_map_add(global.diff_userpresets, userpresetnames[i], presetdata);
             }}
             ossafe_ini_close();
@@ -451,6 +463,10 @@ foreach (string scrName in gamestartLikes)
                         global.diff_healthregular = {pair.Value.healthregular.ToString("F10", CultureInfo.InvariantCulture)};
                         global.diff_healthminiboss = {pair.Value.healthminiboss.ToString("F10", CultureInfo.InvariantCulture)};
                         global.diff_healthboss = {pair.Value.healthboss.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_gmbrdenemyscaling = {pair.Value.gmbrdenemyscaling.ToString()};
+                        global.diff_gmbrdhealthregular = {pair.Value.gmbrdhealthregular.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_gmbrdhealthminiboss = {pair.Value.gmbrdhealthminiboss.ToString("F10", CultureInfo.InvariantCulture)};
+                        global.diff_gmbrdhealthboss = {pair.Value.gmbrdhealthboss.ToString("F10", CultureInfo.InvariantCulture)};
                         break;
                 "))}
                 case ""Custom"":
@@ -484,6 +500,10 @@ foreach (string scrName in gamestartLikes)
                         global.diff_healthregular = ds_map_find_value(presetdata, ""healthregular"");
                         global.diff_healthminiboss = ds_map_find_value(presetdata, ""healthminiboss"");
                         global.diff_healthboss = ds_map_find_value(presetdata, ""healthboss"");
+                        global.diff_gmbrdenemyscaling = ds_map_find_value(presetdata, ""gmbrdenemyscaling"");
+                        global.diff_gmbrdhealthregular = ds_map_find_value(presetdata, ""gmbrdhealthregular"");
+                        global.diff_gmbrdhealthminiboss = ds_map_find_value(presetdata, ""gmbrdhealthminiboss"");
+                        global.diff_gmbrdhealthboss = ds_map_find_value(presetdata, ""gmbrdhealthboss"");
                     }}
                     break;
             }}
@@ -505,6 +525,21 @@ foreach (string scrName in gamestartLikes)
 
         // Provide support for mod devs to add compatibility
         global.diff_apply = function(arg0, arg1, arg2) {{
+            var scalingswitch = function(arg0 /* normal multi */, arg1 /* input */) {{
+                return (global.diff_enemyscaling ? ceil(arg0 * arg1) : arg1);
+            }}
+            var gmbrdscalingswitch = function(arg0 /* normal multi */, arg1 /* gameboard multi */, arg2 /* input */) {{
+                switch (global.diff_gmbrdenemyscaling) {{
+                    case 0:
+                        return arg2;
+                    case 1:
+                        return (arg1 < 0 ? scalingswitch(arg0, arg2) : ceil(arg1 * arg2));
+                    case -1:
+                    default:
+                        return scalingswitch(arg0, arg2);
+                }}
+            }}
+
             switch (arg0) {{
                 case ""DIFFOP_DAMAGE"":
                 return ceil(global.diff_damagemulti * arg1);
@@ -551,11 +586,19 @@ foreach (string scrName in gamestartLikes)
                 case ""DIFFOP_ENEMYSCALING"":
                 return global.diff_enemyscaling || arg1;
                 case ""DIFFOP_HEALTHREGULAR"":
-                return (global.diff_enemyscaling ? ceil(global.diff_healthregular * arg1) : arg1);
+                return scalingswitch(global.diff_healthregular, arg1);
                 case ""DIFFOP_HEALTHMINIBOSS"":
-                return (global.diff_enemyscaling ? ceil(global.diff_healthminiboss * arg1) : arg1);
+                return scalingswitch(global.diff_healthminiboss, arg1);
                 case ""DIFFOP_HEALTHBOSS"":
-                return (global.diff_enemyscaling ? ceil(global.diff_healthboss * arg1) : arg1);
+                return scalingswitch(global.diff_healthboss, arg1);
+                case ""DIFFOP_ENEMYSCALING_GB"":
+                return (global.diff_gmbrdenemyscaling < 0 ? (global.diff_enemyscaling || arg1) : ((global.diff_gmbrdenemyscaling > 0) || arg1));
+                case ""DIFFOP_HEALTHREGULAR_GB"":
+                return gmbrdscalingswitch(global.diff_healthregular, global.diff_gmbrdhealthregular, arg1);
+                case ""DIFFOP_HEALTHMINIBOSS_GB"":
+                return gmbrdscalingswitch(global.diff_healthminiboss, global.diff_gmbrdhealthminiboss, arg1);
+                case ""DIFFOP_HEALTHBOSS_GB"":
+                return gmbrdscalingswitch(global.diff_healthboss, global.diff_gmbrdhealthboss, arg1);
             }}
         }}
 
@@ -629,7 +672,11 @@ foreach (string scrName in gamestartLikes)
                             && global.diff_enemyscaling == {pair.Value.enemyscaling.ToString().ToLower()}
                             && global.diff_healthregular == {pair.Value.healthregular.ToString("F10", CultureInfo.InvariantCulture)}
                             && global.diff_healthminiboss == {pair.Value.healthminiboss.ToString("F10", CultureInfo.InvariantCulture)}
-                            && global.diff_healthboss == {pair.Value.healthboss.ToString("F10", CultureInfo.InvariantCulture)}) {{
+                            && global.diff_healthboss == {pair.Value.healthboss.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_gmbrdenemyscaling == {pair.Value.gmbrdenemyscaling.ToString()}
+                            && global.diff_gmbrdhealthregular == {pair.Value.gmbrdhealthregular.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_gmbrdhealthminiboss == {pair.Value.gmbrdhealthminiboss.ToString("F10", CultureInfo.InvariantCulture)}
+                            && global.diff_gmbrdhealthboss == {pair.Value.gmbrdhealthboss.ToString("F10", CultureInfo.InvariantCulture)}) {{
                                 global.diff_preset = ""{pair.Key}"";
                         }}
                     "))}
@@ -662,7 +709,11 @@ foreach (string scrName in gamestartLikes)
                                 && global.diff_enemyscaling == ds_map_find_value(presetdata, ""enemyscaling"")
                                 && global.diff_healthregular == ds_map_find_value(presetdata, ""healthregular"")
                                 && global.diff_healthminiboss == ds_map_find_value(presetdata, ""healthminiboss"")
-                                && global.diff_healthboss == ds_map_find_value(presetdata, ""healthboss"")) {{
+                                && global.diff_healthboss == ds_map_find_value(presetdata, ""healthboss"")
+                                && global.diff_gmbrdenemyscaling == ds_map_find_value(presetdata, ""gmbrdenemyscaling"")
+                                && global.diff_gmbrdhealthregular == ds_map_find_value(presetdata, ""gmbrdhealthregular"")
+                                && global.diff_gmbrdhealthminiboss == ds_map_find_value(presetdata, ""gmbrdhealthminiboss"")
+                                && global.diff_gmbrdhealthboss == ds_map_find_value(presetdata, ""gmbrdhealthboss"")) {{
                                     global.diff_preset = userpresetnames[i];
                                     foundPreset = true;
                                     break;
@@ -836,23 +887,51 @@ foreach (string scrName in gamestartLikes)
                     type: ""Slider"",
                     title: ""Health (regular)"",
                     data_ref: {{var_name: ""diff_healthregular"", default_value: {presets[preset_default].healthregular.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""HEALTH_REGULAR""}},
-                    value_range: ""1~1000%;"",
+                    value_range: ""1~1000%"",
                     change_func: global.diff_usepreset_custom,
                     hidden: function() {{ return !global.diff_enemyscaling; }}
                 }}, {{
                     type: ""Slider"",
                     title: ""Health (miniboss)"",
                     data_ref: {{var_name: ""diff_healthminiboss"", default_value: {presets[preset_default].healthminiboss.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""HEALTH_MINIBOSS""}},
-                    value_range: ""1~1000%;"",
+                    value_range: ""1~1000%"",
                     change_func: global.diff_usepreset_custom,
                     hidden: function() {{ return !global.diff_enemyscaling; }}
                 }}, {{
                     type: ""Slider"",
                     title: ""Health (boss)"",
                     data_ref: {{var_name: ""diff_healthboss"", default_value: {presets[preset_default].healthboss.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""HEALTH_BOSS""}},
-                    value_range: ""1~1000%;"",
+                    value_range: ""1~1000%"",
                     change_func: global.diff_usepreset_custom,
                     hidden: function() {{ return !global.diff_enemyscaling; }}
+                }}, {{
+                    type: ""Toggle"",
+                    title: ""Gameboard Scaling"",
+                    data_ref: {{var_name: ""diff_gmbrdenemyscaling"", default_value: {presets[preset_default].gmbrdenemyscaling.ToString()}, ini_key: ""GMBRD_ENEMY_SCALING""}},
+                    value_range: ""INHERIT=-1;OFF=0;ON=1"",
+                    change_func: global.diff_usepreset_custom,
+                    hidden: {(ch_no == 3 ? "false" : "true")}
+                }}, {{
+                    type: ""Slider"",
+                    title: ""GB HP (regular)"",
+                    data_ref: {{var_name: ""diff_gmbrdhealthregular"", default_value: {presets[preset_default].gmbrdhealthregular.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_HEALTH_REGULAR""}},
+                    value_range: ""INHERIT=-1;1~1000%"",
+                    change_func: global.diff_usepreset_custom,
+                    hidden: {(ch_no == 3 ? "function() {{ return global.diff_gmbrdenemyscaling <= 0; }}" : "true")}
+                }}, {{
+                    type: ""Slider"",
+                    title: ""GB HP (miniboss)"",
+                    data_ref: {{var_name: ""diff_gmbrdhealthminiboss"", default_value: {presets[preset_default].gmbrdhealthminiboss.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_HEALTH_MINIBOSS""}},
+                    value_range: ""INHERIT=-1;1~1000%"",
+                    change_func: global.diff_usepreset_custom,
+                    hidden: {(ch_no == 3 ? "function() {{ return global.diff_gmbrdenemyscaling <= 0; }}" : "true")}
+                }}, {{
+                    type: ""Slider"",
+                    title: ""GB HP (boss)"",
+                    data_ref: {{var_name: ""diff_gmbrdhealthboss"", default_value: {presets[preset_default].gmbrdhealthboss.ToString("F10", CultureInfo.InvariantCulture)}, ini_key: ""GMBRD_HEALTH_BOSS""}},
+                    value_range: ""INHERIT=-1;1~1000%"",
+                    change_func: global.diff_usepreset_custom,
+                    hidden: {(ch_no == 3 ? "function() {{ return global.diff_gmbrdenemyscaling <= 0; }}" : "true")}
                 }}, {{
                     type: ""Header""
                 }}, {{
@@ -1010,9 +1089,9 @@ if (ch_no == 4)
 }
 
 // Apply Game Board damage multiplier
-importGroup = startCodeGroup("Battle", "Gameboard Dmg X", false);
 if (ch_no == 3)
 {
+    importGroup = startCodeGroup("Battle", "Gameboard Dmg X", false);
     const string gameboarddmgmulti = "(global.diff_gameboarddmgx < 0 ? global.diff_damagemulti : global.diff_gameboarddmgx)";
     importGroup.QueueTrimmedLinesFindReplace("gml_Object_obj_board_puzzlebombbullet_Step_0", "myhealth -= other.damage;",
         $"myhealth -= other.damage * {gameboarddmgmulti};");
@@ -2178,9 +2257,9 @@ if (ch_no == 5) {
 }
 
 // Apply Game Board Enemy Cooldowns
-importGroup = startCodeGroup("Battle", "Gmbrd Enemy CDs", false, false, false);
 if (ch_no == 3)
 {
+    importGroup = startCodeGroup("Battle", "Gmbrd Enemy CDs", false, false, false);
     const string gmbrdenemycd = "(global.diff_gmbrdenemycd < 0 ? global.diff_enemycd : global.diff_gmbrdenemycd)";
     // basic enemies
     importGroup.QueueRegexFindReplace("gml_Object_obj_board_enemy_bluebird_Step_0", "bulletimer >= (-?[0-9|\\.]+)", $"bulletimer >= ({gmbrdenemycd} * ($1))");
@@ -2266,11 +2345,11 @@ Func<string, string> checkregularenemyblock = constructEnemyClassificationBlock(
     new string[] {"obj_ponman_enemy", "obj_rudinnranger"}
 );
 Func<string, string> checkminibossenemyblock = constructEnemyClassificationBlock(
-    new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_lancerboss", "obj_smallcheckers_enemy", "obj_lancerboss2", "obj_susieenemy", "obj_lancerboss3"},
-    new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_berdlyb_enemy", "obj_spamton_enemy", "obj_sweet_enemy", "obj_kk_enemy", "obj_hatguy_enemy", "obj_rouxls_enemy", "obj_mauswheel_enemy"},
+    new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_lancerboss", "obj_smallcheckers_enemy", /* softlock "obj_lancerboss2",*/ "obj_susieenemy", "obj_lancerboss3"},
+    new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_berdlyb_enemy", "obj_berdlyb2_enemy", "obj_spamton_enemy", "obj_sweet_enemy", "obj_kk_enemy", "obj_hatguy_enemy", "obj_rouxls_enemy", "obj_mauswheel_enemy"},
     new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_shutta_enemy", "obj_lanino_enemy", "obj_elnina_enemy", "obj_rouxls_ch3_enemy", "obj_tenna_board4_enemy", "obj_watercooler_enemy",
         "obj_lanino_rematch_enemy", "obj_elnina_rematch_enemy"},
-    new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_jackenstein_enemy", "obj_sound_of_justice_enemy", "obj_lanino_rematch_enemy", "obj_elnina_rematch_enemy", "obj_holywatercooler_enemy"},
+    new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", /* "obj_jackenstein_enemy", */"obj_sound_of_justice_enemy", "obj_lanino_rematch_enemy", "obj_elnina_rematch_enemy", "obj_holywatercooler_enemy"},
     new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy", "obj_netskie_enemy", "obj_terracota_enemy", "obj_aqua_enemy", "obj_orange_enemy", "obj_green_enemy", "obj_blue_enemy", "obj_yellow_enemy",
         "obj_purple_enemy", "obj_trashy_trio"},
     new string[] {"obj_clubsenemy", "obj_checkers_enemy", "obj_tasque_manager_enemy"},
@@ -2723,9 +2802,9 @@ if (ch_no == 1 || ch_no == 0) {
 }
 
 // Apply Game Board Player Damage
-importGroup = startCodeGroup("Player", "Gmbrd Damage", false);
 if (ch_no == 3)
 {
+    importGroup = startCodeGroup("Player", "Gmbrd Damage", false);
     const string gmbrdplrdmg = "(global.diff_gmbrdplrdmg < 0 ? global.diff_plrdmg : global.diff_gmbrdplrdmg)";
     string[] damDam = {"gml_Object_obj_board_hazard_Step_0", "gml_Object_obj_board_cactus_test_Step_0", "gml_Object_obj_board_npc_Step_0", "gml_Object_obj_board_npc_nosolid_Step_0",
         "gml_Object_obj_board_cactus_Step_0", "gml_Object_obj_board_fern_Step_0"};
@@ -2738,6 +2817,11 @@ if (ch_no == 3)
     {
         importGroup.QueueFindReplace(zeroHp, "(myhealth == 0)", "(myhealth <= 0)");
     }
+    // shadow mantle
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp -= ", $"hp -= {gmbrdplrdmg} * ");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp--;", $"hp -= {gmbrdplrdmg};");
+    // prevent soft-lock
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "(phase != 4 || phasetransitioncon == 1)", $"hp > 0 && (phase != 4 || phasetransitioncon == 1)");
 }
 
 // Apply Player Healing
@@ -2753,9 +2837,9 @@ if (ch_no >= 5) {
 }
 
 // Apply Game Board Player Healing
-importGroup = startCodeGroup("Player", "Gmbrd Healing", false);
 if (ch_no == 3)
 {
+    importGroup = startCodeGroup("Player", "Gmbrd Healing", false);
     const string gmbrdplrheal = "(global.diff_gmbrdplrheal < 0 ? global.diff_plrheal : global.diff_gmbrdplrheal)";
     importGroup.QueueFindReplace("gml_Object_obj_board_heal_pickup_Step_0", "myhealth += 2",
         $"myhealth += 2 * {gmbrdplrheal};");
@@ -3002,6 +3086,124 @@ importGroup = startCodeGroup("Enemy Scaling", "Enemy Scaling", false);
             }}
         ");
     }
+    if (ch_no == 2 || ch_no == 0) {
+        // giga queen
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Create_0", "health_count = 1500;", "health_count = ceil(global.diff_healthboss * 1500);");
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Create_0", "health_count_max = 1500;", "health_count_max = ceil(global.diff_healthboss * 1500);");
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Create_0", "health_count_prev = 1500;", "health_count_prev = ceil(global.diff_healthboss * 1500);");
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Create_0", "health_count = 1000;", "health_count = ceil(global.diff_healthboss * 1000);");
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Create_0", "health_count_max = 1000;", "health_count_max = ceil(global.diff_healthboss * 1000);");
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Create_0", "health_count_prev = 1000;", "health_count_prev = ceil(global.diff_healthboss * 1000);");
+        importGroup.QueueFindReplace("gml_Object_o_boxingqueen_Other_12", "health_count_max = 1800;", "health_count_max = ceil(global.diff_healthboss * 1800);");
+        importGroup.QueueFindReplace("gml_Object_obj_boxing_loss_controller_Draw_0", "health_count = 1500;", "health_count = ceil(global.diff_healthboss * 1500);");
+        importGroup.QueueFindReplace("gml_Object_o_boxinghud_Draw_0", "o_boxingqueen.health_count_max = 1800;", "o_boxingqueen.health_count_max = ceil(global.diff_healthboss * 1800);");
+        importGroup.QueueFindReplace("gml_Object_o_boxing_wireframe_Draw_0", "health_count = 1000;", "health_count = ceil(global.diff_healthboss * 1000);");
+    }
+    if (ch_no == 3) {
+        // roaring knight
+        importGroup.QueueFindReplace("gml_GlobalScript_scr_damage_enemy", "if (global.monsterhp[arg0] <= 0 && a == 0)", @"
+            if (i_ex(obj_knight_enemy) && global.monsterhp[arg0] <= 0 && a == 0) {
+                with (obj_knight_enemy) { blockanim = 1; haveusedroaring = true; end_cutscene_version = 0; global.monsterhp[arg0] = global.monstermaxhp[myself] * 0.1; endcon = 0; }
+            }
+
+            if (global.monsterhp[arg0] <= 0 && a == 0)
+        ");
+    }
+    if (ch_no == 5) {
+        // platforming bullet patterns
+        (string ScrName, string HealthField, bool DoLessGreater) [] platstodo = {
+            ("gml_Object_obj_plat_enm_yellow_miniboss_Create_0", "diff_healthminiboss", false), ("gml_Object_obj_plat_enm_yellow_miniboss_Step_0", "diff_healthminiboss", true),
+            ("gml_Object_obj_plat_enm_sethglasses_miniboss_Create_0", "diff_healthminiboss", true), ("gml_Object_obj_plat_enm_sethglasses_miniboss_Step_0", "diff_healthminiboss", true),
+            ("gml_Object_obj_plat_enm_sethglasses_miniboss_Collision_obj_plat_susieaxe_hbx", "diff_healthminiboss", true), ("gml_Object_obj_plat_enm_gun_Create_0", "diff_healthregular", true),
+            ("gml_Object_obj_plat_enm_aqua_small_Create_0", "diff_healthregular", false), ("gml_Object_obj_plat_enm_aqua_miniboss_Create_0", "diff_healthminiboss", true),
+            ("gml_Object_obj_plat_enm_orange_miniboss_Create_0", "diff_healthminiboss", false), ("gml_Object_obj_plat_enm_orange_miniboss_Step_0", "diff_healthminiboss", true),
+            ("gml_Object_obj_plat_enm_aqua_sword_Create_0", "diff_healthregular", false), ("gml_Object_obj_plat_enm_bigtome_Create_0", "diff_healthregular", false),
+            ("gml_Object_obj_plat_enm_aqua_bouncer_Create_0", "diff_healthregular", true), ("gml_Object_obj_plat_enm_seth_book_Create_0", "diff_healthregular", false),
+            ("gml_Object_obj_plat_enm_yellow_ufohat_Create_0", "diff_healthminiboss", false)
+        };
+        foreach((string ScrName, string HealthField, bool DoLessGreater) script in platstodo) {
+            importGroup.QueueRegexFindReplace(script.ScrName, "hp (=|==|%) (\\S+);", $"hp $1 ceil(global.{script.HealthField} * $2);");
+            if (script.DoLessGreater)
+                importGroup.QueueRegexFindReplace(script.ScrName, "hp (<|>|<=|>=) (\\S+)", $"hp $1 global.{script.HealthField} * $2");
+        }
+        // yellow miniboss
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_yellow_miniboss_Step_0", "hp = min(hp, 20);", "hp = min(hp, global.diff_healthminiboss * 20);");
+        // seth miniboss
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_sethglasses_miniboss_Create_0", "if (arg1 < (30 - (10 * simple)))", "if (arg1 < global.diff_healthminiboss * (30 - (10 * simple)))");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_sethglasses_miniboss_Create_0", "hp_thereshold_reached = floor((lefthp + righthp) / 30) < floor(hp / 30);",
+            "hp_thereshold_reached = floor((lefthp + righthp) / (global.diff_healthminiboss * 30)) < floor(hp / (global.diff_healthminiboss * 30));");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_sethglasses_miniboss_Draw_0", "< (30 - (10 * simple)))", "< global.diff_healthminiboss * (30 - (10 * simple)))");
+        // yellow punishment gun
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_yellow_punishmentgun_Create_0", "hp = 28;", "hp = max(6, ceil(global.diff_healthminiboss * 28));");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_yellow_punishmentgun_Create_0", "next_phase_hp = [25, 22, 17, 12, 5, -1];",
+            "next_phase_hp = [max(5, ceil(global.diff_healthminiboss * 25)), max(4, ceil(global.diff_healthminiboss * 22)), max(3, ceil(global.diff_healthminiboss * 17)), max(2, ceil(global.diff_healthminiboss * 12)), max(1, ceil(global.diff_healthminiboss * 5)), -1];");
+        // aqua miniboss
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_aqua_miniboss_Destroy_0", "(max(0, hp - 3) * 10)", "(max(0, floor(hp/global.diff_healthminiboss) - 3) * 10)");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_aqua_miniboss_Step_0", "knifecount = 12 - hp;", "knifecount = 12 - floor(hp/global.diff_healthminiboss);");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_aqua_miniboss_Step_0", "var timerlimit = 45 + (2 * hp);", "var timerlimit = 45 + (2 * floor(hp/global.diff_healthminiboss));");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_aqua_miniboss_Step_0", "var attacklimit = 2 + floor(hp / 2);", "var attacklimit = 2 + floor(floor(hp/global.diff_healthminiboss) / 2);");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_aqua_miniboss_Step_0", "knifecount = floor(6 - (0.5 * hp));", "knifecount = floor(6 - (0.5 * floor(hp/global.diff_healthminiboss)));");
+        // orange miniboss
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_orange_miniboss_Destroy_0", "(max(0, hp - 3) * 10)", "(max(0, floor(hp/global.diff_healthminiboss) - 3) * 10)");
+        importGroup.QueueFindReplace("gml_Object_obj_plat_enm_orange_miniboss_Step_0", "hp = max(hp, 5);", "hp = max(hp, ceil(global.diff_healthminiboss * 5));");
+    }
+}
+
+// Apply Game Board Enemy Scaling
+if (ch_no == 3)
+{
+    importGroup = startCodeGroup("Enemy Scaling", "Gameboard Scaling", false);
+    string gmbrdhealthregular  = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthregular  < 0) ? (global.diff_enemyscaling ? global.diff_healthregular  : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthregular  : 1))";
+    string gmbrdhealthminiboss = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthminiboss < 0) ? (global.diff_enemyscaling ? global.diff_healthminiboss : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthminiboss : 1))";
+    string gmbrdhealthboss     = "((global.diff_gmbrdenemyscaling < 0 || global.diff_gmbrdhealthboss     < 0) ? (global.diff_enemyscaling ? global.diff_healthboss     : 1) : (global.diff_gmbrdenemyscaling > 0 ? global.diff_gmbrdhealthboss     : 1))";
+    importGroup.QueueAppend("gml_Object_obj_board_enemy_spawner_Other_10", @$"
+        switch (image_index) {{
+            case 2: // monster
+                if (type == 1) {{
+                    // is miniboss
+                    enemy.hp *= {gmbrdhealthminiboss};
+                    enemy.maxhp *= {gmbrdhealthminiboss};
+                    break;
+                }}
+            case 0: // monster
+            case 3: // monster
+            case 4: // flower
+            case 5: // flower
+            case 6: // blue fish
+            case 8: // silent cat
+            case 9: // singing cat
+            case 10: // yellow lizard
+            case 11: // alt. green lizard
+            case 12: // jumpy blue lizard
+                // is regular
+                enemy.hp *= {gmbrdhealthregular};
+                enemy.maxhp *= {gmbrdhealthregular};
+                break;
+            case 7: // silver fish
+            case 13: // blue bird
+                // is miniboss
+                enemy.hp *= {gmbrdhealthminiboss};
+                enemy.maxhp *= {gmbrdhealthminiboss};
+                break;
+        }}
+    ");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Create_0", "hp = 30;", $"hp = {gmbrdhealthboss} * 30;");
+    importGroup.QueueFindReplace("gml_Object_obj____Step_0", "obj_shadow_mantle_enemy.hp < 5", $"obj_shadow_mantle_enemy.hp < (1 + {gmbrdhealthboss} * 4)");
+    importGroup.QueueFindReplace("gml_Object_obj____Other_25", "obj_shadow_mantle_enemy.hp < 5", $"obj_shadow_mantle_enemy.hp < (1 + {gmbrdhealthboss} * 4)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_groundfire_Create_0", "obj_shadow_mantle_enemy.hp < 5", $"obj_shadow_mantle_enemy.hp < (1 + {gmbrdhealthboss} * 4)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_dash_hitbox_Create_0", "obj_shadow_mantle_enemy.hp < 5", $"obj_shadow_mantle_enemy.hp < (1 + {gmbrdhealthboss} * 4)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_spawn_Create_0", "obj_shadow_mantle_enemy.hp < 5", $"obj_shadow_mantle_enemy.hp < (1 + {gmbrdhealthboss} * 4)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp < 5", $"hp < (1 + {gmbrdhealthboss} * 4)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp < 4", $"hp < (1 + {gmbrdhealthboss} * 3)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp < 2", $"hp < (1 + {gmbrdhealthboss} * 1)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp <= 22", $"hp <= (1 + {gmbrdhealthboss} * 21)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp <= 13", $"hp <= (1 + {gmbrdhealthboss} * 12)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp <= 4", $"hp <= (1 + {gmbrdhealthboss} * 3)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp > 22", $"hp > (1 + {gmbrdhealthboss} * 21)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp > 13", $"hp > (1 + {gmbrdhealthboss} * 12)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp > 4", $"hp > (1 + {gmbrdhealthboss} * 3)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp = 4", $"hp = (1 + {gmbrdhealthboss} * 3)");
+    importGroup.QueueFindReplace("gml_Object_obj_shadow_mantle_enemy_Step_2", "hp >= 5", $"hp >= (1 + {gmbrdhealthboss} * 4)");
 }
 
 // Run import groups
