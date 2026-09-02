@@ -624,6 +624,21 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                             if (row_data.type != ""Header"")
                                 row_data.trigger_func();
 
+                            if (row_data.type == ""Reset"") {{
+                                var isAnyChanged = false;
+                                for (var i = 0; i < array_length(form_data); i++) {{
+                                    if ((form_data[i].type == ""Toggle"" || form_data[i].type == ""Slider"" || form_data[i].type == ""UserInput"") && (row_data.preset_id == undefined || row_data.preset_id == form_data[i].preset_id)) {{
+                                        var previous = form_data[i].data_ref.get();
+                                        form_data[i].data_ref.reset();
+                                        if (previous != form_data[i].data_ref.get()) {{
+                                            isAnyChanged = true;
+                                            form_data[i].change_func();
+                                        }}
+                                    }}
+                                }}
+                                if (isAnyChanged && !is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
+                            }}
+
                             if (row_data.type != ""Slider"" && row_data.type != ""UserInput"")
                                 row_selected = false;
                             else
@@ -1416,6 +1431,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         arr[index] = !is_undefined(arg0) ? arg0 : default_value;
                         variable_instance_set(handle, var_name, arr);
                     }},
+                    reset: function() {{ set(default_value); }},
                     read: function(arg0 /* section */) {{
                         if (is_string(default_value)) return ini_read_string(arg0, ini_key, default_value);
                         if (is_numeric(default_value)) return ini_read_real(arg0, ini_key, default_value);
@@ -1436,57 +1452,65 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                 // Form - mandatory
                 try {{ var check = row; if (is_undefined(check)) throw ""row data is undefined""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more form rows are undefined. ""; }}
                 if (!is_struct(row)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more form rows are not a struct. "";
-                {validateType("row.type", new string[] {"Slider", "Toggle", "Button", "Header", "UserInput"})}
+                {validateType("row.type", new string[] {"Slider", "Toggle", "Button", "Header", "UserInput", "Reset"})}
 
-                // Slider/Toggle/Button/UserInput - mandatory | Header - optional
+                // Slider/Toggle/Button/UserInput - mandatory | Header/Reset - optional
                 if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Button"" || row.type == ""UserInput"") {{
                     try {{ var check = row.title; if (!is_string(check) && !is_array(check)) throw ""row title must be of type string or array""; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row title must be a string""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle/Button does not have a title.""; }}
                 }} else if (row.type == ""Header"") {{
                     try {{ var check = row.title; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row title must be a string""; }} }} catch (_e) {{ row.title = """"; }}
+                }} else if (row.type == ""Reset"") {{
+                    try {{ var check = row.title; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row title must be a string""; }} }} catch (_e) {{ row.title = ""Reset to Defaults""; }}
                 }} else throw (""Unsupported row type: "" + row.type);
 
-                // Button - mandatory | Slider/Toggle/UserInput - optional | Header - invalid
+                // Button - mandatory | Slider/Toggle/UserInput/Reset - optional | Header - invalid
                 if (row.type == ""Button"") {{
                     try {{ var check = row.trigger_func; if (is_undefined(check)) throw ""row trigger_func should not be undefined""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but Button does not have a trigger_func; or it is undefined.""; }}
-                }} else if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""UserInput"") {{
+                }} else if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""UserInput"" || row.type == ""Reset"") {{
                     try {{ var check = row.trigger_func; }} catch (_e) {{ row.trigger_func = function() {{}}; }}
                     try {{ var check = row.trigger_func; if (is_undefined(check)) throw ""row trigger_func should not be undefined""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but Slider/Toggle trigger_func is undefined.""; }}
                 }} else if (row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
 
-                // Slider/Toggle/UserInput - mandatory | Button/Header - invalid
+                // Slider/Toggle/UserInput - mandatory | Button/Header/Reset - invalid
                 if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""UserInput"") {{
                     try {{ var check = row.data_ref; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a data_ref.""; }}
                     row.data_ref = init_data_ref(row.data_ref);
-                }} else if (row.type == ""Button"" || row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
+                }} else if (row.type == ""Button"" || row.type == ""Header"" || row.type == ""Reset"") {{}} else throw (""Unsupported row type: "" + row.type);
 
-                // Slider/Toggle - mandatory | Button/Header/UserInput - invalid
+                // Slider/Toggle - mandatory | Button/Header/UserInput/Reset - invalid
                 if (row.type == ""Slider"" || row.type == ""Toggle"") {{
                     try {{ var check = row.value_range; if (!is_string(check) && !is_array(check)) throw ""row value_range must be of type string or array""; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row value range must be a string""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a value_range.""; }}
-                }} else if (row.type == ""Button"" || row.type == ""Header"" || row.type == ""UserInput"") {{}} else throw (""Unsupported row type: "" + row.type);
+                }} else if (row.type == ""Button"" || row.type == ""Header"" || row.type == ""UserInput"" || row.type == ""Reset"") {{}} else throw (""Unsupported row type: "" + row.type);
 
-                // UserInput - optional | Button/Header/Slider/Toggle - invalid
+                // UserInput - optional | Button/Header/Slider/Toggle/Reset - invalid
                 if (row.type == ""UserInput"") {{
                     try {{ var check = row.max_length; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ row.max_length = 12; }}
                     try {{ var check = row.max_length; if (!is_numeric(check)) {{ check = check[0]; if (!is_numeric(check.val)) throw ""row.max_length is not numeric""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but row.max_length is not numeric.""; }}
                     try {{ var check = row.cutoff_length; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ row.cutoff_length = 12; }}
                     try {{ var check = row.cutoff_length; if (!is_numeric(check)) {{ check = check[0]; if (!is_numeric(check.val)) throw ""row.cutoff_length is not numeric""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but row.cutoff_length is not numeric.""; }}
-                }} else if (row.type == ""Button"" || row.type == ""Header"" || row.type == ""Slider"" || row.type == ""Toggle"") {{}} else throw (""Unsupported row type: "" + row.type);
+                }} else if (row.type == ""Button"" || row.type == ""Header"" || row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Reset"") {{}} else throw (""Unsupported row type: "" + row.type);
 
-                // Slider/Toggle/UserInput - optional | Button/Header - invalid
+                // Reset/Slider/Toggle/UserInput - optional | Button/Header - invalid
+                if (row.type == ""Reset"" || row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""UserInput"") {{
+                    try {{ var check = row.preset_id; }} catch (_e) {{ row.preset_id = undefined; }}
+                    if (!is_undefined(row.preset_id) && !is_string(row.preset_id)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but row.preset_id is not a string."";
+                }} else if (row.type == ""Button"" || row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
+
+                // Slider/Toggle/UserInput - optional | Button/Header/Reset - invalid
                 if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""UserInput"") {{
                     try {{ var check = row.no_save; }} catch (_e) {{ row.no_save = false; }}
                     try {{ var check = row.change_func; if (is_undefined(check)) throw ""row change_func should not be undefined""; }} catch (_e) {{ row.change_func = function() {{}}; }}
-                }} else if (row.type == ""Button"" || row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
+                }} else if (row.type == ""Button"" || row.type == ""Header"" || row.type == ""Reset"") {{}} else throw (""Unsupported row type: "" + row.type);
 
-                // Slider/UserInput - optional | Toggle/Button/Header - invalid
+                // Slider/UserInput - optional | Toggle/Button/Header/Reset - invalid
                 if (row.type == ""Slider"" || row.type == ""UserInput"") {{
                     try {{ var check = row.revert_on_cancel; if (is_undefined(check)) throw ""row revert_on_cancel should be a bool or a callable""; }} catch (_e) {{ row.revert_on_cancel = false; }}
                     try {{ var check = row.cancel_func; if (is_undefined(check)) throw ""row cancel_func should not be a undefined""; }} catch (_e) {{ row.cancel_func = function() {{}}; }}
                     try {{ var check = row.accept_func; if (is_undefined(check)) throw ""row accept_func should not be a undefined""; }} catch (_e) {{ row.accept_func = function() {{}}; }}
-                }} else if (row.type == ""Toggle"" || row.type == ""Button"" || row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
+                }} else if (row.type == ""Toggle"" || row.type == ""Button"" || row.type == ""Header"" || row.type == ""Reset"") {{}} else throw (""Unsupported row type: "" + row.type);
 
-                // Slider/Toggle/Button/Header/UserInput - optional
-                if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Button"" || row.type == ""Header"" || row.type == ""UserInput"") {{
+                // Slider/Toggle/Button/Header/UserInput/Reset - optional
+                if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Button"" || row.type == ""Header"" || row.type == ""UserInput"" || row.type == ""Reset"") {{
                     try {{ var check = row.disabled; if (is_undefined(check)) throw ""row disabled should be a bool or a callable""; }} catch (_e) {{ row.disabled = false; }}
                     try {{ var check = row.hidden; if (is_undefined(check)) throw ""row hidden should be a bool or a callable""; }} catch (_e) {{ row.hidden = false; }}
                     try {{ var check = row.ref; }} catch (_e) {{ row.ref = undefined; }}
@@ -1525,6 +1549,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         data_ref: row.data_ref,
                         value_range: row.value_range,
                         no_save: row.no_save,
+                        preset_id: row.preset_id,
                         trigger_func: row.trigger_func,
                         change_func: row.change_func,
                         disabled: row.disabled,
@@ -1590,6 +1615,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         value_range: row.value_range,
                         no_save: row.no_save,
                         revert_on_cancel: row.revert_on_cancel,
+                        preset_id: row.preset_id,
                         trigger_func: row.trigger_func,
                         change_func: row.change_func,
                         cancel_func: row.cancel_func,
@@ -1658,6 +1684,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         cutoff_length: row.cutoff_length,
                         no_save: row.no_save,
                         revert_on_cancel: row.revert_on_cancel,
+                        preset_id: row.preset_id,
                         trigger_func: row.trigger_func,
                         change_func: row.change_func,
                         cancel_func: row.cancel_func,
@@ -1695,6 +1722,19 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     row = {{
                         type: row.type,
                         title: row.title,
+                        disabled: row.disabled,
+                        hidden: row.hidden,
+                        ref: row.ref,
+                        title_loc: function(arg0) {{ return global.modmenu.find_loc(title, arg0); }},
+                        is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
+                        is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
+                    }};
+                else if (row.type == ""Reset"")
+                    row = {{
+                        type: row.type,
+                        title: row.title,
+                        preset_id: row.preset_id,
+                        trigger_func: row.trigger_func,
                         disabled: row.disabled,
                         hidden: row.hidden,
                         ref: row.ref,
@@ -1768,7 +1808,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         if (form[i].type == ""Slider"" || form[i].type == ""Toggle"" || form[i].type == ""UserInput"") {{
                             if (!form[i].no_save)
                                 form[i].data_ref.save(section);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"" || form[i].type == ""Reset"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                     }}
                     for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
                         additional_save_data_refs[i].save(section);
@@ -1786,7 +1826,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         if (form[i].type == ""Slider"" || form[i].type == ""Toggle"" || form[i].type == ""UserInput"") {{
                             if (!form[i].no_save)
                                 form[i].data_ref.copy(from, to);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"" || form[i].type == ""Reset"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                     }}
                     for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
                         additional_save_data_refs[i].copy(from, to);
@@ -1809,7 +1849,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     for (var i = 0; i < array_length(form); i++) {{
                         if (form[i].type == ""Slider"" || form[i].type == ""Toggle"" || form[i].type == ""UserInput"") {{
                             array_insert(data_refs, array_length(data_refs), form[i].data_ref);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"" || form[i].type == ""Reset"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                     }}
                     return data_refs;
                 }},
@@ -1820,7 +1860,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         if (form[i].type == ""Slider"" || form[i].type == ""Toggle"" || form[i].type == ""UserInput"") {{
                             if (!form[i].no_save)
                                 array_insert(data_refs, array_length(data_refs), form[i].data_ref);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"" || form[i].type == ""Reset"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                     }}
                     return data_refs;
                 }}
@@ -1841,7 +1881,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
     }};
 "; }
 
-// SimpleTextOutput("Debug: modmenu_core_init", "modmenu_core_init: ", modmenu_core_init(""), true);
+// TODO remove SimpleTextOutput("Debug: modmenu_core_init", "modmenu_core_init: ", modmenu_core_init(""), true);
 
 // Code edits
 UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){

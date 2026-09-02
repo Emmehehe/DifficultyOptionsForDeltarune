@@ -103,6 +103,8 @@ string example_config(string modmenuPostfix) { return @$"
                     type: ""Button"",
                     title: ""Example Button"",
                     trigger_func: function () {{}}
+                }},{{
+                    type: ""Reset""
                 }}
             ]
         }});

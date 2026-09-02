@@ -50,6 +50,8 @@ if (variable_instance_exists(global, "modmenu")) {
         type: "Button",
         title: "Example Button",
         trigger_func: function () {}
+      },{
+        type: "Reset"
       }
     ]
   });
@@ -61,9 +63,10 @@ The menu's `form` contains a basic example of every type of menu-item available.
 
 - Toggle — When clicked; cycles through a range of values ([`value_range`](#Value-Ranges)), updates a variable indicated by [`data_ref`](#Data-Refs) (global scoped by default).
 - Slider — When clicked, and then left/right pressed; slides through a range of values ([`value_range`](#Value-Ranges)), updates a variable indicated by [`data_ref`](#Data-Refs) (global scoped by default).
-- UserInput — When clicked, opens the namer UI for the user to input custom text (A-Z) up to a length of `max_length`, updates a variable indicated by [`data_ref`](#Data-Refs) (global scoped by default).
+- UserInput — When clicked; opens the namer UI for the user to input custom text (A-Z) up to a length of `max_length`, updates a variable indicated by [`data_ref`](#Data-Refs) (global scoped by default).
 - Header — No behaviour, just used to divide your menu into sections.
 - Button — When clicked; run a function of your choice.
+- Reset — When clicked; resets all menu data to the defaults.
 
 There are also a multitude of optional properties that you can add to your [config](#All-Config-Options) to further customize your menu.
 
@@ -259,80 +262,6 @@ for (var i = 0; i < array_length(my_ref_arr); i++) {
 // ...
 ```
 
-## All Config Options
-```js
-{
-  title: localised string,
-  style: { // optional
-     dark: { left_margin: localised int /* optional (default=0) */, left_value_pos: localised int /* optional (default=240) */} // optional - adjust menu-item columns
-  },
-  apply: {type: "OnChange" | "OnClose", func: callable}, // optional - add a function that applies your settings; also runs on load of save file (if using save feature)
-  ini_name: string, // optional (defaults to an ini-safe version of the menu's title)
-  save_type: "Never" | "Single" | "PerSlot" | "PerFile", // optional - never save, save to a single slot, save to up to 3 slots (based on current save slot), save per each game save data (same behaviour as vanilla saves)
-  open_func: callable, // optional - when menu is opened
-  close_func: callable, // optional - when menu is closed
-  form: [
-    {
-      type: "Toggle",
-      title: localised string,
-      data_ref: {handle: handle /* optional(default=global) */, var_name: string, default_value: any, ini_key: string  /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs below
-      value_range: localised string, // representation of the range of values that this menu-item can go through, see Value Ranges below
-      no_save: bool, // optional - set true if you don't want this setting to be saved (if using save feature)
-      trigger_func: callable, // optional - when menu-item is clicked
-      change_func: callable, // optional - when value is changed
-      disabled: bool | callable, // optional - grey out menu item and prevent interaction
-      hidden: bool | callable, // optional - prevent display of menu item
-      ref: {handle: handle /* optional (default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
-    },{
-      type: "Slider",
-      title: localised string,
-      data_ref: {handle: handle /* optional (default=global)*/, var_name: string, default_value: any, ini_key: string  /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs below
-      value_range: localised string, // representation of the range of values that this menu-item can go through, see Value Ranges below
-      no_save: bool, // optional - set true if you don't want this setting to be saved (if using save feature)
-      revert_on_cancel: bool | callable, // optional
-      trigger_func: callable, // optional - when menu-item is clicked
-      change_func: callable, // optional - when value is changed
-      cancel_func: callable, // optional - when slider is cancelled [X]/(B)
-      accept_func: callable, // optional - when slider is accepted [Z]/(A)
-      disabled: bool | callable, // optional - grey out menu item and prevent interaction
-      hidden: bool | callable, // optional - prevent display of menu item
-      ref: {handle: handle /* optional(default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
-    },{
-      type: "UserInput",
-      title: localised string,
-      data_ref: {handle: handle /* optional (default=global)*/, var_name: string, default_value: any, ini_key: string  /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs below
-      max_length: localised numeric, // optional(default=12) - maximum length of the text the user can inout
-      cutoff_length: localised numeric, // optional(default=12) - if value exceeds this length, display it cut-off with a '...' at the end
-      no_save: bool, // optional - set true if you don't want this setting to be saved (if using save feature)
-      revert_on_cancel: bool | callable, // optional
-      trigger_func: callable, // optional - when menu-item is clicked
-      change_func: callable, // optional - when value is changed
-      cancel_func: callable, // optional - when user-input is cancelled
-      accept_func: callable, // optional - when user-input is accepted
-      disabled: bool | callable, // optional - grey out menu item and prevent interaction
-      hidden: bool | callable, // optional - prevent display of menu item
-      ref: {handle: handle /* optional(default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
-    },{
-      type: "Button",
-      title: localised string,
-      trigger_func: callable, // when menu-item is clicked
-      disabled: bool | callable, // optional - grey out menu item and prevent interaction
-      hidden: bool | callable, // optional - prevent display of menu item
-      ref: {handle: handle /* optional (default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
-    },{
-      type: "Header",
-      title: localised string, // optional
-      disabled: bool | callable, // optional - grey out menu item and prevent interaction
-      hidden: bool | callable, // optional - prevent display of menu item
-      ref: {handle: handle /* optional (default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
-    }
-  ],
-  additional_save_data_refs: [ // optional - all data that should not appear in the menu, but should still be saved/loaded (if using save feature)
-    {handle: handle /* optional (default=global) */, var_name: string, default_value: any, ini_key: string  /* optional */} // reference to a variable that the menu should save/load, see Data Refs below
-  ]
-}
-```
-
 ## Value Ranges
 
 Value range strings allow you to define how a control behaves when the user interacts with it.
@@ -388,3 +317,88 @@ These properties all support localisation:
 - form[].cutoff_length
 
 It's recommended to use the [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) standard for lang strings if you are adding additional languages.
+
+## All Config Options
+```js
+{
+  title: localised string,
+  style: { // optional
+     dark: { left_margin: localised int /* optional (default=0) */, left_value_pos: localised int /* optional (default=240) */} // optional - adjust menu-item columns
+  },
+  apply: {type: "OnChange" | "OnClose", func: callable}, // optional - add a function that applies your settings; also runs on load of save file (if using save feature)
+  ini_name: string, // optional (defaults to an ini-safe version of the menu's title)
+  save_type: "Never" | "Single" | "PerSlot" | "PerFile", // optional - never save, save to a single slot, save to up to 3 slots (based on current save slot), save per each game save data (same behaviour as vanilla saves)
+  open_func: callable, // optional - when menu is opened
+  close_func: callable, // optional - when menu is closed
+  form: [
+    {
+      type: "Toggle",
+      title: localised string,
+      data_ref: {handle: handle /* optional(default=global) */, var_name: string, default_value: any, ini_key: string  /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs below
+      value_range: localised string, // representation of the range of values that this menu-item can go through, see Value Ranges below
+      no_save: bool, // optional - set true if you don't want this setting to be saved (if using save feature)
+      preset_id: string, // optional - the id of the preset this menu-item belongs to, if any
+      trigger_func: callable, // optional - when menu-item is clicked
+      change_func: callable, // optional - when value is changed
+      disabled: bool | callable, // optional - grey out menu item and prevent interaction
+      hidden: bool | callable, // optional - prevent display of menu item
+      ref: {handle: handle /* optional (default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
+    },{
+      type: "Slider",
+      title: localised string,
+      data_ref: {handle: handle /* optional (default=global)*/, var_name: string, default_value: any, ini_key: string  /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs below
+      value_range: localised string, // representation of the range of values that this menu-item can go through, see Value Ranges below
+      no_save: bool, // optional - set true if you don't want this setting to be saved (if using save feature)
+      revert_on_cancel: bool | callable, // optional
+      preset_id: string, // optional - the id of the preset this menu-item belongs to, if any
+      trigger_func: callable, // optional - when menu-item is clicked
+      change_func: callable, // optional - when value is changed
+      cancel_func: callable, // optional - when slider is cancelled [X]/(B)
+      accept_func: callable, // optional - when slider is accepted [Z]/(A)
+      disabled: bool | callable, // optional - grey out menu item and prevent interaction
+      hidden: bool | callable, // optional - prevent display of menu item
+      ref: {handle: handle /* optional(default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
+    },{
+      type: "UserInput",
+      title: localised string,
+      data_ref: {handle: handle /* optional (default=global)*/, var_name: string, default_value: any, ini_key: string  /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs below
+      max_length: localised numeric, // optional(default=12) - maximum length of the text the user can inout
+      cutoff_length: localised numeric, // optional(default=12) - if value exceeds this length, display it cut-off with a '...' at the end
+      no_save: bool, // optional - set true if you don't want this setting to be saved (if using save feature)
+      revert_on_cancel: bool | callable, // optional
+      preset_id: string, // optional - the id of the preset this menu-item belongs to, if any
+      trigger_func: callable, // optional - when menu-item is clicked
+      change_func: callable, // optional - when value is changed
+      cancel_func: callable, // optional - when user-input is cancelled
+      accept_func: callable, // optional - when user-input is accepted
+      disabled: bool | callable, // optional - grey out menu item and prevent interaction
+      hidden: bool | callable, // optional - prevent display of menu item
+      ref: {handle: handle /* optional(default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
+    },{
+      type: "Button",
+      title: localised string,
+      trigger_func: callable, // when menu-item is clicked
+      disabled: bool | callable, // optional - grey out menu item and prevent interaction
+      hidden: bool | callable, // optional - prevent display of menu item
+      ref: {handle: handle /* optional (default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
+    },{
+      type: "Header",
+      title: localised string, // optional
+      disabled: bool | callable, // optional - grey out menu item and prevent interaction
+      hidden: bool | callable, // optional - prevent display of menu item
+      ref: {handle: handle /* optional (default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
+    },{
+      type: "Reset",
+      title: localised string, // optional(default="Reset to Defaults")
+      preset_id: string, // optional - the id of the preset this menu-item belongs to, if any
+      trigger_func: callable, // when menu-item is clicked
+      disabled: bool | callable, // optional - grey out menu item and prevent interaction
+      hidden: bool | callable, // optional - prevent display of menu item
+      ref: {handle: handle /* optional (default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
+    }
+  ],
+  additional_save_data_refs: [ // optional - all data that should not appear in the menu, but should still be saved/loaded (if using save feature)
+    {handle: handle /* optional (default=global) */, var_name: string, default_value: any, ini_key: string  /* optional */} // reference to a variable that the menu should save/load, see Data Refs below
+  ]
+}
+```
