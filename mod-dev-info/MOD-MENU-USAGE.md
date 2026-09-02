@@ -180,6 +180,27 @@ global.modmenu.create({
 }
 ```
 
+**[Intermediate] Add presets:**
+```js
+{
+  type: "PresetPicker",
+  preset_group: "difficulty", // only affect menu-items of the same group, if not specified then will affect all menu-items
+  presets: [{id: "Easy", val: "EASY"}, {id: "Normal", val: "NORMAL"}, {id: "Hard", val: "HARD"}] // presets with internal id & display name; 'Custom' preset is added automatically, but you can override its display name
+},{
+  type: "Toggle", // unaffected by preset-picker
+  title: "Mod Toggle",
+  data_ref: { var_name: "my_mod_toggle", default_value: false },
+  value_range: "OFF=false;ON=true"
+},{
+  type: "Slider", // affected by preset-picker as it has a matching preset_group
+  title: "Example Slider",
+  data_ref: { var_name: "example_slider", default_value: -1 },
+  value_range: "OFF=-1;0~1000%;INF=2147483647",
+  preset_group: "difficulty", // matching group from preset-picker
+  presets: [{id: "Easy", val: 0.5}, {id: "Hard", val: 2}] // set to 50% for Easy, 200% for Hard, and 100% (default_value) for any other preset
+}
+```
+
 **[Intermediate] Localize to Japanese or to languages added by translation mods (see [Localisation](#Localisation)):**
 ```js
 global.modmenu.create({
@@ -315,6 +336,7 @@ These properties all support localisation:
 - form[].value_range
 - form[].max_length
 - form[].cutoff_length
+- PresetPicker.presets[].val
 
 It's recommended to use the [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) standard for lang strings if you are adding additional languages.
 
@@ -334,10 +356,14 @@ It's recommended to use the [ISO 639-1](https://en.wikipedia.org/wiki/List_of_IS
     {
       type: "Toggle",
       title: localised string,
-      data_ref: {handle: handle /* optional(default=global) */, var_name: string, default_value: any, ini_key: string  /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs below
-      value_range: localised string, // representation of the range of values that this menu-item can go through, see Value Ranges below
+      data_ref: {handle: handle /* optional(default=global) */, var_name: string, default_value: any, ini_key: string /* optional */, presets: array /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs above
+      value_range: localised string, // representation of the range of values that this menu-item can go through, see Value Ranges above
       no_save: bool, // optional - set true if you don't want this setting to be saved (if using save feature)
-      preset_id: string, // optional - the id of the preset this menu-item belongs to, if any
+      preset_group: string, // optional - the id of the preset-group this menu-item belongs to, if any
+      presets: [{ // optional - list of values for each preset, if unspecified just uses default
+        id: string, // preset id
+        val: any // value when applying this preset
+      }],
       trigger_func: callable, // optional - when menu-item is clicked
       change_func: callable, // optional - when value is changed
       disabled: bool | callable, // optional - grey out menu item and prevent interaction
@@ -346,11 +372,15 @@ It's recommended to use the [ISO 639-1](https://en.wikipedia.org/wiki/List_of_IS
     },{
       type: "Slider",
       title: localised string,
-      data_ref: {handle: handle /* optional (default=global)*/, var_name: string, default_value: any, ini_key: string  /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs below
-      value_range: localised string, // representation of the range of values that this menu-item can go through, see Value Ranges below
+      data_ref: {handle: handle /* optional (default=global)*/, var_name: string, default_value: any, ini_key: string  /* optional */, presets: array /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs above
+      value_range: localised string, // representation of the range of values that this menu-item can go through, see Value Ranges above
       no_save: bool, // optional - set true if you don't want this setting to be saved (if using save feature)
       revert_on_cancel: bool | callable, // optional
-      preset_id: string, // optional - the id of the preset this menu-item belongs to, if any
+      preset_group: string, // optional - the id of the preset-group this menu-item belongs to, if any
+      presets: [{ // optional - list of values for each preset, if unspecified just uses default
+        id: string, // preset id
+        val: any // value when applying this preset
+      }],
       trigger_func: callable, // optional - when menu-item is clicked
       change_func: callable, // optional - when value is changed
       cancel_func: callable, // optional - when slider is cancelled [X]/(B)
@@ -361,12 +391,16 @@ It's recommended to use the [ISO 639-1](https://en.wikipedia.org/wiki/List_of_IS
     },{
       type: "UserInput",
       title: localised string,
-      data_ref: {handle: handle /* optional (default=global)*/, var_name: string, default_value: any, ini_key: string  /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs below
+      data_ref: {handle: handle /* optional (default=global)*/, var_name: string, default_value: any, ini_key: string  /* optional */, presets: array /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs above
       max_length: localised numeric, // optional(default=12) - maximum length of the text the user can inout
       cutoff_length: localised numeric, // optional(default=12) - if value exceeds this length, display it cut-off with a '...' at the end
       no_save: bool, // optional - set true if you don't want this setting to be saved (if using save feature)
       revert_on_cancel: bool | callable, // optional
-      preset_id: string, // optional - the id of the preset this menu-item belongs to, if any
+      preset_group: string, // optional - the id of the preset-group this menu-item belongs to, if any
+      presets: [{ // optional - list of values for each preset, if unspecified just uses default
+        id: string, // preset id
+        val: any // value when applying this preset
+      }],
       trigger_func: callable, // optional - when menu-item is clicked
       change_func: callable, // optional - when value is changed
       cancel_func: callable, // optional - when user-input is cancelled
@@ -390,15 +424,33 @@ It's recommended to use the [ISO 639-1](https://en.wikipedia.org/wiki/List_of_IS
     },{
       type: "Reset",
       title: localised string, // optional(default="Reset to Defaults")
-      preset_id: string, // optional - the id of the preset this menu-item belongs to, if any
+      preset_group: string, // optional - the id of the preset-group this menu-item belongs to, if any
       trigger_func: callable, // when menu-item is clicked
       disabled: bool | callable, // optional - grey out menu item and prevent interaction
       hidden: bool | callable, // optional - prevent display of menu item
       ref: {handle: handle /* optional (default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
+    },{
+      type: "PresetPicker",
+      title: localised string, // optional(default="Preset")
+      data_ref: {handle: handle /* optional (default=global)*/, var_name: string, default_value: any, ini_key: string  /* optional */, presets: array /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs above
+      no_save: bool, // optional - set true if you don't want this setting to be saved (if using save feature)
+      revert_on_cancel: bool | callable, // optional
+      preset_group: string, // optional - the id of the preset-group this menu-item belongs to, if any
+      presets: [{ // optional - list of values for each preset, if unspecified just uses default
+        id: string, // preset id
+        val: localised string // display name of the preset
+      }],
+      trigger_func: callable, // optional - when menu-item is clicked
+      change_func: callable, // optional - when value is changed
+      cancel_func: callable, // optional - when slider is cancelled [X]/(B)
+      accept_func: callable, // optional - when slider is accepted [Z]/(A)
+      disabled: bool | callable, // optional - grey out menu item and prevent interaction
+      hidden: bool | callable, // optional - prevent display of menu item
+      ref: {handle: handle /* optional(default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
     }
   ],
   additional_save_data_refs: [ // optional - all data that should not appear in the menu, but should still be saved/loaded (if using save feature)
-    {handle: handle /* optional (default=global) */, var_name: string, default_value: any, ini_key: string  /* optional */} // reference to a variable that the menu should save/load, see Data Refs below
+    {handle: handle /* optional (default=global) */, var_name: string, default_value: any, ini_key: string  /* optional */} // reference to a variable that the menu should save/load, see Data Refs above
   ]
 }
 ```
