@@ -20,7 +20,7 @@ if (!Regex.IsMatch(displayName, expectedDisplayName, RegexOptions.IgnoreCase, Ti
 }
 
 // detect version
-string[] checkVersions = {"v2_0_2", "v2_0_1", "v2_0_0"/*, "v2_0_beta_2"*/};
+string[] checkVersions = {"v2_1_0", "v2_0_2", "v2_0_1", "v2_0_0"/*, "v2_0_beta_2"*/};
 string latestVersion = checkVersions[0];
 string detectedVersion = "not-installed";
 bool freshInstall = true;
@@ -82,6 +82,7 @@ if (!freshInstall && detectedVersion != latestVersion) {
     }
 
     switch (detectedVersion) {
+        case "v2_0_2":
         case "v2_0_1":
         case "v2_0_0":
             // no other changes needed
@@ -202,6 +203,18 @@ if (freshInstall)
         }
         Data.Sprites.Add(sItem);
     }
+}
+
+// menu data validation blocks
+string validateType(string field, string[] types) {
+    return @$"
+        try {{
+            var check = {field};
+            if (!is_string(check) || (check != ""{string.Join(@$""" && check != """, types)}""))
+                throw ""{field} should be a string in the set: {string.Join($", ", types)}"";
+        }} catch (_e) {{
+            throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but {field} is not a string in set: {string.Join($", ", types)}"";
+        }}";
 }
 
 // modmenu core init
@@ -332,7 +345,19 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
         slider_speed_max: 3,
         slider_speed: 0,
         slider_accel: 1 / 20,
-        slider_orig_value: undefined,
+        selectable_orig_value: undefined,
+        doing_namer: false,
+        namer_backout_buffer: 0,
+        backedout_namer: false,
+        choice_namer_inst: -1,
+        surf_namer: -1,
+        get_surf_namer: function () {{
+            if (!surface_exists(surf_namer))
+            {{
+                surf_namer = surface_create(320, 240);
+            }}
+            return surf_namer;
+        }},
 
         // some translation mods replace the english translation rather than using DR's built in localisation support, so can't always rely on global.lang and have to override for certain mods
         lang_override: """",
@@ -368,6 +393,131 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
         // frame timing as multiplier of vanilla game speed
         frame_multi: function() {{
             return 30 / game_get_speed(gamespeed_fps);
+        }},
+        slide_val: function(arg0/*value*/, arg1/*value range*/, arg2/*steps*/) {{
+            var value = arg0;
+            var ranges = global.modmenu.string_split(arg1, "";"");
+            var steps = arg2;
+            if (steps == 0 || array_length(ranges) <= 0)
+                return value;
+
+            var isAllLabels = true;
+            for (var i = 0; i < array_length(ranges); i++) {{
+                var range = ranges[i];
+                if (!string_pos(""="", range)) {{
+                    isAllLabels = false;
+                    break;
+                }}
+            }}
+
+            if (isAllLabels && array_length(ranges) <= 1)
+                return value;
+
+            if (isAllLabels) {{
+                var foundOption = false;
+                for (var i = ((steps > 0) ? 0 : (array_length(ranges) - 1)); ((steps > 0) ? (i < array_length(ranges)) : (i >= 0)); i += ((steps > 0) ? 1 : -1)) {{
+                    var range = ranges[i];
+                    if (string_pos(""="", range)) {{
+                        var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                        var isString = global.modmenu.string_ends_with(range, ""`"");
+                        var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
+                        var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
+
+                        var isMatch = false;
+                        if (isString)
+                            isMatch = value == labelValue[1];
+                        else if (isBool)
+                            isMatch = value == bool(labelValue[1]);
+                        else {{ // number
+                            var convBack = isPercent ? 1 / 100 : 1;
+                            isMatch = value == real(labelValue[1]) * convBack;
+                        }}
+
+                        var isLastRange = ((steps > 0) ? (i+1 == array_length(ranges)) : (i == 0));
+                        if (!foundOption && isLastRange) {{
+                            range = ((steps > 0) ? ranges[0] : ranges[array_length(ranges) - 1]);
+                            labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
+                            isString = global.modmenu.string_ends_with(range, ""`"");
+                            isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
+                            isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
+                        }}
+
+                        if (foundOption || isLastRange) {{
+                            if (isString)
+                                value = labelValue[1];
+                            else if (isBool)
+                                value = bool(labelValue[1]);
+                            else {{ // number
+                                value = real(labelValue[1]) * convBack;
+                            }}
+                            break;
+                        }}
+
+                        if (isMatch) {{
+                            foundOption = true;
+                        }}
+                    }}
+                }}
+            }} else {{
+                var value_adjust = 0;
+                var sig = (steps >= 0) ? 1 : -1;
+                var pos = steps > 0;
+                var neg = steps < 0;
+                for (var i = 0; i < abs(steps); i++) {{
+                    if (value < -2 || (pos && value == -2))
+                        value_adjust = sig * 0.1;
+                    else if (value < -1 || (pos && value == -1))
+                        value_adjust = sig * 0.05;
+                    else if (value < -0.5 || (pos && value == -0.5))
+                        value_adjust = sig * 0.02;
+                    else if (value < -0.2 || (pos && value == -0.2))
+                        value_adjust = sig * 0.01;
+                    else if (value < 0.2 || (neg && value == 0.2))
+                        value_adjust = sig * 0.005;
+                    else if (value < 0.5 || (neg && value == 0.5))
+                        value_adjust = sig * 0.01;
+                    else if (value < 1 || (neg && value == 1))
+                        value_adjust = sig * 0.02;
+                    else if (value < 2 || (neg && value == 2))
+                        value_adjust = sig * 0.05;
+                    else
+                        value_adjust = sig * 0.1;
+                }}
+
+                value += value_adjust;
+
+                for (var i = ((steps > 0) ? 0 : (array_length(ranges) - 1)); ((steps > 0) ? (i < array_length(ranges)) : (i >= 0)); i += ((steps > 0) ? 1 : -1)) {{
+                    var range = ranges[i];
+                    if (string_pos(""~"", range)) {{
+                        var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""~"");
+                        var isPercent = global.modmenu.string_ends_with(range, ""%"");
+                        if (!isPercent)
+                            value = (steps > 0) ? ceil(value) : floor(value);
+                        var convVal = isPercent ? value * 100 : value;
+                        var convBack = isPercent ? 1 / 100 : 1;
+                        if (((steps > 0) ? (convVal <= real(minMax[1]) || i+1 == array_length(ranges)) : (convVal >= real(minMax[0]) || i == 0))) {{
+                            value = clamp(value, real(minMax[0]) * convBack, real(minMax[1]) * convBack);
+                            break;
+                        }}
+                    }} else if (string_pos(""="", range)) {{
+                        var labelValue = global.modmenu.string_split(string_replace(range, ""%"", """"), ""="");
+                        var isPercent = global.modmenu.string_ends_with(range, ""%"");
+                        var convBack = isPercent ? 1 / 100 : 1;
+                        if (((steps > 0) ? (value <= (real(labelValue[1]) * convBack) || i+1 == array_length(ranges)) : (value >= (real(labelValue[1]) * convBack) || i == 0))) {{
+                            value = real(labelValue[1]) * convBack;
+                            break;
+                        }}
+                    }} else if (global.modmenu.string_ends_with(range, ""%"")) {{
+                        var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""-"");
+                        if (((steps > 0) ? (value * 100 <= real(minMax[1]) || i+1 == array_length(ranges)) : (value * 100 >= real(minMax[0]) || i == 0))) {{
+                            value = clamp(value, real(minMax[0]) / 100, real(minMax[1]) / 100);
+                            break;
+                        }}
+                    }}
+                }}
+            }}
+
+            return value;
         }},
         step_darkmenu: function() {{
             // override for deltaesp's spanish translation
@@ -599,10 +749,25 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                             if (row_data.type != ""Header"")
                                 row_data.trigger_func();
 
-                            if (row_data.type != ""Slider"")
+                            if (row_data.type == ""Reset"") {{
+                                var isAnyChanged = false;
+                                for (var i = 0; i < array_length(form_data); i++) {{
+                                    if ((form_data[i].type == ""Toggle"" || form_data[i].type == ""Slider"" || form_data[i].type == ""UserInput"" || form_data[i].type == ""PresetPicker"") && (row_data.preset_group == undefined || row_data.preset_group == form_data[i].preset_group)) {{
+                                        var previous = form_data[i].data_ref.get();
+                                        form_data[i].data_ref.reset();
+                                        if (previous != form_data[i].data_ref.get()) {{
+                                            isAnyChanged = true;
+                                            form_data[i].change_func();
+                                        }}
+                                    }}
+                                }}
+                                if (isAnyChanged && !is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
+                            }}
+
+                            if (row_data.type != ""Slider"" && row_data.type != ""UserInput"" && row_data.type != ""PresetPicker"")
                                 row_selected = false;
                             else
-                                slider_orig_value = row_data.data_ref.get();
+                                selectable_orig_value = row_data.data_ref.get();
 
                             if (row_data.type == ""Toggle"") {{
                                 var value_range = row_data.value_range_loc();
@@ -656,6 +821,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                                 row_data.data_ref.set(value);
                                 row_data.change_func();
                                 if (!is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
+                                active_menu().set_custom_for_preset(row_data.preset_group);
                             }}
                         }}
                     }}
@@ -677,267 +843,116 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                 }} else {{
                     var form_data = active_menu().form;
                     var row_data = form_data[row_no];
-                    var value_range = row_data.value_range_loc();
-                    var ranges = global.modmenu.string_split(value_range, "";"");
-                    var value = row_data.data_ref.get();
-
-                    var scroll_todo = slider_step div 1;
-
-                    if (right_h() && scroll_todo > 0) {{
-                        var isAllLabels = true;
-
-                        for (var i = 0; i < array_length(ranges); i++) {{
-                            var range = ranges[i];
-                            if (!string_pos(""="", range)) {{
-                                isAllLabels = false;
-                                break;
-                            }}
-                        }}
-
-                        if (isAllLabels) {{
-                            var foundOption = false;
-                            for (var i = 0; i < array_length(ranges); i++) {{
-                                var range = ranges[i];
-                                if (string_pos(""="", range)) {{
-                                    var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                    var isString = global.modmenu.string_ends_with(range, ""`"");
-                                    var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
-                                    var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-
-                                    var isMatch = false;
-                                    if (isString)
-                                        isMatch = value == labelValue[1];
-                                    else if (isBool)
-                                        isMatch = value == bool(labelValue[1]);
-                                    else {{ // number
-                                        var convBack = isPercent ? 1 / 100 : 1;
-                                        isMatch = value == real(labelValue[1]) * convBack;
-                                    }}
-
-                                    if (!foundOption && i+1 == array_length(ranges)) {{
-                                        range = ranges[0];
-                                        labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                        isString = global.modmenu.string_ends_with(range, ""`"");
-                                        isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
-                                        isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-                                    }}
-
-                                    if (foundOption || i+1 == array_length(ranges)) {{
-                                        if (isString)
-                                            value = labelValue[1];
-                                        else if (isBool)
-                                            value = bool(labelValue[1]);
-                                        else {{ // number
-                                            value = real(labelValue[1]) * convBack;
-                                        }}
-                                        break;
-                                    }}
-
-                                    if (isMatch) {{
-                                        foundOption = true;
-                                    }}
-                                }}
-                            }}
-                        }} else {{
-                            var value_adjust = 0;
-                            for (var i = 0; i < scroll_todo; i++) {{
-                                if (value <= -2)
-                                    value_adjust = 0.1;
-                                else if (value <= -1)
-                                    value_adjust = 0.05;
-                                else if (value <= -0.5)
-                                    value_adjust = 0.02;
-                                else if (value <= -0.2)
-                                    value_adjust = 0.01;
-                                else if (value < 0.2)
-                                    value_adjust = 0.005;
-                                else if (value < 0.5)
-                                    value_adjust = 0.01;
-                                else if (value < 1)
-                                    value_adjust = 0.02;
-                                else if (value < 2)
-                                    value_adjust = 0.05;
-                                else
-                                    value_adjust = 0.1;
-                            }}
-
-                            value += value_adjust;
-
-                            for (var i = 0; i < array_length(ranges); i++) {{
-                                var range = ranges[i];
-                                if (string_pos(""~"", range)) {{
-                                    var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""~"");
-                                    var isPercent = global.modmenu.string_ends_with(range, ""%"");
-                                    if (!isPercent)
-                                        value = ceil(value);
-                                    var convVal = isPercent ? value * 100 : value;
-                                    var convBack = isPercent ? 1 / 100 : 1;
-                                    if (convVal <= real(minMax[1]) || i+1 == array_length(ranges)) {{
-                                        value = clamp(value, real(minMax[0]) * convBack, real(minMax[1]) * convBack);
-                                        break;
-                                    }}
-                                }} else if (string_pos(""="", range)) {{
-                                    var labelValue = global.modmenu.string_split(string_replace(range, ""%"", """"), ""="");
-                                    var isPercent = global.modmenu.string_ends_with(range, ""%"");
-                                    var convBack = isPercent ? 1 / 100 : 1;
-                                    if (value <= (real(labelValue[1]) * convBack) || i+1 == array_length(ranges)) {{
-                                        value = real(labelValue[1]) * convBack;
-                                        break;
-                                    }}
-                                }} else if (global.modmenu.string_ends_with(range, ""%"")) {{
-                                    var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""-"");
-                                    if (value * 100 <= real(minMax[1]) || i+1 == array_length(ranges)) {{
-                                        value = clamp(value, real(minMax[0]) / 100, real(minMax[1]) / 100);
-                                        break;
-                                    }}
-                                }}
-                            }}
-                        }}
-
-                        row_data.data_ref.set(value);
-
-                        row_data.change_func();
-                        if (!is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
-
-                        slider_step = slider_step % 1;
-                    }}
-
-                    if (left_h() && scroll_todo > 0) {{
-                        var isAllLabels = true;
-
-                        for (var i = 0; i < array_length(ranges); i++) {{
-                            var range = ranges[i];
-                            if (!string_pos(""="", range)) {{
-                                isAllLabels = false;
-                                break;
-                            }}
-                        }}
-
-                        if (isAllLabels) {{
-                            var foundOption = false;
-                            for (var i = array_length(ranges) - 1; i >= 0; i--) {{
-                                var range = ranges[i];
-                                if (string_pos(""="", range)) {{
-                                    var labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                    var isString = global.modmenu.string_ends_with(range, ""`"");
-                                    var isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
-                                    var isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-
-                                    var isMatch = false;
-                                    if (isString)
-                                        isMatch = value == labelValue[1];
-                                    else if (isBool)
-                                        isMatch = value == bool(labelValue[1]);
-                                    else {{ // number
-                                        var convBack = isPercent ? 1 / 100 : 1;
-                                        isMatch = value == real(labelValue[1]) * convBack;
-                                    }}
-
-                                    if (!foundOption && i == 0) {{
-                                        range = ranges[array_length(ranges) - 1];
-                                        labelValue = global.modmenu.string_split(string_replace(string_replace(range, ""%"", """"), ""`"", """"), ""="");
-                                        isString = global.modmenu.string_ends_with(range, ""`"");
-                                        isPercent = !isString && global.modmenu.string_ends_with(range, ""%"");
-                                        isBool = !isPercent && (labelValue[1] == ""false"" || labelValue[1] == ""true"");
-                                    }}
-
-                                    if (foundOption || i == 0) {{
-                                        if (isString)
-                                            value = labelValue[1];
-                                        else if (isBool)
-                                            value = bool(labelValue[1]);
-                                        else {{ // number
-                                            value = real(labelValue[1]) * convBack;
-                                        }}
-                                        break;
-                                    }}
-
-                                    if (isMatch) {{
-                                        foundOption = true;
-                                    }}
-                                }}
-                            }}
-                        }} else {{
-                            var value_adjust = 0;
-                            var scroll_todo = slider_step div 1;
-                            for (var i = 0; i < scroll_todo; i++) {{
-                                if (value < -2)
-                                    value_adjust = -0.1;
-                                else if (value < -1)
-                                    value_adjust = -0.05;
-                                else if (value < -0.5)
-                                    value_adjust = -0.02;
-                                else if (value < -0.2)
-                                    value_adjust = -0.01;
-                                else if (value <= 0.2)
-                                    value_adjust = -0.005;
-                                else if (value <= 0.5)
-                                    value_adjust = -0.01;
-                                else if (value <= 1)
-                                    value_adjust = -0.02;
-                                else if (value <= 2)
-                                    value_adjust = -0.05;
-                                else
-                                    value_adjust = -0.1;
-                            }}
-
-                            value += value_adjust;
-
-                            for (var i = array_length(ranges) - 1; i >= 0; i--) {{
-                                var range = ranges[i];
-                                if (string_pos(""~"", range)) {{
-                                    var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""~"");
-                                    var isPercent = global.modmenu.string_ends_with(range, ""%"");
-                                    if (!isPercent)
-                                        value = floor(value);
-                                    var convVal = isPercent ? value * 100 : value;
-                                    var convBack = isPercent ? 1 / 100 : 1;
-                                    if (convVal >= real(minMax[0]) || i == 0) {{
-                                        value = clamp(value, real(minMax[0]) * convBack, real(minMax[1]) * convBack);
-                                        break;
-                                    }}
-                                }} else if (string_pos(""="", range)) {{
-                                    var labelValue = global.modmenu.string_split(string_replace(range, ""%"", """"), ""="");
-                                    var isPercent = global.modmenu.string_ends_with(range, ""%"");
-                                    var convBack = isPercent ? 1 / 100 : 1;
-                                    if (value >= (real(labelValue[1]) * convBack) || i == 0) {{
-                                        value = real(labelValue[1]) * convBack;
-                                        break;
-                                    }}
-                                }} else if (global.modmenu.string_ends_with(range, ""%"")) {{
-                                    var minMax = global.modmenu.string_split(string_replace(range, ""%"", """"), ""-"");
-                                    if (value * 100 >= real(minMax[0]) || i == 0) {{
-                                        value = clamp(value, real(minMax[0]) / 100, real(minMax[1]) / 100);
-                                        break;
-                                    }}
-                                }}
-                            }}
-                        }}
-
-                        row_data.data_ref.set(value);
-
-                        row_data.change_func();
-                        if (!is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
-
-                        slider_step = slider_step % 1;
-                    }}
-
-                    if (right_h() || left_h()) {{
-                        slider_step += slider_speed * delta_multi();
-                        slider_speed = clamp(slider_speed + slider_accel * delta_multi(), slider_speed_min, slider_speed_max);
-                    }} else {{
-                        slider_step = 1; // reset to 1 as first interaction should be instantaneous
-                        slider_speed = slider_speed_min;
-                    }}
 
                     other.se_select = 0;
                     other.se_cancel = 0;
 
-                    if (button1_p() && other.onebuffer < 0)
-                        other.se_select = 1;
+                    if (row_data.type == ""Slider"" || row_data.type == ""PresetPicker"") {{
+                        var value_range = row_data.value_range_loc();
+                        var value = row_data.data_ref.get();
 
-                    if (button2_p() && other.twobuffer < 0)
-                        other.se_cancel = 1;
+                        var scroll_todo = slider_step div 1;
+                        if (scroll_todo > 0 && (left_h() || right_h()) && !(left_h() && right_h())) {{
+                            if (left_h())
+                                scroll_todo = -scroll_todo;
+
+                            row_data.data_ref.set(slide_val(value, value_range, scroll_todo));
+
+                            if (row_data.type == ""PresetPicker"") {{
+                                var isAnyChanged = false;
+                                for (var i = 0; i < array_length(form_data); i++) {{
+                                    if ((form_data[i].type == ""Toggle"" || form_data[i].type == ""Slider"" || form_data[i].type == ""UserInput"") && (row_data.preset_group == undefined || row_data.preset_group == form_data[i].preset_group)) {{
+                                        var previous = form_data[i].data_ref.get();
+                                        form_data[i].use_preset(row_data.data_ref.get());
+                                        if (previous != form_data[i].data_ref.get()) {{
+                                            isAnyChanged = true;
+                                            form_data[i].change_func();
+                                        }}
+                                    }}
+                                }}
+                                if (isAnyChanged && !is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
+                            }}
+
+                            row_data.change_func();
+                            if (!is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
+                            if (row_data.type != ""PresetPicker"")
+                                active_menu().set_custom_for_preset(row_data.preset_group);
+
+                            slider_step = slider_step % 1;
+                        }}
+
+                        if (right_h() || left_h()) {{
+                            slider_step += slider_speed * delta_multi();
+                            slider_speed = clamp(slider_speed + slider_accel * delta_multi(), slider_speed_min, slider_speed_max);
+                        }} else {{
+                            slider_step = 1; // reset to 1 as first interaction should be instantaneous
+                            slider_speed = slider_speed_min;
+                        }}
+
+                        if (button1_p() && other.onebuffer < 0)
+                            other.se_select = 1;
+
+                        if (button2_p() && other.twobuffer < 0)
+                            other.se_cancel = 1;
+                    }} else if (row_data.type == ""UserInput"") {{
+                        if (!doing_namer && !(choice_namer_inst > 0 && instance_exists(choice_namer_inst))) {{
+                            JA_XOFF = -12;
+                            JA_YOFF = 0;
+
+                            if (global.lang == ""ja"") {{
+                                JA_XOFF = -50;
+                                JA_YOFF = 10;
+                            }}
+
+                            choice_namer_inst = instance_create(0, 0, DEVICE_CHOICE);
+                            doing_namer = true;
+                            backedout_namer = false;
+
+                            with (choice_namer_inst)
+                                event_user(0);
+
+                            with (choice_namer_inst) {{
+                                depth = -100;
+
+                                STRINGMAX = row_data.max_length_loc();
+                                NAMESTRING = row_data.data_ref.get();
+
+                                MODMENUTYPE = true;
+                                ERASE = 0;
+                            }}
+
+                            namer_backout_buffer = string_length(choice_namer_inst.NAMESTRING) <= 0;
+                        }} else if (doing_namer) {{
+                            if (choice_namer_inst > 0 && instance_exists(choice_namer_inst)) {{
+                                if (choice_namer_inst.NAMESTRING != row_data.data_ref.get()) {{
+                                    row_data.data_ref.set(choice_namer_inst.NAMESTRING);
+
+                                    row_data.change_func();
+                                    if (!is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
+                                    active_menu().set_custom_for_preset(row_data.preset_group);
+                                }}
+                                if (choice_namer_inst.ERASE == 1 && string_length(choice_namer_inst.NAMESTRING) <= 0)
+                                    namer_backout_buffer++;
+                                else if (string_length(choice_namer_inst.NAMESTRING) > 0)
+                                    namer_backout_buffer = 0;
+
+                                if (namer_backout_buffer > 1) {{
+                                    backedout_namer = true;
+
+                                    with (choice_namer_inst)
+                                        instance_destroy();
+                                }}
+                            }} else {{
+                                doing_namer = false;
+
+                                if (row_data.data_ref.get() == """")
+                                    backedout_namer = true;
+
+                                other.se_select = !backedout_namer;
+                                other.se_cancel = backedout_namer;
+                            }}
+                        }}
+                    }}
 
                     if (other.se_select == 1 || other.se_cancel == 1) {{
                         other.selectnoise = 1;
@@ -948,17 +963,35 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         if (other.se_select == 1)
                             row_data.accept_func();
                         if (other.se_cancel == 1) {{
-                            if (row_data.revert_on_cancel && row_data.data_ref.get() != slider_orig_value) {{
-                                row_data.data_ref.set(slider_orig_value);
+                            if (row_data.revert_on_cancel && row_data.data_ref.get() != selectable_orig_value) {{
+                                row_data.data_ref.set(selectable_orig_value);
+
+                                if (row_data.type == ""PresetPicker"") {{
+                                    var isAnyChanged = false;
+                                    for (var i = 0; i < array_length(form_data); i++) {{
+                                        if ((form_data[i].type == ""Toggle"" || form_data[i].type == ""Slider"" || form_data[i].type == ""UserInput"") && (row_data.preset_group == undefined || row_data.preset_group == form_data[i].preset_group)) {{
+                                            var previous = form_data[i].data_ref.get();
+                                            form_data[i].use_preset(row_data.data_ref.get());
+                                            if (previous != form_data[i].data_ref.get()) {{
+                                                isAnyChanged = true;
+                                                form_data[i].change_func();
+                                            }}
+                                        }}
+                                    }}
+                                    if (isAnyChanged && !is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
+                                }}
+
                                 row_data.change_func();
                                 if (!is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
+                                if (row_data.type != ""PresetPicker"")
+                                    active_menu().set_custom_for_preset(row_data.preset_group);
                             }}
                             row_data.cancel_func();
                         }}
 
                         slider_step = 1; // reset to 1 as first interaction should be instantaneous
                         slider_speed = slider_speed_min;
-                        slider_orig_value = undefined;
+                        selectable_orig_value = undefined;
                     }}
                 }}
             }}
@@ -978,7 +1011,20 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
 
                 draw_set_color(c_white);
 
-                if (menu_dark_count > 0) {{
+                if (doing_namer) {{
+                    var form_data = active_menu().form;
+                    var row_data = form_data[row_no];
+
+                    draw_set_halign(fa_center);
+                    draw_text(other.xx + 320, other.yy + 130, string_upper(string_hash_to_newline(row_data.title_loc())));
+                    draw_set_halign(fa_left);
+
+                    draw_surface_stretched(get_surf_namer(), other.xx, other.yy+110, 640, 480);
+
+                    surface_set_target(get_surf_namer());
+                    draw_clear_alpha(c_white,0);
+                    surface_reset_target();
+                }} else if (menu_dark_count > 0) {{
                     // top row buttons
                     var isSubmenu = (row_no >= 0);
                     var isMenuLonely = menu_dark_count == 1;
@@ -1076,7 +1122,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                                 draw_line(_xPos - 28 - 3, other.yy + yprogress + 9, _xPos + 400, other.yy + yprogress + 9);
                             }}
 
-                            if (row_data.type == ""Slider"" || row_data.type == ""Toggle"")
+                            if (row_data.type == ""Slider"" || row_data.type == ""Toggle"" || row_data.type == ""UserInput"" || row_data.type == ""PresetPicker"")
                                 draw_text(_selectXPos, other.yy + yprogress{(ch_no == 1 ? " + 1" : "")}, string_hash_to_newline(row_data.value_string()));
 
                             if (row_no == i) {{
@@ -1245,19 +1291,23 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                 left_value_pos_loc: function(arg0) {{ return global.modmenu.find_loc(left_value_pos, arg0); }},
             }};
             try {{ var check = menu.apply; }} catch (_e) {{ menu.apply = undefined; }}
-            try {{ var check = menu.apply; if (!is_undefined(check) && ((check.type != ""OnChange"" && check.type != ""OnClose""))) throw ""apply type failed validation""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but apply.type is not in set: OnChange, OnClose.""; }}
-            if (!is_undefined(menu.apply)) menu.apply = {{
-                type: menu.apply.type,
-                func: menu.apply.func,
-                run_onchange: function() {{ if (type == ""OnChange"") func(); }},
-                run_onclose: function() {{ if (type == ""OnClose"") func(); }},
-                run_onload: function() {{ func(); }}
-            }};
+            var apply = menu.apply;
+            if (!is_undefined(apply)) {{
+                {validateType("apply.type", new string[] {"OnChange", "OnClose"})}
+                menu.apply = {{
+                    type: apply.type,
+                    func: apply.func,
+                    run_onchange: function() {{ if (type == ""OnChange"") func(); }},
+                    run_onclose: function() {{ if (type == ""OnClose"") func(); }},
+                    run_onload: function() {{ func(); }}
+                }};
+            }}
             try {{ var check = menu.ini_name; }} catch (_e) {{ menu.ini_name = string_savename(find_loc(menu.title)); }}
             {{ var check = menu.ini_name; if (is_string(check) && !is_savenamestring(check)) menu.ini_name = string_savename_addini(menu.ini_name); }}
             try {{ var check = menu.ini_name; if (!is_string(check) || !is_savenamestring(check)) throw ""ini_name isn't a string or contains invalid characters or no .ini""; }} catch (_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but ini_name is missing; or contains invalid characters. ini_name = '"" + string(menu.ini_name) + ""'""); }}
             try {{ var check = menu.save_type; }} catch (_e) {{ menu.save_type = ""Never""; }}
-            try {{ var check = menu.save_type; if (check != ""Never"" && check != ""Single"" && check != ""PerSlot"" && check != ""PerFile"") throw ""save_type failed validation""; }} catch (_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but save_type is not in set: Never, Single, PerSlot, PerFile.""); }}
+            var save_type = menu.save_type;
+            {validateType("save_type", new string[] {"Never", "Single", "PerSlot", "PerFile"})}
             try {{ var check = menu.world; }} catch (_e) {{ menu.world = ""Dark""; }}
             try {{ var check = menu.world; if (!is_string(check) || (check != ""Dark"" && check != ""Light"" && check != ""Both"")) throw ""menu.world not a string in: Dark, Light, Both""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but world is not in set: Dark, Light, Both.""; }}
             try {{ var check = menu.open_func; }} catch (_e) {{ menu.open_func = function () {{}}; }}
@@ -1286,6 +1336,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     data_ref.var_name = nameandindex[0];
                     data_ref.index = real(string_delete(nameandindex[1], string_length(nameandindex[1]), 1));
                 }} else data_ref.index = -1; }} catch(_e) {{ throw (""MODMENU VALIDATION ERROR: Tried to create a menu, but data ref var_name is invalid: "" + data_ref.var_name); }}
+
                 // helper methods
                 return {{
                     var_name: data_ref.var_name,
@@ -1314,6 +1365,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         arr[index] = !is_undefined(arg0) ? arg0 : default_value;
                         variable_instance_set(handle, var_name, arr);
                     }},
+                    reset: function() {{ set(default_value); }},
                     read: function(arg0 /* section */) {{
                         if (is_string(default_value)) return ini_read_string(arg0, ini_key, default_value);
                         if (is_numeric(default_value)) return ini_read_real(arg0, ini_key, default_value);
@@ -1328,51 +1380,81 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     copy: function(arg0 /* from section */, arg1 /* to section */) {{ write(arg1, read(arg0)); }}
                 }};
             }};
+            var presetgroups_to_pickers = [];
             inited_form = [];
             for (var i = 0; i < array_length(menu.form); i++) {{
                 var row = menu.form[i];
                 // Form - mandatory
                 try {{ var check = row; if (is_undefined(check)) throw ""row data is undefined""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more form rows are undefined. ""; }}
                 if (!is_struct(row)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but one or more form rows are not a struct. "";
-                try {{ var check = row.type; if (!is_string(check) || (check != ""Slider"" && check != ""Toggle"" && check != ""Button"" && check != ""Header"")) throw ""row type should be a string in the set: Slider, Toggle, Button, Header""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form row type is not a string in set: Slider, Toggle, Button, Header""; }}
+                {validateType("row.type", new string[] {"Slider", "Toggle", "Button", "Header", "UserInput", "Reset", "PresetPicker"})}
 
-                // Slider/Toggle/Button - mandatory | Header - optional
-                if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Button"") {{
+                // Slider/Toggle/Button/UserInput - mandatory | Header/Reset/PresetPicker - optional
+                if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Button"" || row.type == ""UserInput"") {{
                     try {{ var check = row.title; if (!is_string(check) && !is_array(check)) throw ""row title must be of type string or array""; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row title must be a string""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle/Button does not have a title.""; }}
                 }} else if (row.type == ""Header"") {{
                     try {{ var check = row.title; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row title must be a string""; }} }} catch (_e) {{ row.title = """"; }}
+                }} else if (row.type == ""Reset"") {{
+                    try {{ var check = row.title; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row title must be a string""; }} }} catch (_e) {{ row.title = ""Reset to Defaults""; }}
+                }} else if (row.type == ""PresetPicker"") {{
+                    try {{ var check = row.title; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row title must be a string""; }} }} catch (_e) {{ row.title = ""Preset""; }}
                 }} else throw (""Unsupported row type: "" + row.type);
 
-                // Button - mandatory | Slider/Toggle - optional | Header - invalid
+                // Button - mandatory | Slider/Toggle/UserInput/Reset/PresetPicker - optional | Header - invalid
                 if (row.type == ""Button"") {{
                     try {{ var check = row.trigger_func; if (is_undefined(check)) throw ""row trigger_func should not be undefined""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but Button does not have a trigger_func; or it is undefined.""; }}
-                }} else if (row.type == ""Slider"" || row.type == ""Toggle"") {{
+                }} else if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""UserInput"" || row.type == ""Reset"" || row.type == ""PresetPicker"") {{
                     try {{ var check = row.trigger_func; }} catch (_e) {{ row.trigger_func = function() {{}}; }}
                     try {{ var check = row.trigger_func; if (is_undefined(check)) throw ""row trigger_func should not be undefined""; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but Slider/Toggle trigger_func is undefined.""; }}
                 }} else if (row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
 
-                // Slider/Toggle - mandatory | Button/Header - invalid
-                if (row.type == ""Slider"" || row.type == ""Toggle"") {{
+                // Slider/Toggle/UserInput/PresetPicker - mandatory | Button/Header/Reset - invalid
+                if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""UserInput"" || row.type == ""PresetPicker"") {{
                     try {{ var check = row.data_ref; }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a data_ref.""; }}
                     row.data_ref = init_data_ref(row.data_ref);
+                }} else if (row.type == ""Button"" || row.type == ""Header"" || row.type == ""Reset"") {{}} else throw (""Unsupported row type: "" + row.type);
+
+                // Slider/Toggle - mandatory | Button/Header/UserInput/Reset/PresetPicker - invalid
+                if (row.type == ""Slider"" || row.type == ""Toggle"") {{
                     try {{ var check = row.value_range; if (!is_string(check) && !is_array(check)) throw ""row value_range must be of type string or array""; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row value range must be a string""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a value_range.""; }}
+                }} else if (row.type == ""Button"" || row.type == ""Header"" || row.type == ""UserInput"" || row.type == ""Reset"" || row.type == ""PresetPicker"") {{}} else throw (""Unsupported row type: "" + row.type);
+
+                // UserInput - optional | Button/Header/Slider/Toggle/Reset/PresetPicker - invalid
+                if (row.type == ""UserInput"") {{
+                    try {{ var check = row.max_length; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ row.max_length = 12; }}
+                    try {{ var check = row.max_length; if (!is_numeric(check)) {{ check = check[0]; if (!is_numeric(check.val)) throw ""row.max_length is not numeric""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but row.max_length is not numeric.""; }}
+                    try {{ var check = row.cutoff_length; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ row.cutoff_length = 12; }}
+                    try {{ var check = row.cutoff_length; if (!is_numeric(check)) {{ check = check[0]; if (!is_numeric(check.val)) throw ""row.cutoff_length is not numeric""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but row.cutoff_length is not numeric.""; }}
+                }} else if (row.type == ""Button"" || row.type == ""Header"" || row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Reset"" || row.type == ""PresetPicker"") {{}} else throw (""Unsupported row type: "" + row.type);
+
+                // Reset/Slider/Toggle/UserInput/PresetPicker - optional | Button/Header - invalid
+                if (row.type == ""Reset"" || row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""UserInput"" || row.type == ""PresetPicker"") {{
+                    try {{ var check = row.preset_group; }} catch (_e) {{ row.preset_group = undefined; }}
+                    if (!is_undefined(row.preset_group) && !is_string(row.preset_group)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but row.preset_group is not a string."";
                 }} else if (row.type == ""Button"" || row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
 
-                // Slider/Toggle - optional | Button/Header - invalid
-                if (row.type == ""Slider"" || row.type == ""Toggle"") {{
+                // Slider/Toggle/UserInput/PresetPicker - optional | Reset/Button/Header - invalid
+                if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""UserInput"" || row.type == ""PresetPicker"") {{
+                    try {{ var check = row.presets;  }} catch (_e) {{ row.presets = []; }}
+                    if (!is_array(row.presets)) throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but row.presets is not an array."";
+                }} else if (row.type == ""Reset"" || row.type == ""Button"" || row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
+
+
+                // Slider/Toggle/UserInput/PresetPicker - optional | Button/Header/Reset - invalid
+                if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""UserInput"" || row.type == ""PresetPicker"") {{
                     try {{ var check = row.no_save; }} catch (_e) {{ row.no_save = false; }}
                     try {{ var check = row.change_func; if (is_undefined(check)) throw ""row change_func should not be undefined""; }} catch (_e) {{ row.change_func = function() {{}}; }}
-                }} else if (row.type == ""Button"" || row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
+                }} else if (row.type == ""Button"" || row.type == ""Header"" || row.type == ""Reset"") {{}} else throw (""Unsupported row type: "" + row.type);
 
-                // Slider - optional | Toggle/Button/Header - invalid
-                if (row.type == ""Slider"") {{
+                // Slider/UserInput/PresetPicker - optional | Toggle/Button/Header/Reset - invalid
+                if (row.type == ""Slider"" || row.type == ""UserInput"" || row.type == ""PresetPicker"") {{
                     try {{ var check = row.revert_on_cancel; if (is_undefined(check)) throw ""row revert_on_cancel should be a bool or a callable""; }} catch (_e) {{ row.revert_on_cancel = false; }}
                     try {{ var check = row.cancel_func; if (is_undefined(check)) throw ""row cancel_func should not be a undefined""; }} catch (_e) {{ row.cancel_func = function() {{}}; }}
                     try {{ var check = row.accept_func; if (is_undefined(check)) throw ""row accept_func should not be a undefined""; }} catch (_e) {{ row.accept_func = function() {{}}; }}
-                }} else if (row.type == ""Toggle"" || row.type == ""Button"" || row.type == ""Header"") {{}} else throw (""Unsupported row type: "" + row.type);
+                }} else if (row.type == ""Toggle"" || row.type == ""Button"" || row.type == ""Header"" || row.type == ""Reset"") {{}} else throw (""Unsupported row type: "" + row.type);
 
-                // Slider/Toggle/Button/Header - optional
-                if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Button"" || row.type == ""Header"") {{
+                // Slider/Toggle/Button/Header/UserInput/Reset/PresetPicker - optional
+                if (row.type == ""Slider"" || row.type == ""Toggle"" || row.type == ""Button"" || row.type == ""Header"" || row.type == ""UserInput"" || row.type == ""Reset"" || row.type == ""PresetPicker"") {{
                     try {{ var check = row.disabled; if (is_undefined(check)) throw ""row disabled should be a bool or a callable""; }} catch (_e) {{ row.disabled = false; }}
                     try {{ var check = row.hidden; if (is_undefined(check)) throw ""row hidden should be a bool or a callable""; }} catch (_e) {{ row.hidden = false; }}
                     try {{ var check = row.ref; }} catch (_e) {{ row.ref = undefined; }}
@@ -1411,6 +1493,19 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         data_ref: row.data_ref,
                         value_range: row.value_range,
                         no_save: row.no_save,
+                        preset_group: row.preset_group,
+                        presets: row.presets,
+                        use_preset: function(arg0 /*preset name*/) {{
+                            var new_val = data_ref.default_value;
+                            for(var i = 0; i < array_length(presets); i++) {{
+                                var this_preset = presets[i];
+                                if (this_preset.id == arg0) {{
+                                    new_val = this_preset.val;
+                                    break;
+                                }}
+                            }}
+                            data_ref.set(new_val);
+                        }},
                         trigger_func: row.trigger_func,
                         change_func: row.change_func,
                         disabled: row.disabled,
@@ -1476,6 +1571,19 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         value_range: row.value_range,
                         no_save: row.no_save,
                         revert_on_cancel: row.revert_on_cancel,
+                        preset_group: row.preset_group,
+                        presets: row.presets,
+                        use_preset: function(arg0 /*preset name*/) {{
+                            var new_val = data_ref.default_value;
+                            for(var i = 0; i < array_length(presets); i++) {{
+                                var this_preset = presets[i];
+                                if (this_preset.id == arg0) {{
+                                    new_val = this_preset.val;
+                                    break;
+                                }}
+                            }}
+                            data_ref.set(new_val);
+                        }},
                         trigger_func: row.trigger_func,
                         change_func: row.change_func,
                         cancel_func: row.cancel_func,
@@ -1535,6 +1643,49 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
                         is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
                     }};
+                else if (row.type == ""UserInput"")
+                    row = {{
+                        type: row.type,
+                        title: row.title,
+                        data_ref: row.data_ref,
+                        max_length: row.max_length,
+                        cutoff_length: row.cutoff_length,
+                        no_save: row.no_save,
+                        revert_on_cancel: row.revert_on_cancel,
+                        preset_group: row.preset_group,
+                        presets: row.presets,
+                        use_preset: function(arg0 /*preset name*/) {{
+                            var new_val = data_ref.default_value;
+                            for(var i = 0; i < array_length(presets); i++) {{
+                                var this_preset = presets[i];
+                                if (this_preset.id == arg0) {{
+                                    new_val = this_preset.val;
+                                    break;
+                                }}
+                            }}
+                            data_ref.set(new_val);
+                        }},
+                        trigger_func: row.trigger_func,
+                        change_func: row.change_func,
+                        cancel_func: row.cancel_func,
+                        accept_func: row.accept_func,
+                        disabled: row.disabled,
+                        hidden: row.hidden,
+                        ref: row.ref,
+                        title_loc: function(arg0) {{ return global.modmenu.find_loc(title, arg0); }},
+                        max_length_loc: function(arg0) {{ return global.modmenu.find_loc(max_length, arg0); }},
+                        cutoff_length_loc: function(arg0) {{ return global.modmenu.find_loc(cutoff_length, arg0); }},
+                        value_string: function() {{
+                            var result = string(data_ref.get());
+
+                            if (string_length(result) > cutoff_length_loc())
+                                result = string_copy(result, 1, max(0, cutoff_length_loc() - 1)) + ""..."";
+
+                            return ""["" + ((result == """") ? "" "" : result) + ""]"";
+                        }},
+                        is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
+                        is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
+                    }};
                 else if (row.type == ""Button"")
                     row = {{
                         type: row.type,
@@ -1558,6 +1709,79 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
                         is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
                     }};
+                else if (row.type == ""Reset"")
+                    row = {{
+                        type: row.type,
+                        title: row.title,
+                        preset_group: row.preset_group,
+                        trigger_func: row.trigger_func,
+                        disabled: row.disabled,
+                        hidden: row.hidden,
+                        ref: row.ref,
+                        title_loc: function(arg0) {{ return global.modmenu.find_loc(title, arg0); }},
+                        is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
+                        is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
+                    }};
+                else if (row.type == ""PresetPicker"") {{
+                    row = {{
+                        type: row.type,
+                        title: row.title,
+                        data_ref: row.data_ref,
+                        value_range_loc: function(arg0) {{
+                            var result = """";
+                            var foundCustom = false;
+                            for (var i = 0; i < array_length(presets); i++) {{
+                                if (i != 0)
+                                    result = result + "";"";
+                                var this_preset = presets[i];
+                                result = result + global.modmenu.find_loc(this_preset.val, arg0) + ""="" + this_preset.id + ""`"";
+                                if (!foundCustom && this_preset.id == ""Custom"")
+                                    foundCustom = true;
+                            }}
+                            if (!foundCustom) {{
+                                result = result + ((array_length(presets) > 0) ? "";"" : """") + ""CUSTOM=Custom`"";
+                            }}
+                            return result;
+                        }},
+                        no_save: row.no_save,
+                        revert_on_cancel: row.revert_on_cancel,
+                        preset_group: row.preset_group,
+                        presets: row.presets,
+                        use_preset: function(arg0 /*preset name*/) {{
+                            var new_val = data_ref.default_value;
+                            for(var i = 0; i < array_length(presets); i++) {{
+                                var this_preset = presets[i];
+                                if (this_preset.id == arg0) {{
+                                    new_val = this_preset.val;
+                                    break;
+                                }}
+                            }}
+                            data_ref.set(new_val);
+                        }},
+                        trigger_func: row.trigger_func,
+                        change_func: row.change_func,
+                        cancel_func: row.cancel_func,
+                        accept_func: row.accept_func,
+                        disabled: row.disabled,
+                        hidden: row.hidden,
+                        ref: row.ref,
+                        title_loc: function(arg0) {{ return global.modmenu.find_loc(title, arg0); }},
+                        value_string: function() {{
+                            var reference = data_ref.get();
+                            for (var i = 0; i < array_length(presets); i++) {{
+                                var this_preset = presets[i];
+                                if (this_preset.id == reference)
+                                    return this_preset.val;
+                            }}
+                            if (reference == ""Custom"")
+                                return ""CUSTOM"";
+                            return reference;
+                        }},
+                        is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
+                        is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
+                    }};
+                    array_push(presetgroups_to_pickers, {{ id: row.preset_group, picker: row }});
+                }}
                 else throw (""Unsupported row type: "" + row.type);
 
                 if (!is_undefined(row.ref)) row.ref.set(row);
@@ -1580,6 +1804,13 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                 open_func: menu.open_func,
                 close_func: menu.close_func,
                 form: menu.form,
+                presetgroups_to_pickers: presetgroups_to_pickers,
+                set_custom_for_preset: function(arg0) {{
+                    for(var i = 0; i < array_length(presetgroups_to_pickers); i++) {{
+                        if (presetgroups_to_pickers[i].id == undefined || presetgroups_to_pickers[i].id == arg0)
+                            presetgroups_to_pickers[i].picker.data_ref.set(""Custom"");
+                    }}
+                }},
                 additional_save_data_refs: menu.additional_save_data_refs,
                 title_loc: function(arg0) {{ return global.modmenu.find_loc(title, arg0); }},
                 save_category: function(arg0, arg1) {{
@@ -1601,7 +1832,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     var section = save_category(arg0, arg1);
                     ossafe_ini_open(ini_name);
                     for (var i = 0; i < array_length(form); i++) {{
-                        if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                        if (form[i].type == ""Slider"" || form[i].type == ""Toggle"" || form[i].type == ""UserInput"") {{
                             if (!form[i].no_save)
                                 form[i].data_ref.load(section);
                         }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
@@ -1621,10 +1852,10 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     var section = save_category(undefined, arg0);
                     ossafe_ini_open(ini_name);
                     for (var i = 0; i < array_length(form); i++) {{
-                        if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                        if (form[i].type == ""Slider"" || form[i].type == ""Toggle"" || form[i].type == ""UserInput"" || form[i].type == ""PresetPicker"") {{
                             if (!form[i].no_save)
                                 form[i].data_ref.save(section);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"" || form[i].type == ""Reset"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                     }}
                     for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
                         additional_save_data_refs[i].save(section);
@@ -1639,10 +1870,10 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     var to = save_category(undefined, arg1);
                     ossafe_ini_open(ini_name);
                     for (var i = 0; i < array_length(form); i++) {{
-                        if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                        if (form[i].type == ""Slider"" || form[i].type == ""Toggle"" || form[i].type == ""UserInput"" || form[i].type == ""PresetPicker"") {{
                             if (!form[i].no_save)
                                 form[i].data_ref.copy(from, to);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"" || form[i].type == ""Reset"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                     }}
                     for (var i = 0; i < array_length(additional_save_data_refs); i++) {{
                         additional_save_data_refs[i].copy(from, to);
@@ -1663,9 +1894,9 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     var data_refs = [];
                     array_copy(data_refs, 0, additional_save_data_refs, 0, array_length(additional_save_data_refs));
                     for (var i = 0; i < array_length(form); i++) {{
-                        if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                        if (form[i].type == ""Slider"" || form[i].type == ""Toggle"" || form[i].type == ""UserInput"" || form[i].type == ""PresetPicker"") {{
                             array_insert(data_refs, array_length(data_refs), form[i].data_ref);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"" || form[i].type == ""Reset"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                     }}
                     return data_refs;
                 }},
@@ -1673,10 +1904,10 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     var data_refs = [];
                     array_copy(data_refs, 0, additional_save_data_refs, 0, array_length(additional_save_data_refs));
                     for (var i = 0; i < array_length(form); i++) {{
-                        if (form[i].type == ""Slider"" || form[i].type == ""Toggle"") {{
+                        if (form[i].type == ""Slider"" || form[i].type == ""Toggle"" || form[i].type == ""UserInput"" || form[i].type == ""PresetPicker"") {{
                             if (!form[i].no_save)
                                 array_insert(data_refs, array_length(data_refs), form[i].data_ref);
-                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"") {{}} else throw (""Unsupported row type: "" + form[i].type);
+                        }} else if (form[i].type == ""Button"" || form[i].type == ""Header"" || form[i].type == ""Reset"") {{}} else throw (""Unsupported row type: "" + form[i].type);
                     }}
                     return data_refs;
                 }}
@@ -1696,6 +1927,8 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
         }}
     }};
 "; }
+
+// SimpleTextOutput("Debug: modmenu_core_init", "modmenu_core_init: ", modmenu_core_init(""), true);
 
 // Code edits
 UndertaleModLib.Compiler.CodeImportGroup importGroup = new(Data){
@@ -1754,7 +1987,35 @@ if (freshInstall)
         importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "if (global.menucoord[0] == 4)", "if (global.menucoord[0] == 5)");
         importGroup.QueueAppend(darkcon + "_Step_0", "global.modmenu.step_darkmenu();");
     }
+}
 
+if (freshInstall || detectedVersion == "v2_0_2" || detectedVersion == "v2_0_1" || detectedVersion == "v2_0_0" || detectedVersion == "v2_0_beta_2")
+{
+    // DEVICE_CHOICE setup for UserInput
+    {
+        string[] choicers = {"gml_Object_DEVICE_CHOICE"};
+        if (ch_no == 0)
+        {
+            string[] demoChoicers = {"gml_Object_DEVICE_CHOICE_ch1"};
+            choicers = choicers.Concat(demoChoicers).ToArray();
+        }
+        foreach (string scrName in choicers)
+        {
+            importGroup.QueueAppend($"{scrName}_Create_0", "MODMENUTYPE = false;");
+            importGroup.QueuePrepend($"{scrName}_Draw_0", @"
+                if (MODMENUTYPE)
+                    surface_set_target(global.modmenu.get_surf_namer());
+            ");
+            importGroup.QueueAppend($"{scrName}_Draw_0", @"
+                if (MODMENUTYPE)
+                    surface_reset_target();
+            ");
+        }
+    }
+}
+
+if (freshInstall)
+{
     // Save menu data
     string[] saveLikes = {"gml_GlobalScript_scr_saveprocess"};
     if (ch_no == 0)
