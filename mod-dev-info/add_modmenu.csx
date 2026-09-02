@@ -93,8 +93,9 @@ string example_config(string modmenuPostfix) { return @$"
                 }},{{
                     type: ""UserInput"",
                     title: ""Example UserInput"",
-                    data_ref: {{ var_name: ""example_userinput"", default_value: ""USERONE"" }},
-                    max_length: 12
+                    data_ref: {{ var_name: ""example_userinput"", default_value: """" }},
+                    max_length: 12, // optional (default=12)
+                    cutoff_length: 12 // optional (default=12)
                 }},{{
                     type: ""Header"",
                     title: ""Example Header""

@@ -38,6 +38,12 @@ if (variable_instance_exists(global, "modmenu")) {
         data_ref: { var_name: "example_slider", default_value: -1 },
         value_range: "OFF=-1;0~1000%;INF=2147483647"
       },{
+        type: "UserInput",
+        title: "Example UserInput",
+        data_ref: {{ var_name: "example_userinput", default_value: "" }},
+        max_length: 12, // optional (default=12)
+        cutoff_length: 12 // optional (default=12)
+      },{
         type: "Header",
         title: "Example Header"
       },{
@@ -55,6 +61,7 @@ The menu's `form` contains a basic example of every type of menu-item available.
 
 - Toggle — When clicked; cycles through a range of values ([`value_range`](#Value-Ranges)), updates a variable indicated by [`data_ref`](#Data-Refs) (global scoped by default).
 - Slider — When clicked, and then left/right pressed; slides through a range of values ([`value_range`](#Value-Ranges)), updates a variable indicated by [`data_ref`](#Data-Refs) (global scoped by default).
+- UserInput — When clicked, opens the namer UI for the user to input custom text (A-Z) up to a length of `max_length`, updates a variable indicated by [`data_ref`](#Data-Refs) (global scoped by default).
 - Header — No behaviour, just used to divide your menu into sections.
 - Button — When clicked; run a function of your choice.
 
@@ -291,6 +298,21 @@ for (var i = 0; i < array_length(my_ref_arr); i++) {
       hidden: bool | callable, // optional - prevent display of menu item
       ref: {handle: handle /* optional(default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
     },{
+      type: "UserInput",
+      title: localised string,
+      data_ref: {handle: handle /* optional (default=global)*/, var_name: string, default_value: any, ini_key: string  /* optional */}, // reference to the variable that this menu-item should get/set, see Data Refs below
+      max_length: localised numeric, // optional(default=12) - maximum length of the text the user can inout
+      cutoff_length: localised numeric, // optional(default=12) - if value exceeds this length, display it cut-off with a '...' at the end
+      no_save: bool, // optional - set true if you don't want this setting to be saved (if using save feature)
+      revert_on_cancel: bool | callable, // optional
+      trigger_func: callable, // optional - when menu-item is clicked
+      change_func: callable, // optional - when value is changed
+      cancel_func: callable, // optional - when user-input is cancelled
+      accept_func: callable, // optional - when user-input is accepted
+      disabled: bool | callable, // optional - grey out menu item and prevent interaction
+      hidden: bool | callable, // optional - prevent display of menu item
+      ref: {handle: handle /* optional(default=global) */, var_name: string} // optional - reference to the variable that should hold a pointer to this menu-item
+    },{
       type: "Button",
       title: localised string,
       trigger_func: callable, // when menu-item is clicked
@@ -362,5 +384,7 @@ These properties all support localisation:
 - style.dark.left_value_pos
 - form[].title
 - form[].value_range
+- form[].max_length
+- form[].cutoff_length
 
 It's recommended to use the [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) standard for lang strings if you are adding additional languages.

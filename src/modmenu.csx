@@ -347,8 +347,17 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
         slider_accel: 1 / 20,
         selectable_orig_value: undefined,
         doing_namer: false,
+        namer_backout_buffer: 0,
         backedout_namer: false,
         choice_namer_inst: -1,
+        surf_namer: -1,
+        get_surf_namer: function () {{
+            if (!surface_exists(surf_namer))
+            {{
+                surf_namer = surface_create(320, 240);
+            }}
+            return surf_namer;
+        }},
 
         // some translation mods replace the english translation rather than using DR's built in localisation support, so can't always rely on global.lang and have to override for certain mods
         lang_override: """",
@@ -957,7 +966,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         if (button2_p() && other.twobuffer < 0)
                             other.se_cancel = 1;
                     }} else if (row_data.type == ""UserInput"") {{
-                        if (!doing_namer && !i_ex(choice_namer_inst)) {{
+                        if (!doing_namer && !(choice_namer_inst > 0 && instance_exists(choice_namer_inst))) {{
                             JA_XOFF = -12;
                             JA_YOFF = 0;
 
@@ -965,17 +974,6 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                                 JA_XOFF = -50;
                                 JA_YOFF = 10;
                             }}
-
-                            // with (obj_writer)
-                            //     instance_destroy();
-
-                            // msgset(0, string_upper(row_data.title_loc()));
-                            // W = instance_create(80 + JA_XOFF, 20 + JA_YOFF, obj_writer);
-
-                            // with (W) {{
-                            //     hspace *= 0.8;
-                            //     skipme = 1;
-                            // }}
 
                             choice_namer_inst = instance_create(0, 0, DEVICE_CHOICE);
                             doing_namer = true;
@@ -989,17 +987,26 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
 
                                 STRINGMAX = row_data.max_length_loc();
                                 NAMESTRING = row_data.data_ref.get();
+
+                                MODMENUTYPE = true;
+                                ERASE = 0;
                             }}
+
+                            namer_backout_buffer = string_length(choice_namer_inst.NAMESTRING) <= 0;
                         }} else if (doing_namer) {{
-                            if (i_ex(choice_namer_inst)) {{
+                            if (choice_namer_inst > 0 && instance_exists(choice_namer_inst)) {{
                                 if (choice_namer_inst.NAMESTRING != row_data.data_ref.get()) {{
                                     row_data.data_ref.set(choice_namer_inst.NAMESTRING);
 
                                     row_data.change_func();
                                     if (!is_undefined(active_menu().apply)) active_menu().apply.run_onchange();
                                 }}
+                                if (choice_namer_inst.ERASE == 1 && string_length(choice_namer_inst.NAMESTRING) <= 0)
+                                    namer_backout_buffer++;
+                                else if (string_length(choice_namer_inst.NAMESTRING) > 0)
+                                    namer_backout_buffer = 0;
 
-                                if (choice_namer_inst.backout == 1) {{
+                                if (namer_backout_buffer > 1) {{
                                     backedout_namer = true;
 
                                     with (choice_namer_inst)
@@ -1008,8 +1015,8 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                             }} else {{
                                 doing_namer = false;
 
-                                // with (obj_writer)
-                                //     instance_destroy();
+                                if (row_data.data_ref.get() == """")
+                                    backedout_namer = true;
 
                                 other.se_select = !backedout_namer;
                                 other.se_cancel = backedout_namer;
@@ -1056,7 +1063,20 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
 
                 draw_set_color(c_white);
 
-                if (menu_dark_count > 0) {{
+                if (doing_namer) {{
+                    var form_data = active_menu().form;
+                    var row_data = form_data[row_no];
+
+                    draw_set_halign(fa_center);
+                    draw_text(other.xx + 320, other.yy + 130, string_upper(string_hash_to_newline(row_data.title_loc())));
+                    draw_set_halign(fa_left);
+
+                    draw_surface_stretched(get_surf_namer(), other.xx, other.yy+110, 640, 480);
+
+                    surface_set_target(get_surf_namer());
+                    draw_clear_alpha(c_white,0);
+                    surface_reset_target();
+                }} else if (menu_dark_count > 0) {{
                     // top row buttons
                     var isSubmenu = (row_no >= 0);
                     var isMenuLonely = menu_dark_count == 1;
@@ -1444,10 +1464,12 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                     try {{ var check = row.value_range; if (!is_string(check) && !is_array(check)) throw ""row value_range must be of type string or array""; if (is_array(check)) {{ check = check[0]; if (!is_string(check.val)) throw ""row value range must be a string""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but form Slider/Toggle does not have a value_range.""; }}
                 }} else if (row.type == ""Button"" || row.type == ""Header"" || row.type == ""UserInput"") {{}} else throw (""Unsupported row type: "" + row.type);
 
-                // UserInput - mandatory | Button/Header/Slider/Toggle - invalid
+                // UserInput - optional | Button/Header/Slider/Toggle - invalid
                 if (row.type == ""UserInput"") {{
                     try {{ var check = row.max_length; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ row.max_length = 12; }}
                     try {{ var check = row.max_length; if (!is_numeric(check)) {{ check = check[0]; if (!is_numeric(check.val)) throw ""row.max_length is not numeric""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but row.max_length is not numeric.""; }}
+                    try {{ var check = row.cutoff_length; if (!is_numeric(check)) check = check[0]; }} catch (_e) {{ row.cutoff_length = 12; }}
+                    try {{ var check = row.cutoff_length; if (!is_numeric(check)) {{ check = check[0]; if (!is_numeric(check.val)) throw ""row.cutoff_length is not numeric""; }} }} catch (_e) {{ throw ""MODMENU VALIDATION ERROR: Tried to create a menu, but row.cutoff_length is not numeric.""; }}
                 }} else if (row.type == ""Button"" || row.type == ""Header"" || row.type == ""Slider"" || row.type == ""Toggle"") {{}} else throw (""Unsupported row type: "" + row.type);
 
                 // Slider/Toggle/UserInput - optional | Button/Header - invalid
@@ -1633,6 +1655,7 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         title: row.title,
                         data_ref: row.data_ref,
                         max_length: row.max_length,
+                        cutoff_length: row.cutoff_length,
                         no_save: row.no_save,
                         revert_on_cancel: row.revert_on_cancel,
                         trigger_func: row.trigger_func,
@@ -1644,7 +1667,15 @@ string modmenu_core_init(string modmenuPostfix) { return @$"
                         ref: row.ref,
                         title_loc: function(arg0) {{ return global.modmenu.find_loc(title, arg0); }},
                         max_length_loc: function(arg0) {{ return global.modmenu.find_loc(max_length, arg0); }},
-                        value_string: function() {{ var result = string(data_ref.get()); return ""["" + ((result == """") ? ""..."" : result) + ""]""; }},
+                        cutoff_length_loc: function(arg0) {{ return global.modmenu.find_loc(cutoff_length, arg0); }},
+                        value_string: function() {{
+                            var result = string(data_ref.get());
+
+                            if (string_length(result) > cutoff_length_loc())
+                                result = string_copy(result, 1, max(0, cutoff_length_loc() - 1)) + ""..."";
+
+                            return ""["" + ((result == """") ? "" "" : result) + ""]"";
+                        }},
                         is_disabled: function() {{ return !is_bool(disabled) ? disabled() : disabled; }},
                         is_hidden: function() {{ return !is_bool(hidden) ? hidden() : hidden; }}
                     }};
@@ -1869,7 +1900,35 @@ if (freshInstall)
         importGroup.QueueTrimmedLinesFindReplace(darkcon + "_Step_0", "if (global.menucoord[0] == 4)", "if (global.menucoord[0] == 5)");
         importGroup.QueueAppend(darkcon + "_Step_0", "global.modmenu.step_darkmenu();");
     }
+}
 
+if (freshInstall || detectedVersion == "v2_0_2" || detectedVersion == "v2_0_1" || detectedVersion == "v2_0_0" || detectedVersion == "v2_0_beta_2")
+{
+    // DEVICE_CHOICE setup for UserInput
+    {
+        string[] choicers = {"gml_Object_DEVICE_CHOICE"};
+        if (ch_no == 0)
+        {
+            string[] demoChoicers = {"gml_Object_DEVICE_CHOICE_ch1"};
+            choicers = choicers.Concat(demoChoicers).ToArray();
+        }
+        foreach (string scrName in choicers)
+        {
+            importGroup.QueueAppend($"{scrName}_Create_0", "MODMENUTYPE = false;");
+            importGroup.QueuePrepend($"{scrName}_Draw_0", @"
+                if (MODMENUTYPE)
+                    surface_set_target(global.modmenu.get_surf_namer());
+            ");
+            importGroup.QueueAppend($"{scrName}_Draw_0", @"
+                if (MODMENUTYPE)
+                    surface_reset_target();
+            ");
+        }
+    }
+}
+
+if (freshInstall)
+{
     // Save menu data
     string[] saveLikes = {"gml_GlobalScript_scr_saveprocess"};
     if (ch_no == 0)
